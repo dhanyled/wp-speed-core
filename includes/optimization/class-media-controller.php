@@ -35,11 +35,29 @@ class MediaController {
         $count = 0;
 
         while ($p->next_tag(['tag_name' => 'img'])) {
-            $count++;
-            $src = $p->get_attribute('src');
-            if (!$src) {
+            $src   = $p->get_attribute('src');
+            $class = $p->get_attribute('class') ?? '';
+
+            if (!$src || strpos($src, 'data:image/svg+xml') === 0 || strpos($src, 'data:image/gif') === 0) {
                 continue;
             }
+
+            if (
+                stripos($src, 'logo') !== false ||
+                stripos($src, 'avatar') !== false ||
+                stripos($src, 'gravatar') !== false ||
+                stripos($src, 'icon') !== false ||
+                stripos($class, 'logo') !== false ||
+                stripos($class, 'avatar') !== false
+            ) {
+                if (!empty($this->opts['native_lazy']) && $p->get_attribute('loading') === null) {
+                    $p->set_attribute('loading', 'lazy');
+                    $p->set_attribute('decoding', 'async');
+                }
+                continue;
+            }
+
+            $count++;
 
             if ($count === 1 && !empty($this->opts['auto_hero_priority'])) {
                 $p->set_attribute('fetchpriority', 'high');

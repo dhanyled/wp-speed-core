@@ -27,8 +27,14 @@ class AssetGatekeeper {
                 $disabled = true;
             } elseif (!empty($config['posts']) && in_array($current_id, (array) $config['posts'], true)) {
                 $disabled = true;
-            } elseif (!empty($config['url_match']) && @preg_match('#' . $config['url_match'] . '#i', $uri)) {
-                $disabled = true;
+            } elseif (!empty($config['url_match'])) {
+                $pattern = trim((string) $config['url_match']);
+                if ($pattern !== '') {
+                    $pattern = '#' . str_replace('#', '\#', $pattern) . '#i';
+                    if (@preg_match($pattern, $uri)) {
+                        $disabled = true;
+                    }
+                }
             }
 
             if ($disabled) {

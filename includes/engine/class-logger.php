@@ -14,7 +14,7 @@ class Logger {
 
     public function __construct() {
         $this->log_dir  = WPSC_CACHE_DIR . 'logs/';
-        $this->log_file = $this->log_dir . 'debug.log';
+        $this->log_file = $this->log_dir . 'debug.log.php';
         $this->ensure_log_dir();
     }
 
@@ -39,6 +39,10 @@ class Logger {
 
     public function log(string $level, string $message, array $context = []): void {
         $this->rotate_if_needed();
+
+        if (!file_exists($this->log_file) || filesize($this->log_file) === 0) {
+            @file_put_contents($this->log_file, "<?php die(); ?>\n", LOCK_EX);
+        }
 
         $timestamp = gmdate('Y-m-d H:i:s');
         $ctx_str   = !empty($context) ? ' ' . wp_json_encode($context, JSON_UNESCAPED_SLASHES) : '';
@@ -84,6 +88,10 @@ class Logger {
             return 'Log kosong.';
         }
 
+        $lines = array_filter($lines, static function (string $line): bool {
+            return strpos($line, '<?php') === false;
+        });
+
         if (count($lines) > $max_lines) {
             $lines = array_slice($lines, -$max_lines);
         }
@@ -102,14 +110,14 @@ class Logger {
 
     private function rotate_if_needed(): void {
         if (file_exists($this->log_file) && filesize($this->log_file) > self::MAX_FILE_SIZE) {
-            $backup = $this->log_dir . 'debug-' . gmdate('Ymd-His') . '.log.bak';
+            $backup = $this->log_dir . 'debug-' . gmdate('Ymd-His') . '.php.bak';
             @rename($this->log_file, $backup);
             $this->cleanup_old_backups();
         }
     }
 
     private function cleanup_old_backups(): void {
-        $files = glob($this->log_dir . '*.log.bak');
+        $files = glob($this->log_dir . '*.bak');
         if ($files && count($files) > 3) {
             usort($files, static fn($a, $b) => filemtime($a) <=> filemtime($b));
             while (count($files) > 3) {

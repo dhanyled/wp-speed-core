@@ -42,7 +42,24 @@ class HtmlCacheEngine {
     private function cache_file(): string {
         $host = sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'] ?? 'default'));
         $uri  = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? '/'));
-        $path = strtok($uri, '?');
+
+        $parts = explode('?', $uri, 2);
+        $path  = $parts[0];
+        $query = $parts[1] ?? '';
+
+        if ($query !== '') {
+            parse_str($query, $params);
+            $ignored = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'fbclid', 'gclid', 'msclkid'];
+            foreach ($ignored as $key) {
+                unset($params[$key]);
+            }
+            ksort($params);
+            $clean_query = http_build_query($params);
+            if ($clean_query !== '') {
+                $path .= '?' . $clean_query;
+            }
+        }
+
         return $this->dir . md5($host . $path) . '.html';
     }
 
@@ -56,6 +73,18 @@ class HtmlCacheEngine {
         if (empty($this->opts['cache_authenticated']) && is_user_logged_in()) {
             return false;
         }
+
+        foreach ($_COOKIE as $cookie_name => $val) {
+            if (
+                strpos($cookie_name, 'wp_woocommerce_session_') === 0 ||
+                strpos($cookie_name, 'woocommerce_items_in_cart') === 0 ||
+                strpos($cookie_name, 'woocommerce_cart_hash') === 0 ||
+                strpos($cookie_name, 'comment_author_') === 0
+            ) {
+                return false;
+            }
+        }
+
         if (function_exists('is_cart') && is_cart()) {
             return false;
         }
