@@ -34,6 +34,26 @@ class BloatSuppressor {
         if (!empty($this->opts['disable_cart_fragments_non_shop'])) {
             add_action('wp_enqueue_scripts', [$this, 'strip_cart_fragments'], 99);
         }
+        $this->init_heartbeat();
+    }
+
+    private function init_heartbeat(): void {
+        $mode = $this->opts['heartbeat_mode'] ?? 'throttle';
+        if ($mode === 'disable') {
+            add_action('init', [$this, 'disable_heartbeat'], 1);
+        } elseif ($mode === 'throttle') {
+            add_filter('heartbeat_settings', [$this, 'throttle_heartbeat']);
+        }
+    }
+
+    public function disable_heartbeat(): void {
+        wp_deregister_script('heartbeat');
+    }
+
+    public function throttle_heartbeat(array $settings): array {
+        $interval = (int) ($this->opts['heartbeat_interval'] ?? 60);
+        $settings['interval'] = max(15, min(120, $interval));
+        return $settings;
     }
 
     public function strip_emojis(): void {

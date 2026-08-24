@@ -110,14 +110,14 @@ class Logger {
 
     private function rotate_if_needed(): void {
         if (file_exists($this->log_file) && filesize($this->log_file) > self::MAX_FILE_SIZE) {
-            $backup = $this->log_dir . 'debug-' . gmdate('Ymd-His') . '.php.bak';
+            $backup = $this->log_dir . 'debug-' . gmdate('Ymd-His') . '.log.php';
             @rename($this->log_file, $backup);
             $this->cleanup_old_backups();
         }
     }
 
     private function cleanup_old_backups(): void {
-        $files = glob($this->log_dir . '*.bak');
+        $files = glob($this->log_dir . 'debug-*.log.php');
         if ($files && count($files) > 3) {
             usort($files, static fn($a, $b) => filemtime($a) <=> filemtime($b));
             while (count($files) > 3) {

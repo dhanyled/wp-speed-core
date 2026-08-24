@@ -35,6 +35,25 @@ class DatabaseHousekeeper {
         }
     }
 
+    public function optimize_tables(): int {
+        global $wpdb;
+        $tables = $wpdb->get_col('SHOW TABLES');
+        $count  = 0;
+
+        if ($tables) {
+            foreach ($tables as $table) {
+                $wpdb->query("OPTIMIZE TABLE `{$table}`");
+                $count++;
+            }
+        }
+
+        if ($this->logger) {
+            $this->logger->info('Database tables optimization completed.', ['tables_optimized' => $count]);
+        }
+
+        return $count;
+    }
+
     public function trim_revisions(): int {
         global $wpdb;
         $sql = $wpdb->prepare(

@@ -56,4 +56,8 @@ register_deactivation_hook(__FILE__, static function () {
 
 add_action('plugins_loaded', static function () {
     Kernel::launch();
+
+    if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {
+        WP_CLI::add_command('wpsc', \WPSpeedCore\CLI\CLICommand::class);
+    }
 }, 5);

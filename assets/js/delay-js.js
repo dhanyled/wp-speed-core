@@ -38,7 +38,6 @@
                         oldScript.parentNode.replaceChild(newScript, oldScript);
                     } else {
                         document.head.appendChild(newScript);
-                        resolve();
                     }
                 });
             } else {
