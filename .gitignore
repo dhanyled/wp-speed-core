@@ -1,0 +1,16 @@
+# System & OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python / Scratch
+*.py
+*.pyc
+__pycache__/
+scratch/
+.venv/
+venv/
+
+# Local cache
+/cache/
+*.log
