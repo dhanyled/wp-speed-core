@@ -50,6 +50,7 @@ final class Kernel {
         $this->registry['fonts']   = new Optimization\FontController();
         $this->registry['preload'] = new Optimization\SpeculationEngine();
         $this->registry['assets']  = new Optimization\AssetGatekeeper();
+        $this->registry['cdn']     = new Optimization\CdnRewriter();
         $this->registry['db']      = new Optimization\DatabaseHousekeeper($logger);
     }
 

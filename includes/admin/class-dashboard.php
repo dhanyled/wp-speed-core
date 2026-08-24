@@ -47,6 +47,39 @@ class Dashboard {
             exit;
         }
 
+        if (isset($_POST['wpsc_warm_cache']) && check_admin_referer('wpsc_warm_nonce')) {
+            do_action('wpsc_warm_cache');
+            wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'warmed' => '1'], admin_url('options-general.php')));
+            exit;
+        }
+
+        if (isset($_POST['wpsc_db_clean']) && check_admin_referer('wpsc_db_clean_nonce')) {
+            $db = $this->modules['db'] ?? null;
+            if ($db) {
+                $db->maintain();
+                $db->optimize_tables();
+            }
+            wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'db_cleaned' => '1'], admin_url('options-general.php')));
+            exit;
+        }
+
+        if (isset($_POST['wpsc_save_cdn']) && check_admin_referer('wpsc_cdn_nonce')) {
+            $curr = (array) get_option('wpsc_settings', []);
+            $curr['cdn']['enable_cdn'] = !empty($_POST['wpsc_enable_cdn']) ? 1 : 0;
+            $curr['cdn']['cdn_url']    = esc_url_raw($_POST['wpsc_cdn_url'] ?? '');
+            update_option('wpsc_settings', $curr);
+            wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'cdn_saved' => '1'], admin_url('options-general.php')));
+            exit;
+        }
+
+        if (isset($_POST['wpsc_save_cache_exclusions']) && check_admin_referer('wpsc_exclusions_nonce')) {
+            $curr = (array) get_option('wpsc_settings', []);
+            $curr['cache']['cache_exclusions'] = sanitize_textarea_field($_POST['wpsc_cache_exclusions'] ?? '');
+            update_option('wpsc_settings', $curr);
+            wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'exclusions_saved' => '1'], admin_url('options-general.php')));
+            exit;
+        }
+
         if (isset($_POST['wpsc_clear_logs']) && check_admin_referer('wpsc_clear_logs_nonce')) {
             $logger = $this->modules['logger'] ?? null;
             if ($logger) {
@@ -496,10 +529,18 @@ class Dashboard {
                         </div>
                     </div>
                 </div>
-                <div style="display: flex; gap: 12px; align-items: center;">
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                     <form method="post" style="margin: 0;">
                         <?php wp_nonce_field('wpsc_purge_nonce'); ?>
-                        <button type="submit" name="wpsc_purge_cache" class="wpsc-btn-ghost">&#x1F5D1; <?php esc_html_e('Purge HTML Cache', 'wp-speed-core'); ?></button>
+                        <button type="submit" name="wpsc_purge_cache" class="wpsc-btn-ghost">&#x1F5D1; <?php esc_html_e('Purge Cache', 'wp-speed-core'); ?></button>
+                    </form>
+                    <form method="post" style="margin: 0;">
+                        <?php wp_nonce_field('wpsc_warm_nonce'); ?>
+                        <button type="submit" name="wpsc_warm_cache" class="wpsc-btn-ghost">&#x1F525; <?php esc_html_e('Warm Cache', 'wp-speed-core'); ?></button>
+                    </form>
+                    <form method="post" style="margin: 0;">
+                        <?php wp_nonce_field('wpsc_db_clean_nonce'); ?>
+                        <button type="submit" name="wpsc_db_clean" class="wpsc-btn-ghost">&#x1F9F9; <?php esc_html_e('Clean DB Now', 'wp-speed-core'); ?></button>
                     </form>
                     <form method="post" style="margin: 0;">
                         <?php wp_nonce_field('wpsc_autotune_nonce'); ?>
@@ -515,6 +556,46 @@ class Dashboard {
                     <div>
                         <strong><?php esc_html_e('Smart Auto-Tune Berhasil Diterapkan!', 'wp-speed-core'); ?></strong><br>
                         <?php esc_html_e('Profil akselerasi server, JS delay, LCP hero priority, dan cache telah dioptimasi otomatis sesuai stack sistem Anda.', 'wp-speed-core'); ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['exclusions_saved'])): ?>
+                <div class="wpsc-alert wpsc-alert-info">
+                    <div style="font-size: 18px;">&#x1F687;</div>
+                    <div>
+                        <strong><?php esc_html_e('Pengecualian Cache Berhasil Disimpan!', 'wp-speed-core'); ?></strong><br>
+                        <?php esc_html_e('Path/URL yang terdaftar tidak akan disimpan ke dalam cache statis.', 'wp-speed-core'); ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['warmed'])): ?>
+                <div class="wpsc-alert wpsc-alert-success">
+                    <div style="font-size: 18px;">&#x1F525;</div>
+                    <div>
+                        <strong><?php esc_html_e('Cache Warmer Berhasil Dijalankan!', 'wp-speed-core'); ?></strong><br>
+                        <?php esc_html_e('Halaman utama dan feed telah dimuat ulang ke dalam cache statis.', 'wp-speed-core'); ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['db_cleaned'])): ?>
+                <div class="wpsc-alert wpsc-alert-success">
+                    <div style="font-size: 18px;">&#x1F9F9;</div>
+                    <div>
+                        <strong><?php esc_html_e('Pembersihan & Defragmentasi Database Selesai!', 'wp-speed-core'); ?></strong><br>
+                        <?php esc_html_e('Revisi usang, sampah, transient, dan tabel database telah di-optimasi.', 'wp-speed-core'); ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['cdn_saved'])): ?>
+                <div class="wpsc-alert wpsc-alert-info">
+                    <div style="font-size: 18px;">&#x1F310;</div>
+                    <div>
+                        <strong><?php esc_html_e('Pengaturan CDN Berhasil Disimpan!', 'wp-speed-core'); ?></strong><br>
+                        <?php esc_html_e('URL aset statis (wp-content/wp-includes) akan rewrite otomatis ke CNAME CDN Anda.', 'wp-speed-core'); ?>
                     </div>
                 </div>
             <?php endif; ?>
@@ -623,6 +704,39 @@ class Dashboard {
                             <span class="wpsc-pill wpsc-pill-warn">DOM Fallback</span>
                         <?php endif; ?>
                     </div>
+                </div>
+            </div>
+
+            <!-- CDN & Cache Exclusion Panels Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 18px; margin-bottom: 24px;">
+                <!-- CDN Panel -->
+                <div class="wpsc-glass" style="padding: 22px;">
+                    <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700; color: #fff;">&#x1F310; <?php esc_html_e('Content Delivery Network (CDN)', 'wp-speed-core'); ?></h3>
+                    <p style="margin: 0 0 16px 0; font-size: 13px; color: var(--wpsc-text-muted);"><?php esc_html_e('Arahkan seluruh aset statis (gambar, CSS, JS, font) ke domain CNAME CDN kustom Anda.', 'wp-speed-core'); ?></p>
+                    <form method="post">
+                        <?php wp_nonce_field('wpsc_cdn_nonce'); ?>
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;">
+                                <input type="checkbox" name="wpsc_enable_cdn" value="1" <?php checked(!empty($settings['cdn']['enable_cdn'])); ?>>
+                                <?php esc_html_e('Aktifkan CDN Rewriter', 'wp-speed-core'); ?>
+                            </label>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="url" name="wpsc_cdn_url" value="<?php echo esc_url($settings['cdn']['cdn_url'] ?? ''); ?>" placeholder="https://cdn.domainanda.com" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 8px 14px; border-radius: 8px; flex: 1; font-size: 13px;">
+                            <button type="submit" name="wpsc_save_cdn" class="wpsc-btn-ghost" style="padding: 8px 16px; font-size: 12px;"><?php esc_html_e('Simpan CDN', 'wp-speed-core'); ?></button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Cache Exclusions Panel -->
+                <div class="wpsc-glass" style="padding: 22px;">
+                    <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700; color: #fff;">&#x1F687; <?php esc_html_e('Never Cache URLs (Cache Exclusions)', 'wp-speed-core'); ?></h3>
+                    <p style="margin: 0 0 12px 0; font-size: 13px; color: var(--wpsc-text-muted);"><?php esc_html_e('Masukkan URL/Path per baris yang tidak boleh di-cache (misal: /dynamic-page/ atau /custom-checkout/*).', 'wp-speed-core'); ?></p>
+                    <form method="post">
+                        <?php wp_nonce_field('wpsc_exclusions_nonce'); ?>
+                        <textarea name="wpsc_cache_exclusions" rows="3" style="width: 100%; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-size: 12px; margin-bottom: 10px;" placeholder="/dynamic-page/&#10;/custom-checkout/*"><?php echo esc_textarea($settings['cache']['cache_exclusions'] ?? ''); ?></textarea>
+                        <button type="submit" name="wpsc_save_cache_exclusions" class="wpsc-btn-ghost" style="padding: 8px 16px; font-size: 12px;"><?php esc_html_e('Simpan Pengecualian', 'wp-speed-core'); ?></button>
+                    </form>
                 </div>
             </div>
 

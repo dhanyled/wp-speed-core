@@ -34,6 +34,60 @@ class BloatSuppressor {
         if (!empty($this->opts['disable_cart_fragments_non_shop'])) {
             add_action('wp_enqueue_scripts', [$this, 'strip_cart_fragments'], 99);
         }
+        $this->init_heartbeat();
+        $this->init_security_hardening();
+    }
+
+    private function init_security_hardening(): void {
+        add_action('init', [$this, 'block_author_enumeration']);
+        add_filter('rest_endpoints', [$this, 'disable_user_rest_endpoint']);
+        add_action('send_headers', [$this, 'inject_security_headers']);
+    }
+
+    public function block_author_enumeration(): void {
+        if (!is_admin() && isset($_GET['author']) && is_numeric($_GET['author'])) {
+            wp_die(esc_html__('Akses tidak diizinkan.', 'wp-speed-core'), 'Akses Ditolak', ['response' => 403]);
+        }
+    }
+
+    public function disable_user_rest_endpoint(array $endpoints): array {
+        if (!is_user_logged_in()) {
+            if (isset($endpoints['/wp/v2/users'])) {
+                unset($endpoints['/wp/v2/users']);
+            }
+            if (isset($endpoints['/wp/v2/users/(?P<id>[\d]+)'])) {
+                unset($endpoints['/wp/v2/users/(?P<id>[\d]+)']);
+            }
+        }
+        return $endpoints;
+    }
+
+    public function inject_security_headers(): void {
+        if (!is_admin() && !headers_sent()) {
+            header('X-Content-Type-Options: nosniff');
+            header('X-Frame-Options: SAMEORIGIN');
+            header('X-XSS-Protection: 1; mode=block');
+            header('Referrer-Policy: strict-origin-when-cross-origin');
+        }
+    }
+
+    private function init_heartbeat(): void {
+        $mode = $this->opts['heartbeat_mode'] ?? 'throttle';
+        if ($mode === 'disable') {
+            add_action('init', [$this, 'disable_heartbeat'], 1);
+        } elseif ($mode === 'throttle') {
+            add_filter('heartbeat_settings', [$this, 'throttle_heartbeat']);
+        }
+    }
+
+    public function disable_heartbeat(): void {
+        wp_deregister_script('heartbeat');
+    }
+
+    public function throttle_heartbeat(array $settings): array {
+        $interval = (int) ($this->opts['heartbeat_interval'] ?? 60);
+        $settings['interval'] = max(15, min(120, $interval));
+        return $settings;
     }
 
     public function strip_emojis(): void {

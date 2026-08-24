@@ -71,8 +71,22 @@ class ScriptController {
             $src  = $p->get_attribute('src');
             $type = $p->get_attribute('type');
 
-            if ($type && in_array($type, ['application/ld+json', 'application/json', 'speculationrules', 'text/wpsc-queued'], true)) {
-                continue;
+            if ($type) {
+                $type_clean = strtolower(trim($type));
+                if (in_array($type_clean, [
+                    'application/ld+json',
+                    'application/json',
+                    'speculationrules',
+                    'text/wpsc-queued',
+                    'module',
+                    'importmap',
+                    'text/template',
+                    'template',
+                    'text/html',
+                    'text/x-handlebars-template'
+                ], true)) {
+                    continue;
+                }
             }
 
             $skip = false;
