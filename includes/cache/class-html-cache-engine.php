@@ -86,6 +86,28 @@ class HtmlCacheEngine {
             }
         }
 
+        $ex_raw = $this->opts['cache_exclusions'] ?? '';
+        if (!empty($ex_raw)) {
+            $uri     = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? '/'));
+            $ex_list = array_filter(array_map('trim', explode(chr(10), $ex_raw)));
+            foreach ($ex_list as $ex) {
+                if (empty($ex)) {
+                    continue;
+                }
+                $ex_clean = ltrim($ex, '/');
+                $uri_clean = ltrim($uri, '/');
+
+                if (strpos($ex, '*') !== false) {
+                    $pattern = '#^' . str_replace('\*', '.*', preg_quote($ex_clean, '#')) . '#i';
+                    if (preg_match($pattern, $uri_clean)) {
+                        return false;
+                    }
+                } elseif (stripos($uri, $ex) !== false || stripos($uri_clean, $ex_clean) !== false) {
+                    return false;
+                }
+            }
+        }
+
         if (function_exists('is_cart') && is_cart()) {
             return false;
         }
