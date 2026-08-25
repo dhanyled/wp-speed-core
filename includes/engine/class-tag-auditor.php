@@ -46,7 +46,7 @@ class TagAuditor {
             }
         }
 
-        if (preg_match_all('/(?:gtag\s*\(\s*[\'"]config[\'"]\s*,\s*[\'"]|googletagmanager\.com\/gtag\/js\?id=|data-ga-id=["\'])(G-[A-Z0-9]{8,12})/i', $html, $matches)) {
+        if (preg_match_all('/(G-[A-Z0-9]{6,12})/i', $html, $matches)) {
             $ids = array_unique($matches[1]);
             foreach ($ids as $id) {
                 $c = substr_count($html, $id);
@@ -99,8 +99,6 @@ class TagAuditor {
                     ]);
                 }
             }
-        } else {
-            delete_transient('wpsc_tag_audit');
         }
 
         return $html;

@@ -522,7 +522,7 @@ class Dashboard {
                 <div class="wpsc-logo-wrap">
                     <div class="wpsc-logo-icon">&#x26A1;</div>
                     <div>
-                        <h1 class="wpsc-title">WP Speed Core <span style="font-size: 13px; font-weight: 500; opacity: 0.6;">v1.3.0</span></h1>
+                        <h1 class="wpsc-title">WP Speed Core <span style="font-size: 13px; font-weight: 500; opacity: 0.6;">v1.0.0</span></h1>
                         <div class="wpsc-subtitle">
                             <span class="wpsc-badge-live"><span class="wpsc-radar-dot"></span> Active Engine</span>
                             <span>&bull; Author: <a href="https://t.me/leddhany" target="_blank" style="color: var(--wpsc-cyan); text-decoration: none;">Dhany (@leddhany)</a></span>

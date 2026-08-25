@@ -110,7 +110,7 @@ class BloatSuppressor {
     }
 
     public function strip_dashicons(): void {
-        if (!is_user_logged_in() && !is_admin() && (!function_exists('is_admin_bar_showing') || !is_admin_bar_showing())) {
+        if (!is_user_logged_in() && !is_admin()) {
             wp_deregister_style('dashicons');
         }
     }
