@@ -21,12 +21,7 @@ class AssetGatekeeper {
         $current_id = get_queried_object_id();
         $uri        = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? '/'));
 
-        foreach ($this->rules as $key => $config) {
-            $handle = is_string($key) ? $key : ($config['handle'] ?? '');
-            if (empty($handle)) {
-                continue;
-            }
-
+        foreach ($this->rules as $handle => $config) {
             $disabled = false;
             if (!empty($config['everywhere'])) {
                 $disabled = true;
@@ -43,12 +38,10 @@ class AssetGatekeeper {
             }
 
             if ($disabled) {
-                $type = $config['type'] ?? 'script';
-                if ($type === 'script' || $type === 'both') {
+                if (($config['type'] ?? 'script') === 'script') {
                     wp_dequeue_script($handle);
                     wp_deregister_script($handle);
-                }
-                if ($type === 'style' || $type === 'both') {
+                } else {
                     wp_dequeue_style($handle);
                     wp_deregister_style($handle);
                 }

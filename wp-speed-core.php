@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       WP Speed Core
  * Plugin URI:        https://t.me/leddhany
- * Description:       All-in-one WordPress performance & security acceleration engine with Adaptive Auto-Tuning, Disk HTML Cache, Gzip Pre-Compression, CDN Rewriter, WP-CLI commands, Asset Unloader, INP Shield script delay, auto-LCP priority, Speculation Rules prerender, and Security Hardening.
+ * Description:       All-in-one WordPress performance engine with Adaptive Auto-Tuning, Tracking Conflict Inspector, Overlap Arbiter, Disk HTML Cache, INP-safe script delay, auto-LCP priority, Speculation Rules prerender, and DB housekeeping.
  * Version:           1.3.0
  * Requires at least: 6.2
  * Requires PHP:      8.0

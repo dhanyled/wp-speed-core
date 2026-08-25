@@ -57,7 +57,14 @@ class MediaController {
                 }
             }
 
-            if (preg_match('/logo|avatar|gravatar|icon/i', $src . ' ' . $class)) {
+            if (
+                stripos($src, 'logo') !== false ||
+                stripos($src, 'avatar') !== false ||
+                stripos($src, 'gravatar') !== false ||
+                stripos($src, 'icon') !== false ||
+                stripos($class, 'logo') !== false ||
+                stripos($class, 'avatar') !== false
+            ) {
                 continue;
             }
 
