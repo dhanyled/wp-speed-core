@@ -21,21 +21,34 @@ class AssetGatekeeper {
         $current_id = get_queried_object_id();
         $uri        = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? '/'));
 
-        foreach ($this->rules as $handle => $config) {
+        foreach ($this->rules as $key => $config) {
+            $handle = is_string($key) ? $key : ($config['handle'] ?? '');
+            if (empty($handle)) {
+                continue;
+            }
+
             $disabled = false;
             if (!empty($config['everywhere'])) {
                 $disabled = true;
             } elseif (!empty($config['posts']) && in_array($current_id, (array) $config['posts'], true)) {
                 $disabled = true;
-            } elseif (!empty($config['url_match']) && @preg_match('#' . $config['url_match'] . '#i', $uri)) {
-                $disabled = true;
+            } elseif (!empty($config['url_match'])) {
+                $pattern = trim((string) $config['url_match']);
+                if ($pattern !== '') {
+                    $pattern = '#' . str_replace('#', '\#', $pattern) . '#i';
+                    if (@preg_match($pattern, $uri)) {
+                        $disabled = true;
+                    }
+                }
             }
 
             if ($disabled) {
-                if (($config['type'] ?? 'script') === 'script') {
+                $type = $config['type'] ?? 'script';
+                if ($type === 'script' || $type === 'both') {
                     wp_dequeue_script($handle);
                     wp_deregister_script($handle);
-                } else {
+                }
+                if ($type === 'style' || $type === 'both') {
                     wp_dequeue_style($handle);
                     wp_deregister_style($handle);
                 }

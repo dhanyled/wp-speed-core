@@ -14,7 +14,7 @@ class Logger {
 
     public function __construct() {
         $this->log_dir  = WPSC_CACHE_DIR . 'logs/';
-        $this->log_file = $this->log_dir . 'debug.log';
+        $this->log_file = $this->log_dir . 'debug.log.php';
         $this->ensure_log_dir();
     }
 
@@ -40,9 +40,13 @@ class Logger {
     public function log(string $level, string $message, array $context = []): void {
         $this->rotate_if_needed();
 
-        $timestamp = gmdate('Y-m-d H:i:s');
+        if (!file_exists($this->log_file) || filesize($this->log_file) === 0) {
+            @file_put_contents($this->log_file, "<?php die(); ?>\n", LOCK_EX);
+        }
+
+        $timestamp = function_exists('wp_date') ? wp_date('Y-m-d H:i:s') : (function_exists('date_i18n') ? date_i18n('Y-m-d H:i:s') : gmdate('Y-m-d H:i:s'));
         $ctx_str   = !empty($context) ? ' ' . wp_json_encode($context, JSON_UNESCAPED_SLASHES) : '';
-        $entry     = sprintf("[%s UTC] [%s] %s%s\n", $timestamp, strtoupper($level), $message, $ctx_str);
+        $entry     = sprintf("[%s] [%s] %s%s\n", $timestamp, strtoupper($level), $message, $ctx_str);
 
         @file_put_contents($this->log_file, $entry, FILE_APPEND | LOCK_EX);
     }
@@ -84,6 +88,10 @@ class Logger {
             return 'Log kosong.';
         }
 
+        $lines = array_filter($lines, static function (string $line): bool {
+            return strpos($line, '<?php') === false;
+        });
+
         if (count($lines) > $max_lines) {
             $lines = array_slice($lines, -$max_lines);
         }
@@ -102,14 +110,14 @@ class Logger {
 
     private function rotate_if_needed(): void {
         if (file_exists($this->log_file) && filesize($this->log_file) > self::MAX_FILE_SIZE) {
-            $backup = $this->log_dir . 'debug-' . gmdate('Ymd-His') . '.log.bak';
+            $backup = $this->log_dir . 'debug-' . gmdate('Ymd-His') . '.log.php';
             @rename($this->log_file, $backup);
             $this->cleanup_old_backups();
         }
     }
 
     private function cleanup_old_backups(): void {
-        $files = glob($this->log_dir . '*.log.bak');
+        $files = glob($this->log_dir . 'debug-*.log.php');
         if ($files && count($files) > 3) {
             usort($files, static fn($a, $b) => filemtime($a) <=> filemtime($b));
             while (count($files) > 3) {

@@ -35,11 +35,33 @@ class MediaController {
         $count = 0;
 
         while ($p->next_tag(['tag_name' => 'img'])) {
-            $count++;
-            $src = $p->get_attribute('src');
-            if (!$src) {
+            $src   = $p->get_attribute('src');
+            $class = $p->get_attribute('class') ?? '';
+
+            if (!$src || strpos($src, 'data:image/svg+xml') === 0 || strpos($src, 'data:image/gif') === 0) {
                 continue;
             }
+
+            if (!empty($this->opts['auto_dimensions']) && $p->get_attribute('width') === null && $p->get_attribute('height') === null) {
+                $site_url = site_url();
+                if (strpos($src, $site_url) === 0 || strpos($src, '/') === 0) {
+                    $rel_path = ltrim((string) parse_url($src, PHP_URL_PATH), '/');
+                    $abs_path = ABSPATH . $rel_path;
+                    if (file_exists($abs_path) && is_file($abs_path)) {
+                        $size = @getimagesize($abs_path);
+                        if (!empty($size[0]) && !empty($size[1])) {
+                            $p->set_attribute('width', (string) $size[0]);
+                            $p->set_attribute('height', (string) $size[1]);
+                        }
+                    }
+                }
+            }
+
+            if (preg_match('/logo|avatar|gravatar|icon/i', $src . ' ' . $class)) {
+                continue;
+            }
+
+            $count++;
 
             if ($count === 1 && !empty($this->opts['auto_hero_priority'])) {
                 $p->set_attribute('fetchpriority', 'high');
@@ -53,6 +75,19 @@ class MediaController {
             }
         }
 
-        return $p->get_updated_html();
+        $html = $p->get_updated_html();
+
+        if (!empty($this->opts['lazy_iframes'])) {
+            $html = preg_replace_callback('/<iframe\s+([^>]*?)src=["\']([^"\']+)["\']([^>]*?)>/i', function ($matches) {
+                $full    = $matches[0];
+                $src     = $matches[2];
+                if (strpos($full, 'loading=') === false) {
+                    $full = str_replace('<iframe ', '<iframe loading="lazy" ', $full);
+                }
+                return $full;
+            }, $html);
+        }
+
+        return $html;
     }
 }

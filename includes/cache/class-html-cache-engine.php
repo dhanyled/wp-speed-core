@@ -37,12 +37,30 @@ class HtmlCacheEngine {
         add_action('comment_post', [$this, 'purge_by_comment']);
         add_action('wp_trash_post', [$this, 'purge_post']);
         add_action('wpsc_purge_all', [$this, 'purge_all']);
+        add_action('wpsc_warm_cache', [$this, 'warm_cache']);
     }
 
     private function cache_file(): string {
         $host = sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'] ?? 'default'));
         $uri  = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? '/'));
-        $path = strtok($uri, '?');
+
+        $parts = explode('?', $uri, 2);
+        $path  = $parts[0];
+        $query = $parts[1] ?? '';
+
+        if ($query !== '') {
+            parse_str($query, $params);
+            $ignored = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'fbclid', 'gclid', 'msclkid'];
+            foreach ($ignored as $key) {
+                unset($params[$key]);
+            }
+            ksort($params);
+            $clean_query = http_build_query($params);
+            if ($clean_query !== '') {
+                $path .= '?' . $clean_query;
+            }
+        }
+
         return $this->dir . md5($host . $path) . '.html';
     }
 
@@ -56,6 +74,40 @@ class HtmlCacheEngine {
         if (empty($this->opts['cache_authenticated']) && is_user_logged_in()) {
             return false;
         }
+
+        foreach ($_COOKIE as $cookie_name => $val) {
+            if (
+                strpos($cookie_name, 'wp_woocommerce_session_') === 0 ||
+                strpos($cookie_name, 'woocommerce_items_in_cart') === 0 ||
+                strpos($cookie_name, 'woocommerce_cart_hash') === 0 ||
+                strpos($cookie_name, 'comment_author_') === 0
+            ) {
+                return false;
+            }
+        }
+
+        $ex_raw = $this->opts['cache_exclusions'] ?? '';
+        if (!empty($ex_raw)) {
+            $uri     = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? '/'));
+            $ex_list = array_filter(array_map('trim', explode(chr(10), $ex_raw)));
+            foreach ($ex_list as $ex) {
+                if (empty($ex)) {
+                    continue;
+                }
+                $ex_clean = ltrim($ex, '/');
+                $uri_clean = ltrim($uri, '/');
+
+                if (strpos($ex, '*') !== false) {
+                    $pattern = '#^' . str_replace('\*', '.*', preg_quote($ex_clean, '#')) . '#i';
+                    if (preg_match($pattern, $uri_clean)) {
+                        return false;
+                    }
+                } elseif (stripos($uri, $ex) !== false || stripos($uri_clean, $ex_clean) !== false) {
+                    return false;
+                }
+            }
+        }
+
         if (function_exists('is_cart') && is_cart()) {
             return false;
         }
@@ -100,6 +152,15 @@ class HtmlCacheEngine {
         }
         $content = $html . "\n/* WP Speed Core Cached: " . gmdate('Y-m-d H:i:s') . " UTC */";
         file_put_contents($file, $content, LOCK_EX);
+
+        if (function_exists('gzencode')) {
+            $gz_file = $file . '.gz';
+            $compressed = gzencode($content, 9);
+            if ($compressed !== false) {
+                file_put_contents($gz_file, $compressed, LOCK_EX);
+            }
+        }
+
         header('X-WPSC-Cache: MISS');
         return $html;
     }
@@ -113,6 +174,9 @@ class HtmlCacheEngine {
         $file = $this->dir . md5(($p['host'] ?? '') . ($p['path'] ?? '/')) . '.html';
         if (file_exists($file)) {
             wp_delete_file($file);
+            if (file_exists($file . '.gz')) {
+                wp_delete_file($file . '.gz');
+            }
             if ($this->logger) {
                 $this->logger->info('Cache purged for post ID: ' . $post_id, ['url' => $url]);
             }
@@ -127,7 +191,7 @@ class HtmlCacheEngine {
     }
 
     public function purge_all(): void {
-        $files = glob($this->dir . '*.html');
+        $files = glob($this->dir . '*.html*');
         $count = 0;
         if ($files) {
             foreach ($files as $f) {
@@ -140,5 +204,33 @@ class HtmlCacheEngine {
         if ($this->logger) {
             $this->logger->info('Full cache purge completed.', ['purged_files_count' => $count]);
         }
+    }
+
+    public function warm_cache(): int {
+        $home_url = home_url('/');
+        $urls     = [$home_url];
+
+        $rss_feed = get_feed_link();
+        if ($rss_feed) {
+            $urls[] = $rss_feed;
+        }
+
+        $warmed = 0;
+        foreach ($urls as $u) {
+            $response = wp_remote_get($u, [
+                'timeout'   => 5,
+                'sslverify' => false,
+                'headers'   => ['User-Agent' => 'WPSC-CacheWarmer/1.0'],
+            ]);
+            if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+                $warmed++;
+            }
+        }
+
+        if ($this->logger) {
+            $this->logger->info('Cache warming process executed.', ['warmed_urls_count' => $warmed]);
+        }
+
+        return $warmed;
     }
 }

@@ -34,11 +34,19 @@
                 newScript.src = realSrc;
                 await new Promise(resolve => {
                     newScript.onload = newScript.onerror = resolve;
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                    if (oldScript && oldScript.parentNode) {
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    } else {
+                        document.head.appendChild(newScript);
+                    }
                 });
             } else {
                 newScript.textContent = oldScript.textContent;
-                oldScript.parentNode.replaceChild(newScript, oldScript);
+                if (oldScript && oldScript.parentNode) {
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                } else {
+                    document.head.appendChild(newScript);
+                }
             }
 
             if ('scheduler' in window && 'yield' in window.scheduler) {
