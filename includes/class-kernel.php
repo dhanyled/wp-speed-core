@@ -52,6 +52,13 @@ final class Kernel {
         $this->registry['assets']  = new Optimization\AssetGatekeeper();
         $this->registry['cdn']     = new Optimization\CdnRewriter();
         $this->registry['db']      = new Optimization\DatabaseHousekeeper($logger);
+        $this->registry['media_facade'] = new Optimization\MediaFacadeOptimizer();
+        $this->registry['font_opt']     = new Optimization\FontOptimizer();
+        $this->registry['db_cleaner']   = new Database\DbCleaner($logger);
+
+        $ps_service = new PageSpeed\PageSpeedService();
+        $this->registry['pagespeed_service']    = $ps_service;
+        $this->registry['pagespeed_controller'] = new PageSpeed\PageSpeedController($ps_service);
     }
 
     private function boot_cache(): void {

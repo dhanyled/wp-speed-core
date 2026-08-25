@@ -13,8 +13,21 @@ class Dashboard {
     public function __construct(array $modules) {
         $this->modules = $modules;
         add_action('admin_menu', [$this, 'menu']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
         add_action('admin_init', [$this, 'actions']);
         add_action('admin_notices', [$this, 'notices']);
+    }
+
+    public function enqueue_scripts(string $hook): void {
+        if ($hook !== 'settings_page_wp-speed-core') {
+            return;
+        }
+        wp_enqueue_style('wpsc-psi-css', plugins_url('../../assets/css/pagespeed-gauge.css', __FILE__), [], WPSC_VERSION);
+        wp_enqueue_script('wpsc-psi-js', plugins_url('../../assets/js/pagespeed-dashboard.js', __FILE__), [], WPSC_VERSION, true);
+        wp_localize_script('wpsc-psi-js', 'wpscPsiSettings', [
+            'rest_url' => rest_url('wp-speed-core/v1/pagespeed'),
+            'nonce'    => wp_create_nonce('wp_rest'),
+        ]);
     }
 
     public function menu(): void {
@@ -45,6 +58,15 @@ class Dashboard {
             do_action('wpsc_purge_all');
             wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'purged' => '1'], admin_url('options-general.php')));
             exit;
+        }
+
+        if (isset($_POST['wpsc_run_db_clean']) && check_admin_referer('wpsc_db_clean_nonce')) {
+            $db_cleaner = $this->modules['db_cleaner'] ?? null;
+            if ($db_cleaner) {
+                $db_cleaner->run_cleanup();
+            }
+            wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'db_cleaned' => '1'], admin_url('options-general.php')));
+            wp_die();
         }
 
         if (isset($_POST['wpsc_warm_cache']) && check_admin_referer('wpsc_warm_nonce')) {
@@ -737,6 +759,67 @@ class Dashboard {
                         <textarea name="wpsc_cache_exclusions" rows="3" style="width: 100%; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-size: 12px; margin-bottom: 10px;" placeholder="/dynamic-page/&#10;/custom-checkout/*"><?php echo esc_textarea($settings['cache']['cache_exclusions'] ?? ''); ?></textarea>
                         <button type="submit" name="wpsc_save_cache_exclusions" class="wpsc-btn-ghost" style="padding: 8px 16px; font-size: 12px;"><?php esc_html_e('Simpan Pengecualian', 'wp-speed-core'); ?></button>
                     </form>
+                </div>
+            </div>
+
+            <!-- Google PageSpeed Insights Dashboard Section -->
+            <?php
+            $ps_service = $this->modules['pagespeed_service'] ?? null;
+            $psi_data   = $ps_service ? $ps_service->get_audit_results(home_url('/'), 'mobile', false) : [];
+            $score      = $psi_data['score'] ?? 0;
+            $metrics    = $psi_data['metrics'] ?? [];
+            $stroke_color = $score >= 90 ? '#22c55e' : ($score >= 50 ? '#eab308' : '#ef4444');
+            $dash_offset  = 339 - (339 * $score / 100);
+            ?>
+            <div class="wpsc-glass" style="margin-bottom: 24px; padding: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">&#x26A1; Google PageSpeed Insights (Mobile Lab)</h3>
+                        <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--wpsc-text-muted);">Real-time Lighthouse v5 Performance &amp; Core Web Vitals audit.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" id="wpsc-run-psi-btn" class="wpsc-btn-primary" style="font-size: 12px; padding: 8px 16px;">
+                            &#x26A1; Run PageSpeed Audit
+                        </button>
+                    </div>
+                </div>
+
+                <div class="wpsc-psi-grid">
+                    <div class="wpsc-gauge-card">
+                        <div class="wpsc-gauge-circle">
+                            <svg viewBox="0 0 120 120">
+                                <circle class="wpsc-gauge-bg" cx="60" cy="60" r="54"></circle>
+                                <circle class="wpsc-gauge-val" cx="60" cy="60" r="54" stroke="<?php echo esc_attr($stroke_color); ?>" stroke-dasharray="339" stroke-dashoffset="<?php echo esc_attr($dash_offset); ?>"></circle>
+                            </svg>
+                            <div class="wpsc-score-text"><?php echo esc_html($score); ?></div>
+                        </div>
+                        <div style="font-size: 14px; font-weight: 700; color: #fff;">Performance Score</div>
+                        <div style="font-size: 11px; color: var(--wpsc-text-muted); margin-top: 4px;">
+                            <?php echo !empty($psi_data['from_cache']) ? 'Cached (12h TTL)' : 'Live Audit'; ?>
+                        </div>
+                    </div>
+
+                    <div style="flex: 1;">
+                        <div style="font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 8px;">Core Web Vitals &amp; Key Metrics</div>
+                        <div class="wpsc-metrics-list">
+                            <div class="wpsc-metric-item">
+                                <div class="wpsc-metric-label">LCP (Hero)</div>
+                                <div class="wpsc-metric-value"><?php echo esc_html($metrics['lcp'] ?? 'N/A'); ?></div>
+                            </div>
+                            <div class="wpsc-metric-item">
+                                <div class="wpsc-metric-label">FCP (First Paint)</div>
+                                <div class="wpsc-metric-value"><?php echo esc_html($metrics['fcp'] ?? 'N/A'); ?></div>
+                            </div>
+                            <div class="wpsc-metric-item">
+                                <div class="wpsc-metric-label">CLS (Shift)</div>
+                                <div class="wpsc-metric-value"><?php echo esc_html($metrics['cls'] ?? 'N/A'); ?></div>
+                            </div>
+                            <div class="wpsc-metric-item">
+                                <div class="wpsc-metric-label">INP / TBT (Delay)</div>
+                                <div class="wpsc-metric-value"><?php echo esc_html(($metrics['inp'] ?? 'N/A') !== 'N/A' ? ($metrics['inp'] ?? 'N/A') : ($metrics['tbt'] ?? 'N/A')); ?></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

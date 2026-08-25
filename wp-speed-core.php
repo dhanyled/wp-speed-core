@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('WPSC_VERSION', '1.3.1');
+define('WPSC_VERSION', '1.4.0');
 define('WPSC_FILE', __FILE__);
 define('WPSC_PATH', plugin_dir_path(__FILE__));
 define('WPSC_URL', plugin_dir_url(__FILE__));
