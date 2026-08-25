@@ -21,7 +21,12 @@ class AssetGatekeeper {
         $current_id = get_queried_object_id();
         $uri        = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? '/'));
 
-        foreach ($this->rules as $handle => $config) {
+        foreach ($this->rules as $key => $config) {
+            $handle = is_string($key) ? $key : ($config['handle'] ?? '');
+            if (empty($handle)) {
+                continue;
+            }
+
             $disabled = false;
             if (!empty($config['everywhere'])) {
                 $disabled = true;

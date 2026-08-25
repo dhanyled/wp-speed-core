@@ -37,7 +37,7 @@ spl_autoload_register(static function (string $fqcn) {
     $rel = substr($fqcn, strlen($ns));
     $parts = explode('\\', $rel);
     $class_name = array_pop($parts);
-    $kebab = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '-$0', $class_name));
+    $kebab = strtolower((string) preg_replace('/(?<=[a-z0-9])([A-Z])|(?<=[A-Z])([A-Z][a-z])/', '-$1$2', $class_name));
     $file = 'class-' . str_replace('_', '-', $kebab) . '.php';
     $sub = $parts ? strtolower(implode(DIRECTORY_SEPARATOR, $parts)) . DIRECTORY_SEPARATOR : '';
     $path = WPSC_PATH . 'includes/' . $sub . $file;
