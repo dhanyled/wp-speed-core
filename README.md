@@ -1,10 +1,34 @@
-# ⚡ WP Speed Core `v1.0.0` - Panduan Instalasi & Penggunaan
+# ⚡ WP Speed Core `v1.3.1` - Panduan Instalasi, Penggunaan & Dokumentasi
 
 > **Pengembang**: Dhany ([@leddhany](https://t.me/leddhany))  
-> **Versi**: `1.0.0` (Production Ready)
+> **Versi**: `1.3.1` (Production Ready)
 > **Lisensi**: GPL v2 or later  
 
 WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang menggabungkan kontrol bloat script, caching HTML statis berkecepatan tinggi, INP Shield untuk Core Web Vitals, **Adaptive Smart Auto-Tuning Engine**, serta **System & Diagnostic Logger** untuk pemantauan server dan audit performa real-time.
+
+---
+
+## 📜 Changelog / Riwayat Perubahan
+
+### `v1.3.1` (2026-08-25) - UI/UX Refinement & Local Disk Cache Clarity
+- 🎨 **UI/UX Cache Purge Clarity**:
+  - Memperjelas label tombol dan notifikasi sukses pembersihan cache pada Dashboard Admin dari sekadar "Purge Cache" menjadi `🗑️ Purge Local Disk Cache` untuk membedakan secara tegas pembersihan cache HTML statis lokal di server hosting dengan pembersihan CDN global pada Admin Bar atas.
+- 🕒 **WordPress Local Timezone Logging**:
+  - Logger mencatat timestamp menggunakan timezone lokal WordPress (`wp_date`).
+- 🛠️ **Asset Unloader Multi-Rule Enhancement**:
+  - Penyempurnaan antarmuka Multi-Rule List Asset Unloader dengan tombol interaktif `+ Tambah Baris Aturan Baru` via JavaScript real-time.
+
+### `v1.3.0` (2026-08-25) - Multi-Rule Asset Unloader & Architecture Upgrade
+- 📦 **Multi-Rule List Asset Unloader Architecture**:
+  - Peningkatan struktur data `wpsc_disabled_assets` ke format Multi-Rule List (indexed array of rule objects). Pengguna kini bebas membuat banyak aturan terpisah (tipe JS, CSS, atau Keduanya dengan target URL match yang berbeda) untuk nama handle yang sama.
+
+### `v1.2.0` (2026-08-25) - High Performance, Security & UI Enhancement
+- 🛡️ **Security Hardening**:
+  - Penambahan fitur pemblokiran Author Enumeration (`/?author=N`).
+  - Penutupan endpoint REST API Users (`/wp/v2/users`) untuk pengunjung non-login.
+  - Injeksi otomatis Security Response Headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection`, `Referrer-Policy`).
+- 🌐 **CDN Rewriter & Cache Warmer**:
+  - Penambahan modul CDN Rewriter, Gzip static pre-compression `.html.gz`, dan background Cache Warmer.
 
 ---
 

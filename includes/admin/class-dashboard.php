@@ -522,7 +522,7 @@ class Dashboard {
                 <div class="wpsc-logo-wrap">
                     <div class="wpsc-logo-icon">&#x26A1;</div>
                     <div>
-                        <h1 class="wpsc-title">WP Speed Core <span style="font-size: 13px; font-weight: 500; opacity: 0.6;">v1.0.0</span></h1>
+                        <h1 class="wpsc-title">WP Speed Core <span style="font-size: 13px; font-weight: 500; opacity: 0.6;">v1.3.1</span></h1>
                         <div class="wpsc-subtitle">
                             <span class="wpsc-badge-live"><span class="wpsc-radar-dot"></span> Active Engine</span>
                             <span>&bull; Author: <a href="https://t.me/leddhany" target="_blank" style="color: var(--wpsc-cyan); text-decoration: none;">Dhany (@leddhany)</a></span>
@@ -532,7 +532,7 @@ class Dashboard {
                 <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                     <form method="post" style="margin: 0;">
                         <?php wp_nonce_field('wpsc_purge_nonce'); ?>
-                        <button type="submit" name="wpsc_purge_cache" class="wpsc-btn-ghost">&#x1F5D1; <?php esc_html_e('Purge Cache', 'wp-speed-core'); ?></button>
+                        <button type="submit" name="wpsc_purge_cache" class="wpsc-btn-ghost">&#x1F5D1; <?php esc_html_e('Purge Local Disk Cache', 'wp-speed-core'); ?></button>
                     </form>
                     <form method="post" style="margin: 0;">
                         <?php wp_nonce_field('wpsc_warm_nonce'); ?>
@@ -604,8 +604,8 @@ class Dashboard {
                 <div class="wpsc-alert wpsc-alert-success">
                     <div style="font-size: 18px;">&#x26A1;</div>
                     <div>
-                        <strong><?php esc_html_e('Cache Berhasil Dikosongkan!', 'wp-speed-core'); ?></strong><br>
-                        <?php esc_html_e('Seluruh cache HTML statis pada direktori disk telah dibersihkan secara instan.', 'wp-speed-core'); ?>
+                        <strong><?php esc_html_e('Local Disk HTML Cache Berhasil Dikosongkan!', 'wp-speed-core'); ?></strong><br>
+                        <?php esc_html_e('Seluruh cache HTML statis lokal pada direktori server hosting telah dibersihkan secara instan (di luar cache CDN global).', 'wp-speed-core'); ?>
                     </div>
                 </div>
             <?php endif; ?>
