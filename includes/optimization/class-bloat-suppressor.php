@@ -42,6 +42,7 @@ class BloatSuppressor {
         add_action('init', [$this, 'block_author_enumeration']);
         add_filter('rest_endpoints', [$this, 'disable_user_rest_endpoint']);
         add_action('send_headers', [$this, 'inject_security_headers']);
+        add_action('send_headers', [$this, 'clean_cache_busting_cookies'], PHP_INT_MAX);
     }
 
     public function block_author_enumeration(): void {
@@ -66,8 +67,41 @@ class BloatSuppressor {
         if (!is_admin() && !headers_sent()) {
             header('X-Content-Type-Options: nosniff');
             header('X-Frame-Options: SAMEORIGIN');
-            header('X-XSS-Protection: 1; mode=block');
+            header('X-XSS-Protection: 0');
             header('Referrer-Policy: strict-origin-when-cross-origin');
+        }
+    }
+
+    /**
+     * Strip cache-busting non-functional cookies (Wordfence wfvt_*, empty PHPSESSID)
+     * to maximize edge and local page cache hit ratio.
+     */
+    public function clean_cache_busting_cookies(): void {
+        if (is_admin() || headers_sent() || is_user_logged_in()) {
+            return;
+        }
+
+        $headers = headers_list();
+        header_remove('Set-Cookie');
+
+        foreach ($headers as $header) {
+            if (!preg_match('/^Set-Cookie:/i', $header)) {
+                continue;
+            }
+
+            // Strip Wordfence visitor tracking cookies which prevent caching
+            if (preg_match('/^Set-Cookie:\s*wfvt_/i', $header)) {
+                continue;
+            }
+
+            // Strip empty PHP session cookies if no session data is stored
+            if (preg_match('/^Set-Cookie:\s*PHPSESSID/i', $header)) {
+                if (empty($_SESSION)) {
+                    continue;
+                }
+            }
+
+            header($header, false);
         }
     }
 

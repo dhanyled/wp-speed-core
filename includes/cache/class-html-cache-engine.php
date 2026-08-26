@@ -192,6 +192,15 @@ class HtmlCacheEngine {
                 wp_delete_file($f);
             }
         }
+
+        // Synchronize URL purge with hosting edge cache if active (e.g. StackCache)
+        if (class_exists('\WPStackCache') && method_exists('\WPStackCache', 'purge')) {
+            try {
+                \WPStackCache::purge($url);
+            } catch (\Throwable $e) {
+                // Silently ignore external CDN purge exceptions
+            }
+        }
     }
 
     public function purge_post(int $post_id): void {
@@ -230,6 +239,19 @@ class HtmlCacheEngine {
                 }
             }
         }
+
+        // Synchronize full purge with hosting edge cache (e.g. StackCache, LiteSpeed, etc.)
+        if (class_exists('\WPStackCache') && method_exists('\WPStackCache', 'purge')) {
+            try {
+                \WPStackCache::purge('all');
+            } catch (\Throwable $e) {
+                // Silently ignore external CDN purge exceptions
+            }
+        }
+        if (has_action('litespeed_purge_all')) {
+            do_action('litespeed_purge_all');
+        }
+
         if ($this->logger) {
             $this->logger->info('Full cache purge completed.', ['purged_files_count' => $count]);
         }

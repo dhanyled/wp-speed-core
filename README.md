@@ -1,7 +1,7 @@
-# ⚡ WP Speed Core `v1.4.3` - Panduan Instalasi, Penggunaan & Dokumentasi
+# ⚡ WP Speed Core `v1.4.4` - Panduan Instalasi, Penggunaan & Dokumentasi
 
 > **Pengembang**: Dhany ([@leddhany](https://t.me/leddhany))  
-> **Versi**: `1.4.3` (Production Ready)  
+> **Versi**: `1.4.4` (Production Ready)  
 > **Lisensi**: GPL v2 or later  
 
 WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang menggabungkan kontrol bloat script, caching HTML statis berkecepatan tinggi, INP Shield untuk Core Web Vitals, **Adaptive Smart Auto-Tuning Engine**, serta **System & Diagnostic Logger** untuk pemantauan server dan audit performa real-time.
@@ -9,6 +9,14 @@ WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang m
 ---
 
 ## 📜 Changelog / Riwayat Perubahan
+
+### `v1.4.4` (2026-08-26) - Cache-Busting Cookie Stripping, StackCDN Purge Sync & Security Modernization
+- 🍪 **Cache-Busting Cookie Stripping**:
+  - Menghapus header cookie pelacakan pengunjung Wordfence (`wfvt_*`) dan `PHPSESSID` kosong di hook `send_headers` pada request GET publik non-login, mencegah batalnya cache (*cache-miss*) di level edge server, reverse proxy, dan browser.
+- 🔄 **Universal Edge/CDN Purge Synchronization**:
+  - Tombol *Purge Cache* di WP Speed Core kini otomatis menyinkronkan pembersihan cache ke StackCDN / WPStackCache (`WPStackCache::purge('all')`) dan LiteSpeed Cache saat terdeteksi aktif.
+- 🛡️ **Modern Security Headers Update**:
+  - Memperbarui header `X-XSS-Protection` ke nilai modern `0` untuk menghindari celah auditor bypass pada peramban web modern, memperkuat kepatuhan CSP.
 
 ### `v1.4.3` (2026-08-26) - Audit Hardening: Facade Enqueue, DB Clean Routing, Mobile Partition, Direct Gzip & Host Protection
 - 🎬 **Iframe Facade Script Enqueue**:
