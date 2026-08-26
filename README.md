@@ -69,6 +69,27 @@ WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang m
 
 ---
 
+## 🔑 Panduan Mendapatkan Google PageSpeed Insights API Key (100% Gratis)
+
+Secara default, jika Anda tidak memasukkan API Key, plugin tetap dapat menjalankan audit menggunakan kuota publik Google. Namun, pada server **shared hosting / cloud multi-tenant**, IP server hosting seringkali terkena pembatasan kuota bersama (*HTTP 429: Too Many Requests*).
+
+Untuk mendapatkan kuota pribadi **25.000 audit per hari secara GRATIS** (tanpa perlu kartu kredit / billing):
+
+1. **Buka Dokumentasi Resmi Google**:
+   - Kunjungi [Google PageSpeed Insights API Quickstart](https://developers.google.com/speed/docs/insights/v5/get-started).
+2. **Dapatkan API Key**:
+   - Klik tombol biru bertuliskan **"Get a Key"** di halaman tersebut.
+   - Pilih atau buat project baru di Google Cloud Console (misalnya: `WP Speed Core Audits`), lalu klik **Next**.
+   - Google akan langsung men-generate sebuah string **API Key** pribadi Anda.
+3. **Masukkan ke Dashboard WP Speed Core**:
+   - Buka Dashboard WordPress &rarr; Masuk ke menu **Settings** &rarr; **WP Speed Core ⚡**.
+   - Pada bagian **Google PageSpeed Insights (Mobile/Desktop Lab)**, tempel API Key ke dalam kolom input `Google PageSpeed API Key`.
+   - Klik tombol **Simpan Key**.
+4. **Jalankan Audit**:
+   - Klik tombol **⚡ Run PageSpeed Audit**. Hasil audit (skor performa + metrik LCP, FCP, CLS, INP/TBT) akan langsung tersimpan dan di-cache selama 12 jam.
+
+---
+
 ## 📦 Cara Instalasi ke WordPress
 
 ### Metode 1: Upload via Dashboard WordPress (Paling Mudah)
