@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace WPSpeedCore\Optimization;
 
 if (!defined('ABSPATH')) {
-    exit;
+    return;
 }
 
 class AssetGatekeeper {
@@ -21,7 +21,16 @@ class AssetGatekeeper {
         $current_id = get_queried_object_id();
         $uri        = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? '/'));
 
-        foreach ($this->rules as $handle => $config) {
+        foreach ($this->rules as $key => $config) {
+            if (!is_array($config)) {
+                continue;
+            }
+
+            $handle = $config['handle'] ?? (is_string($key) ? $key : '');
+            if (empty($handle)) {
+                continue;
+            }
+
             $disabled = false;
             if (!empty($config['everywhere'])) {
                 $disabled = true;
@@ -38,10 +47,12 @@ class AssetGatekeeper {
             }
 
             if ($disabled) {
-                if (($config['type'] ?? 'script') === 'script') {
+                $type = $config['type'] ?? 'script';
+                if ($type === 'script' || $type === 'both') {
                     wp_dequeue_script($handle);
                     wp_deregister_script($handle);
-                } else {
+                }
+                if ($type === 'style' || $type === 'both') {
                     wp_dequeue_style($handle);
                     wp_deregister_style($handle);
                 }
