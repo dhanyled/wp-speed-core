@@ -44,9 +44,9 @@ class Logger {
             @file_put_contents($this->log_file, "<?php die(); ?>\n", LOCK_EX);
         }
 
-        $timestamp = gmdate('Y-m-d H:i:s');
+        $timestamp = function_exists('wp_date') ? wp_date('Y-m-d H:i:s') : (function_exists('date_i18n') ? date_i18n('Y-m-d H:i:s') : gmdate('Y-m-d H:i:s'));
         $ctx_str   = !empty($context) ? ' ' . wp_json_encode($context, JSON_UNESCAPED_SLASHES) : '';
-        $entry     = sprintf("[%s UTC] [%s] %s%s\n", $timestamp, strtoupper($level), $message, $ctx_str);
+        $entry     = sprintf("[%s] [%s] %s%s\n", $timestamp, strtoupper($level), $message, $ctx_str);
 
         @file_put_contents($this->log_file, $entry, FILE_APPEND | LOCK_EX);
     }

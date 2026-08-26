@@ -1,10 +1,71 @@
-# ⚡ WP Speed Core `v1.0.0` - Panduan Instalasi & Penggunaan
+# ⚡ WP Speed Core `v1.4.2` - Panduan Instalasi, Penggunaan & Dokumentasi
 
 > **Pengembang**: Dhany ([@leddhany](https://t.me/leddhany))  
-> **Versi**: `1.0.0` (Production Ready)  
+> **Versi**: `1.4.2` (Production Ready)
 > **Lisensi**: GPL v2 or later  
 
 WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang menggabungkan kontrol bloat script, caching HTML statis berkecepatan tinggi, INP Shield untuk Core Web Vitals, **Adaptive Smart Auto-Tuning Engine**, serta **System & Diagnostic Logger** untuk pemantauan server dan audit performa real-time.
+
+---
+
+## 📜 Changelog / Riwayat Perubahan
+
+### `v1.4.2` (2026-08-26) - Clean Consolidation: PageSpeed API, Facade Optimizer, DB Cleaner & Schema Compatibility
+- 📦 **Asset Unloader Schema Compatibility & Default Samples**:
+  - Peningkatan kompatibilitas skema penyimpanan multi-rule asset unloader dengan default handle fallback yang aman.
+- 🔑 **Google PageSpeed API Key Field & 429 Quota Resolution**:
+  - Menambahkan kolom input konfigurasi API Key Google Cloud Console gratis di Dashboard Admin untuk membebaskan audit dari batas kuota IP hosting bersama (shared hosting pool limit 429), memberikan kuota pribadi 25.000 audit/hari.
+- 📱 **Dual Strategy Switcher (Mobile & Desktop)**:
+  - Navigasi tab audit instan antara Mobile dan Desktop di widget Google PageSpeed Insights Dashboard.
+- 🎬 **Iframe Facade IntersectionObserver Hardening**:
+  - Memperbaiki pemulihan atribut `src` dinamis pada `iframe-facade.js` saat mendekati viewport browser (`rootMargin: 200px`).
+- 🧹 **Safe Database Cleaner Batch Limit**:
+  - Menambahkan limitasi batching `LIMIT 500` pada penghapusan revisi pos usang di `DbCleaner` guna mencegah *MySQL table lock* pada database raksasa.
+- 🛡️ **Autoloader Compound Name & Namespace Hardening**:
+  - Menambahkan fallback *compound name* di autoloader PHP dan mengimpor `use WP_CLI;` di namespace root.
+
+### `v1.4.1` (2026-08-26) - PageSpeed API Key Support, Dual Strategy & Stability Hardening
+- 🔑 **Google PageSpeed API Key Field & 429 Quota Resolution**:
+  - Menambahkan kolom input konfigurasi API Key Google Cloud Console gratis di Dashboard Admin untuk membebaskan audit dari batas kuota IP hosting bersama (shared hosting pool limit 429), memberikan kuota pribadi 25.000 audit/hari.
+- 📱 **Dual Strategy Switcher (Mobile & Desktop)**:
+  - Navigasi tab audit instan antara Mobile dan Desktop di widget Google PageSpeed Insights Dashboard.
+- 🎬 **Iframe Facade IntersectionObserver Hardening**:
+  - Memperbaiki pemulihan atribut `src` dinamis pada `iframe-facade.js` saat mendekati viewport browser (`rootMargin: 200px`).
+- 🧹 **Safe Database Cleaner Batch Limit**:
+  - Menambahkan limitasi batching `LIMIT 500` pada penghapusan revisi pos usang di `DbCleaner` guna mencegah *MySQL table lock* pada database raksasa.
+- 🛡️ **Autoloader Compound Name & Namespace Hardening**:
+  - Menambahkan fallback *compound name* di autoloader PHP dan mengimpor `use WP_CLI;` di namespace root.
+
+### `v1.4.0` (2026-08-25) - Google PageSpeed Dashboard, Facade Optimizer & 1-Click DB Cleaner
+- ⚡ **Google PageSpeed Insights Dashboard Integration**:
+  - Menambahkan integrasi Google PageSpeed Insights REST API v5 dengan pencatatan transient cache 12 jam, visualisasi dual gauge SVG ring, dan pelaporan metrik Core Web Vitals (LCP, FCP, CLS, INP/TBT) langsung di WP-Admin.
+- 🎬 **Smart Media & Iframe Facade Optimizer**:
+  - Mengganti iframe YouTube, Vimeo, dan Google Maps yang berat dengan facade placeholder ultra-ringan menggunakan `WP_HTML_Tag_Processor` native WordPress dan `IntersectionObserver` API JS (<1.5 KB).
+- 🔤 **Smart Font & Resource Preconnect Optimizer**:
+  - Menginjeksi tag `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>` secara otomatis dan memastikan penambahan `display=swap` pada URL Google Fonts.
+- 🧹 **1-Click Database & Transient Cleaner UI**:
+  - Membawa kapabilitas pembersihan database usang (post revision, expired transient, auto-draft, spam comment) dari CLI langsung ke tombol interaktif di UI Dashboard WP-Admin.
+
+
+### `v1.3.1` (2026-08-25) - UI/UX Refinement & Local Disk Cache Clarity
+- 🎨 **UI/UX Cache Purge Clarity**:
+  - Memperjelas label tombol dan notifikasi sukses pembersihan cache pada Dashboard Admin dari sekadar "Purge Cache" menjadi `🗑️ Purge Local Disk Cache` untuk membedakan secara tegas pembersihan cache HTML statis lokal di server hosting dengan pembersihan CDN global pada Admin Bar atas.
+- 🕒 **WordPress Local Timezone Logging**:
+  - Logger mencatat timestamp menggunakan timezone lokal WordPress (`wp_date`).
+- 🛠️ **Asset Unloader Multi-Rule Enhancement**:
+  - Penyempurnaan antarmuka Multi-Rule List Asset Unloader dengan tombol interaktif `+ Tambah Baris Aturan Baru` via JavaScript real-time.
+
+### `v1.3.0` (2026-08-25) - Multi-Rule Asset Unloader & Architecture Upgrade
+- 📦 **Multi-Rule List Asset Unloader Architecture**:
+  - Peningkatan struktur data `wpsc_disabled_assets` ke format Multi-Rule List (indexed array of rule objects). Pengguna kini bebas membuat banyak aturan terpisah (tipe JS, CSS, atau Keduanya dengan target URL match yang berbeda) untuk nama handle yang sama.
+
+### `v1.2.0` (2026-08-25) - High Performance, Security & UI Enhancement
+- 🛡️ **Security Hardening**:
+  - Penambahan fitur pemblokiran Author Enumeration (`/?author=N`).
+  - Penutupan endpoint REST API Users (`/wp/v2/users`) untuk pengunjung non-login.
+  - Injeksi otomatis Security Response Headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection`, `Referrer-Policy`).
+- 🌐 **CDN Rewriter & Cache Warmer**:
+  - Penambahan modul CDN Rewriter, Gzip static pre-compression `.html.gz`, dan background Cache Warmer.
 
 ---
 
@@ -22,6 +83,27 @@ WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang m
 
 ---
 
+## 🔑 Panduan Mendapatkan Google PageSpeed Insights API Key (100% Gratis)
+
+Secara default, jika Anda tidak memasukkan API Key, plugin tetap dapat menjalankan audit menggunakan kuota publik Google. Namun, pada server **shared hosting / cloud multi-tenant**, IP server hosting seringkali terkena pembatasan kuota bersama (*HTTP 429: Too Many Requests*).
+
+Untuk mendapatkan kuota pribadi **25.000 audit per hari secara GRATIS** (tanpa perlu kartu kredit / billing):
+
+1. **Buka Dokumentasi Resmi Google**:
+   - Kunjungi [Google PageSpeed Insights API Quickstart](https://developers.google.com/speed/docs/insights/v5/get-started).
+2. **Dapatkan API Key**:
+   - Klik tombol biru bertuliskan **"Get a Key"** di halaman tersebut.
+   - Pilih atau buat project baru di Google Cloud Console (misalnya: `WP Speed Core Audits`), lalu klik **Next**.
+   - Google akan langsung men-generate sebuah string **API Key** pribadi Anda.
+3. **Masukkan ke Dashboard WP Speed Core**:
+   - Buka Dashboard WordPress &rarr; Masuk ke menu **Settings** &rarr; **WP Speed Core ⚡**.
+   - Pada bagian **Google PageSpeed Insights (Mobile/Desktop Lab)**, tempel API Key ke dalam kolom input `Google PageSpeed API Key`.
+   - Klik tombol **Simpan Key**.
+4. **Jalankan Audit**:
+   - Klik tombol **⚡ Run PageSpeed Audit**. Hasil audit (skor performa + metrik LCP, FCP, CLS, INP/TBT) akan langsung tersimpan dan di-cache selama 12 jam.
+
+---
+
 ## 📦 Cara Instalasi ke WordPress
 
 ### Metode 1: Upload via Dashboard WordPress (Paling Mudah)
@@ -34,7 +116,7 @@ WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang m
 ### Metode 2: Upload Manual via FTP / File Manager cPanel
 1. Hubungkan ke hosting Anda via FTP atau cPanel File Manager.
 2. Navigasikan ke direktori: `/wp-content/plugins/`.
-3. Upload dan ekstrak folder plugin ke lokasi tersebut sehingga jalurnya menjadi:  
+3. Upload dan ekstrak folder plugin ke lokasi tersebut sehingga jalurnya menjadi:
    `/wp-content/plugins/wp-speed-core/`
 4. Buka dashboard WordPress &rarr; Masuk ke menu **Plugins** &rarr; cari **WP Speed Core** &rarr; klik **Activate**.
 

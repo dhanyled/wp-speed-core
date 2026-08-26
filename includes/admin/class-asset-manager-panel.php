@@ -151,6 +151,17 @@ class AssetManagerPanel {
                 box-shadow: 0 4px 12px rgba(0, 242, 254, 0.45);
             }
 
+            .wpsc-btn-ghost {
+                background: rgba(255, 255, 255, 0.05);
+                color: #00f2fe;
+                border: 1px solid rgba(0, 242, 254, 0.3);
+                padding: 10px 18px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-weight: 700;
+                font-size: 13px;
+            }
+
             .wpsc-table {
                 width: 100%;
                 border-collapse: separate;
@@ -299,7 +310,7 @@ class AssetManagerPanel {
                     </table>
 
                     <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                        <button type="button" class="wpsc-btn-ghost" onclick="wpscAddRuleRow()" style="background: rgba(0, 242, 254, 0.12); border: 1px solid rgba(0, 242, 254, 0.3); color: #00f2fe; padding: 10px 18px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px;">
+                        <button type="button" class="wpsc-btn-ghost" onclick="wpscAddRuleRow()">
                             + Tambah Baris Aturan Baru
                         </button>
                         <button type="submit" name="wpsc_save_assets" class="wpsc-btn-primary">
