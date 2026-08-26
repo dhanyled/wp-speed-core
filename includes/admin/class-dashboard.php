@@ -60,18 +60,14 @@ class Dashboard {
             exit;
         }
 
-<<<<<<< HEAD
-=======
         if (isset($_POST['wpsc_run_db_clean']) && check_admin_referer('wpsc_db_clean_nonce')) {
             $db_cleaner = $this->modules['db_cleaner'] ?? null;
             if ($db_cleaner) {
                 $db_cleaner->run_cleanup();
             }
             wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'db_cleaned' => '1'], admin_url('options-general.php')));
-            wp_die();
+            exit;
         }
-
->>>>>>> fix/security-and-performance-improvements-2778699037663712606
         if (isset($_POST['wpsc_warm_cache']) && check_admin_referer('wpsc_warm_nonce')) {
             do_action('wpsc_warm_cache');
             wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'warmed' => '1'], admin_url('options-general.php')));
@@ -105,8 +101,6 @@ class Dashboard {
             exit;
         }
 
-<<<<<<< HEAD
-=======
         if (isset($_POST['wpsc_save_psi_key']) && check_admin_referer('wpsc_psi_key_nonce')) {
             $curr = (array) get_option('wpsc_settings', []);
             $curr['pagespeed']['api_key'] = sanitize_text_field($_POST['wpsc_psi_api_key'] ?? '');
@@ -114,8 +108,6 @@ class Dashboard {
             wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'psi_key_saved' => '1'], admin_url('options-general.php')));
             exit;
         }
-
->>>>>>> fix/security-and-performance-improvements-2778699037663712606
         if (isset($_POST['wpsc_clear_logs']) && check_admin_referer('wpsc_clear_logs_nonce')) {
             $logger = $this->modules['logger'] ?? null;
             if ($logger) {
