@@ -5,10 +5,15 @@ document.addEventListener('DOMContentLoaded', function() {
             entries.forEach(function(entry) {
                 if (entry.isIntersecting) {
                     var iframe = entry.target;
+                    var origSrc = iframe.getAttribute('data-wpsc-src');
+                    if (origSrc && !iframe.getAttribute('srcdoc')) {
+                        iframe.setAttribute('src', origSrc);
+                    }
                     iframeObserver.unobserve(iframe);
                 }
             });
-        });
+        }, { rootMargin: '200px 0px' });
+
         lazyIframes.forEach(function(iframe) {
             iframeObserver.observe(iframe);
         });

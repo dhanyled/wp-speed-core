@@ -28,11 +28,20 @@ final class PageSpeedService {
             }
         }
 
-        $endpoint = add_query_arg([
+        $settings = (array) get_option('wpsc_settings', []);
+        $api_key  = sanitize_text_field($settings['pagespeed']['api_key'] ?? '');
+
+        $query_args = [
             'url'      => $target_url,
             'strategy' => $strategy,
             'category' => 'performance',
-        ], self::API_URL);
+        ];
+
+        if (!empty($api_key)) {
+            $query_args['key'] = $api_key;
+        }
+
+        $endpoint = add_query_arg($query_args, self::API_URL);
 
         $response = wp_remote_get($endpoint, [
             'timeout'   => 45,
@@ -57,9 +66,13 @@ final class PageSpeedService {
         }
 
         if ($code !== 200 || empty($body)) {
+            $msg = 'Google PageSpeed API returned status code ' . $code;
+            if ($code === 429) {
+                $msg = 'Google PageSpeed API Limit (429): Kuota IP server hosting bersama telah habis. Silakan masukkan Google PSI API Key gratis di tab Settings untuk kuota pribadi 25.000 audit/hari.';
+            }
             return [
                 'success' => false,
-                'error'   => 'Google PageSpeed API returned status code ' . $code,
+                'error'   => $msg,
             ];
         }
 

@@ -1,7 +1,7 @@
-# ⚡ WP Speed Core `v1.4.0` - Panduan Instalasi, Penggunaan & Dokumentasi
+# ⚡ WP Speed Core `v1.4.1` - Panduan Instalasi, Penggunaan & Dokumentasi
 
 > **Pengembang**: Dhany ([@leddhany](https://t.me/leddhany))  
-> **Versi**: `1.4.0` (Production Ready)
+> **Versi**: `1.4.1` (Production Ready)
 > **Lisensi**: GPL v2 or later  
 
 WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang menggabungkan kontrol bloat script, caching HTML statis berkecepatan tinggi, INP Shield untuk Core Web Vitals, **Adaptive Smart Auto-Tuning Engine**, serta **System & Diagnostic Logger** untuk pemantauan server dan audit performa real-time.
@@ -9,6 +9,18 @@ WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang m
 ---
 
 ## 📜 Changelog / Riwayat Perubahan
+
+### `v1.4.1` (2026-08-26) - PageSpeed API Key Support, Dual Strategy & Stability Hardening
+- 🔑 **Google PageSpeed API Key Field & 429 Quota Resolution**:
+  - Menambahkan kolom input konfigurasi API Key Google Cloud Console gratis di Dashboard Admin untuk membebaskan audit dari batas kuota IP hosting bersama (shared hosting pool limit 429), memberikan kuota pribadi 25.000 audit/hari.
+- 📱 **Dual Strategy Switcher (Mobile & Desktop)**:
+  - Navigasi tab audit instan antara Mobile dan Desktop di widget Google PageSpeed Insights Dashboard.
+- 🎬 **Iframe Facade IntersectionObserver Hardening**:
+  - Memperbaiki pemulihan atribut `src` dinamis pada `iframe-facade.js` saat mendekati viewport browser (`rootMargin: 200px`).
+- 🧹 **Safe Database Cleaner Batch Limit**:
+  - Menambahkan limitasi batching `LIMIT 500` pada penghapusan revisi pos usang di `DbCleaner` guna mencegah *MySQL table lock* pada database raksasa.
+- 🛡️ **Autoloader Compound Name & Namespace Hardening**:
+  - Menambahkan fallback *compound name* di autoloader PHP dan mengimpor `use WP_CLI;` di namespace root.
 
 ### `v1.4.0` (2026-08-25) - Google PageSpeed Dashboard, Facade Optimizer & 1-Click DB Cleaner
 - ⚡ **Google PageSpeed Insights Dashboard Integration**:

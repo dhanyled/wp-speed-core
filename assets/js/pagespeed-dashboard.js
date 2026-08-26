@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', function() {
     var btn = document.getElementById('wpsc-run-psi-btn');
     if (!btn) return;
@@ -8,7 +7,10 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.disabled = true;
         btn.innerText = '⚡ Running Audit...';
 
-        fetch(wpscPsiSettings.rest_url + '?force=1', {
+        var strategy = btn.getAttribute('data-strategy') || 'mobile';
+        var fetchUrl = wpscPsiSettings.rest_url + '?force=1&strategy=' + encodeURIComponent(strategy);
+
+        fetch(fetchUrl, {
             method: 'GET',
             headers: {
                 'X-WP-Nonce': wpscPsiSettings.nonce
@@ -21,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 location.reload();
             } else {
-                alert('Audit error: ' + (data.error || 'Unknown error'));
+                alert('Audit Notice: ' + (data.error || 'Unknown error'));
             }
         })
         .catch(function(err) {

@@ -27,8 +27,8 @@ final class DbCleaner {
             'trash_comments_deleted' => 0,
         ];
 
-        // 1. Revisions
-        $rev_ids = $wpdb->get_col("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'revision'");
+        // 1. Revisions (safely batch-limited to 500)
+        $rev_ids = $wpdb->get_col("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'revision' LIMIT 500");
         if (!empty($rev_ids)) {
             foreach ($rev_ids as $id) {
                 wp_delete_post_revision((int)$id);

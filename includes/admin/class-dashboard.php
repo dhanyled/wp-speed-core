@@ -102,6 +102,14 @@ class Dashboard {
             exit;
         }
 
+        if (isset($_POST['wpsc_save_psi_key']) && check_admin_referer('wpsc_psi_key_nonce')) {
+            $curr = (array) get_option('wpsc_settings', []);
+            $curr['pagespeed']['api_key'] = sanitize_text_field($_POST['wpsc_psi_api_key'] ?? '');
+            update_option('wpsc_settings', $curr);
+            wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'psi_key_saved' => '1'], admin_url('options-general.php')));
+            exit;
+        }
+
         if (isset($_POST['wpsc_clear_logs']) && check_admin_referer('wpsc_clear_logs_nonce')) {
             $logger = $this->modules['logger'] ?? null;
             if ($logger) {
@@ -642,6 +650,16 @@ class Dashboard {
                 </div>
             <?php endif; ?>
 
+            <?php if (isset($_GET['psi_key_saved'])): ?>
+                <div class="wpsc-alert wpsc-alert-success">
+                    <div style="font-size: 18px;">&#x1F511;</div>
+                    <div>
+                        <strong><?php esc_html_e('Google PageSpeed API Key Berhasil Disimpan!', 'wp-speed-core'); ?></strong><br>
+                        <?php esc_html_e('Audit PageSpeed kini menggunakan kuota API pribadi Anda (25.000 per hari).', 'wp-speed-core'); ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <!-- Tracking Tag Conflicts Radar -->
             <?php if (!empty($tracking_audit)): ?>
                 <div class="wpsc-alert wpsc-alert-warning">
@@ -765,24 +783,37 @@ class Dashboard {
             <!-- Google PageSpeed Insights Dashboard Section -->
             <?php
             $ps_service = $this->modules['pagespeed_service'] ?? null;
-            $psi_data   = $ps_service ? $ps_service->get_audit_results(home_url('/'), 'mobile', false) : [];
+            $psi_key    = $settings['pagespeed']['api_key'] ?? '';
+            $psi_strat  = isset($_GET['psi_strategy']) && $_GET['psi_strategy'] === 'desktop' ? 'desktop' : 'mobile';
+            $psi_data   = $ps_service ? $ps_service->get_audit_results(home_url('/'), $psi_strat, false) : [];
             $score      = $psi_data['score'] ?? 0;
             $metrics    = $psi_data['metrics'] ?? [];
             $stroke_color = $score >= 90 ? '#22c55e' : ($score >= 50 ? '#eab308' : '#ef4444');
             $dash_offset  = 339 - (339 * $score / 100);
             ?>
             <div class="wpsc-glass" style="margin-bottom: 24px; padding: 24px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
                     <div>
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">&#x26A1; Google PageSpeed Insights (Mobile Lab)</h3>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">&#x26A1; Google PageSpeed Insights (<?php echo esc_html(ucfirst($psi_strat)); ?> Lab)</h3>
                         <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--wpsc-text-muted);">Real-time Lighthouse v5 Performance &amp; Core Web Vitals audit.</p>
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button type="button" id="wpsc-run-psi-btn" class="wpsc-btn-primary" style="font-size: 12px; padding: 8px 16px;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <a href="<?php echo esc_url(add_query_arg(['page' => 'wp-speed-core', 'psi_strategy' => 'mobile'], admin_url('options-general.php'))); ?>" class="wpsc-btn-ghost" style="<?php echo $psi_strat === 'mobile' ? 'background: rgba(0, 242, 254, 0.2); border-color: var(--wpsc-cyan); color: #fff !important;' : ''; ?> padding: 6px 12px; font-size: 12px;">📱 Mobile</a>
+                        <a href="<?php echo esc_url(add_query_arg(['page' => 'wp-speed-core', 'psi_strategy' => 'desktop'], admin_url('options-general.php'))); ?>" class="wpsc-btn-ghost" style="<?php echo $psi_strat === 'desktop' ? 'background: rgba(0, 242, 254, 0.2); border-color: var(--wpsc-cyan); color: #fff !important;' : ''; ?> padding: 6px 12px; font-size: 12px;">💻 Desktop</a>
+                        <button type="button" id="wpsc-run-psi-btn" data-strategy="<?php echo esc_attr($psi_strat); ?>" class="wpsc-btn-primary" style="font-size: 12px; padding: 8px 16px;">
                             &#x26A1; Run PageSpeed Audit
                         </button>
                     </div>
                 </div>
+
+                <?php if (empty($psi_key)): ?>
+                    <div class="wpsc-alert" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fde68a; margin-bottom: 18px; padding: 12px 16px;">
+                        <div style="font-size: 18px;">&#x26A0;&#xFE0F;</div>
+                        <div style="font-size: 12px; line-height: 1.5; flex: 1;">
+                            <strong>Tips Kuota API:</strong> Google membatasi audit publik tanpa API key berdasarkan IP shared hosting (status 429). Masukkan <strong>Google PSI API Key gratis</strong> (25.000 request/hari) di bawah agar audit selalu instan &amp; lancar tanpa hambatan kuota IP.
+                        </div>
+                    </div>
+                <?php endif; ?>
 
                 <div class="wpsc-psi-grid">
                     <div class="wpsc-gauge-card">
@@ -800,7 +831,7 @@ class Dashboard {
                     </div>
 
                     <div style="flex: 1;">
-                        <div style="font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 8px;">Core Web Vitals &amp; Key Metrics</div>
+                        <div style="font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 8px;">Core Web Vitals &amp; Key Metrics (<?php echo esc_html(ucfirst($psi_strat)); ?>)</div>
                         <div class="wpsc-metrics-list">
                             <div class="wpsc-metric-item">
                                 <div class="wpsc-metric-label">LCP (Hero)</div>
@@ -819,6 +850,13 @@ class Dashboard {
                                 <div class="wpsc-metric-value"><?php echo esc_html(($metrics['inp'] ?? 'N/A') !== 'N/A' ? ($metrics['inp'] ?? 'N/A') : ($metrics['tbt'] ?? 'N/A')); ?></div>
                             </div>
                         </div>
+
+                        <!-- API Key Input Field -->
+                        <form method="post" style="margin-top: 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <?php wp_nonce_field('wpsc_psi_key_nonce'); ?>
+                            <input type="text" name="wpsc_psi_api_key" value="<?php echo esc_attr($psi_key); ?>" placeholder="Google PageSpeed API Key (Opsional / Gratis 25.000 per hari)" style="flex: 1; min-width: 240px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 7px 12px; border-radius: 8px; font-size: 12px;">
+                            <button type="submit" name="wpsc_save_psi_key" class="wpsc-btn-ghost" style="padding: 7px 14px; font-size: 12px; white-space: nowrap;">Simpan Key</button>
+                        </form>
                     </div>
                 </div>
             </div>
