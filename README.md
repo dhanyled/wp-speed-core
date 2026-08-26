@@ -101,6 +101,28 @@ WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang m
 - 🌐 **CDN Rewriter & Cache Warmer**:
   - Penambahan modul CDN Rewriter, Gzip static pre-compression `.html.gz`, dan background Cache Warmer.
 
+### `v1.1.0` (2026-08-25) - Never Cache URLs & Performance Refinements
+- 🚫 **Never Cache URLs Exclusion**:
+  - Penambahan fitur textarea pengecualian URL dari cache HTML statis berbasis baris string / regex pattern.
+- ⚡ **Tag Processor Buffer Pipeline**:
+  - Penggunaan native `WP_HTML_Tag_Processor` untuk penundaan eksekusi script tanpa regex mentah.
+
+### `v1.0.0` (2026-08-25) - Initial Official Release
+- 🚀 **Adaptive Auto-Tuning Engine**:
+  - Deteksi otomatis PHP, OPcache, JIT, Web Server, tema FSE/klasik, dan plugin aktif dengan konfigurasi optimal 1-klik.
+- 🛡️ **INP Shield & Script Controller**:
+  - Penundaan eksekusi skrip berat menggunakan `scheduler.yield()` inspektur bertahap untuk menjaga skor INP hijau (< 50ms).
+- 🖼️ **Auto-LCP Hero Preload & Zero CLS**:
+  - Injeksi otomatis `fetchpriority="high"` & `loading="eager"` pada gambar LCP utama above-the-fold dan injeksi dimensi width/height gambar.
+- 🏎️ **W3C Speculation Rules API**:
+  - Prerender halaman di latar belakang browser untuk transisi halaman instan (0ms TTFB).
+- 💾 **Static Disk HTML Cache**:
+  - Mesin caching statis mandiri dengan TTL dinamis dan purge otomatis saat pos diperbarui.
+- 🔍 **Tracking Tag Auditor & Overlap Arbiter**:
+  - Deteksi tag analitik ganda (GA4, GTM, Pixel, Clarity) dan audit tumpang tindih fitur plugin optimasi lain.
+- 🧹 **Database Housekeeper & System Logger**:
+  - Pembersihan terjadwal untuk revisi pos, auto-drafts, transient, komentar spam, dan pencatatan riwayat diagnostik sistem.
+
 ---
 
 ## 🚀 Fitur Utama
