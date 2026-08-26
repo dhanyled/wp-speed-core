@@ -1,7 +1,7 @@
-# ⚡ WP Speed Core `v1.4.2` - Panduan Instalasi, Penggunaan & Dokumentasi
+# ⚡ WP Speed Core `v1.4.3` - Panduan Instalasi, Penggunaan & Dokumentasi
 
 > **Pengembang**: Dhany ([@leddhany](https://t.me/leddhany))  
-> **Versi**: `1.4.2` (Production Ready)
+> **Versi**: `1.4.3` (Production Ready)  
 > **Lisensi**: GPL v2 or later  
 
 WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang menggabungkan kontrol bloat script, caching HTML statis berkecepatan tinggi, INP Shield untuk Core Web Vitals, **Adaptive Smart Auto-Tuning Engine**, serta **System & Diagnostic Logger** untuk pemantauan server dan audit performa real-time.
@@ -9,6 +9,26 @@ WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang m
 ---
 
 ## 📜 Changelog / Riwayat Perubahan
+
+### `v1.4.3` (2026-08-26) - Audit Hardening: Facade Enqueue, DB Clean Routing, Mobile Partition, Direct Gzip & Host Protection
+- 🎬 **Iframe Facade Script Enqueue**:
+  - `assets/js/iframe-facade.js` kini di-enqueue secara otomatis di frontend menggunakan strategi `defer` di footer, memastikan hidrasi dinamis iframe Vimeo & Google Maps saat mendekati viewport berjalan mulus.
+- 🧹 **Safe 1-Click DB Clean Button Route**:
+  - Memperbaiki routing handler tombol *Clean DB Now* di Dashboard agar mengeksekusi modul aman `DbCleaner` (dengan proteksi *LIMIT 500* per batch & `wp_delete_post_revision`), mencegah *table lock* dan baris metadata usang (*orphaned postmeta*).
+- 📱 **Mobile & Desktop Cache Partitioning**:
+  - Memisahkan hash berkas cache disk antara perangkat mobile (`.mobile.html`) dan desktop (`.html`) agar layout responsif dan styling khusus perangkat tidak tertukar.
+- ⚡ **Direct Gzip Cache Serving**:
+  - Method `serve()` kini memeriksa header `Accept-Encoding: gzip` dan langsung menyajikan berkas `.html.gz` dari disk ke browser untuk menghemat transfer bandwidth dan mempercepat TTFB.
+- 🏠 **Homepage & Blog Invalidation on Post Update**:
+  - Memperluas pembersihan cache saat artikel diterbitkan/diperbarui agar beranda (`home_url('/')`) dan halaman blog arsip langsung segar seketika tanpa menunggu kedaluwarsa 24 jam.
+- 🛡️ **Host Header Cache Poisoning Protection**:
+  - Menstandarkan penamaan namespace cache berdasarkan host domain resmi `home_url()` bukan dari raw client request header.
+- ⚙️ **Auto-Tune User Exclusions Preservation**:
+  - Memastikan kustomisasi exclusion manual pengguna tidak tertimpa saat menekan tombol 1-Click Auto-Tune dengan melakukan penggabungan unik (*array union*).
+- 🌐 **PageSpeed Controller SSRF Validation**:
+  - Memvalidasi target audit URL pada REST API agar strictly terbatas pada host domain situs sendiri.
+- 📦 **Asset Unloader Defaults Re-appearance Fix**:
+  - Memperbaiki pengecekan null state agar penghapusan seluruh aturan oleh user tidak memunculkan kembali rule sampel secara berulang.
 
 ### `v1.4.2` (2026-08-26) - Clean Consolidation: PageSpeed API, Facade Optimizer, DB Cleaner & Schema Compatibility
 - 📦 **Asset Unloader Schema Compatibility & Default Samples**:

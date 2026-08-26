@@ -12,8 +12,19 @@ if (!defined('ABSPATH')) {
 final class MediaFacadeOptimizer {
     public function __construct() {
         if (!is_admin()) {
+            add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
             add_action('template_redirect', [$this, 'start_buffer'], 2);
         }
+    }
+
+    public function enqueue_scripts(): void {
+        wp_enqueue_script(
+            'wpsc-iframe-facade',
+            WPSC_URL . 'assets/js/iframe-facade.js',
+            [],
+            WPSC_VERSION,
+            ['strategy' => 'defer', 'in_footer' => true]
+        );
     }
 
     public function start_buffer(): void {

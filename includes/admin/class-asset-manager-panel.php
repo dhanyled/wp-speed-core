@@ -88,7 +88,7 @@ class AssetManagerPanel {
         $rules     = is_array($raw_rules) ? $raw_rules : [];
 
         // If no rules are set, provide sensible default sample handles
-        if ($raw_rules === null || empty($rules)) {
+        if ($raw_rules === null || $raw_rules === false) {
             $default_handles = ['jquery-migrate', 'wp-block-library', 'classic-theme-styles', 'global-styles', 'contact-form-7'];
             $rules = [];
             foreach ($default_handles as $h) {

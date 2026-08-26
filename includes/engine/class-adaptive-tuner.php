@@ -60,6 +60,16 @@ class AdaptiveTuner {
     public function apply(): bool {
         $computed = $this->compute();
         $curr     = (array) get_option('wpsc_settings', []);
+
+        // Preserve existing user exclusions and merge with recommended exclusions
+        $existing_raw = (string) ($curr['script']['exclusion_list'] ?? '');
+        if (!empty($existing_raw)) {
+            $existing_arr = array_filter(array_map('trim', explode("\n", $existing_raw)));
+            $computed_arr = array_filter(array_map('trim', explode("\n", (string) ($computed['script']['exclusion_list'] ?? ''))));
+            $merged_arr   = array_unique(array_merge($computed_arr, $existing_arr));
+            $computed['script']['exclusion_list'] = implode("\n", $merged_arr);
+        }
+
         $merged   = array_replace_recursive($curr, $computed);
         $updated  = update_option('wpsc_settings', $merged);
 

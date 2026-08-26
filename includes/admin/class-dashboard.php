@@ -60,10 +60,15 @@ class Dashboard {
             exit;
         }
 
-        if (isset($_POST['wpsc_run_db_clean']) && check_admin_referer('wpsc_db_clean_nonce')) {
+        if ((isset($_POST['wpsc_db_clean']) || isset($_POST['wpsc_run_db_clean'])) && check_admin_referer('wpsc_db_clean_nonce')) {
             $db_cleaner = $this->modules['db_cleaner'] ?? null;
-            if ($db_cleaner) {
+            if ($db_cleaner && method_exists($db_cleaner, 'run_cleanup')) {
                 $db_cleaner->run_cleanup();
+            } else {
+                $db = $this->modules['db'] ?? null;
+                if ($db) {
+                    $db->maintain();
+                }
             }
             wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'db_cleaned' => '1'], admin_url('options-general.php')));
             exit;
@@ -71,16 +76,6 @@ class Dashboard {
         if (isset($_POST['wpsc_warm_cache']) && check_admin_referer('wpsc_warm_nonce')) {
             do_action('wpsc_warm_cache');
             wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'warmed' => '1'], admin_url('options-general.php')));
-            exit;
-        }
-
-        if (isset($_POST['wpsc_db_clean']) && check_admin_referer('wpsc_db_clean_nonce')) {
-            $db = $this->modules['db'] ?? null;
-            if ($db) {
-                $db->maintain();
-                $db->optimize_tables();
-            }
-            wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'db_cleaned' => '1'], admin_url('options-general.php')));
             exit;
         }
 

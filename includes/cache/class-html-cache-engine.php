@@ -41,7 +41,10 @@ class HtmlCacheEngine {
     }
 
     private function cache_file(): string {
-        $host = sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'] ?? 'default'));
+        $host = (string) wp_parse_url(home_url(), PHP_URL_HOST);
+        if (empty($host)) {
+            $host = sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'] ?? 'default'));
+        }
         $uri  = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'] ?? '/'));
 
         $parts = explode('?', $uri, 2);
@@ -61,7 +64,8 @@ class HtmlCacheEngine {
             }
         }
 
-        return $this->dir . md5($host . $path) . '.html';
+        $mobile_suffix = (!empty($this->opts['cache_mobile']) && function_exists('wp_is_mobile') && wp_is_mobile()) ? '.mobile' : '';
+        return $this->dir . md5($host . $path) . $mobile_suffix . '.html';
     }
 
     private function is_cacheable(): bool {
@@ -130,6 +134,14 @@ class HtmlCacheEngine {
         if (file_exists($file) && (time() - filemtime($file)) < $ttl) {
             header('X-WPSC-Cache: HIT');
             header('Content-Type: text/html; charset=UTF-8');
+
+            if (!empty($_SERVER['HTTP_ACCEPT_ENCODING']) && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false && file_exists($file . '.gz')) {
+                header('Content-Encoding: gzip');
+                header('Vary: Accept-Encoding');
+                readfile($file . '.gz');
+                exit;
+            }
+
             readfile($file);
             exit;
         }
@@ -165,21 +177,38 @@ class HtmlCacheEngine {
         return $html;
     }
 
-    public function purge_post(int $post_id): void {
-        $url = get_permalink($post_id);
-        if (!$url) {
+    public function purge_url(string $url): void {
+        if (empty($url)) {
             return;
         }
-        $p = wp_parse_url($url);
-        $file = $this->dir . md5(($p['host'] ?? '') . ($p['path'] ?? '/')) . '.html';
-        if (file_exists($file)) {
-            wp_delete_file($file);
-            if (file_exists($file . '.gz')) {
-                wp_delete_file($file . '.gz');
+        $p    = wp_parse_url($url);
+        $host = $p['host'] ?? (string) wp_parse_url(home_url(), PHP_URL_HOST);
+        $path = $p['path'] ?? '/';
+        $base = $this->dir . md5($host . $path);
+
+        foreach (['.html', '.mobile.html', '.html.gz', '.mobile.html.gz'] as $suffix) {
+            $f = $base . $suffix;
+            if (file_exists($f)) {
+                wp_delete_file($f);
             }
-            if ($this->logger) {
-                $this->logger->info('Cache purged for post ID: ' . $post_id, ['url' => $url]);
+        }
+    }
+
+    public function purge_post(int $post_id): void {
+        $url = get_permalink($post_id);
+        if ($url) {
+            $this->purge_url($url);
+        }
+        $this->purge_url(home_url('/'));
+        $page_for_posts = (int) get_option('page_for_posts');
+        if ($page_for_posts > 0) {
+            $blog_url = get_permalink($page_for_posts);
+            if ($blog_url) {
+                $this->purge_url($blog_url);
             }
+        }
+        if ($this->logger) {
+            $this->logger->info('Cache purged for post ID: ' . $post_id, ['url' => $url]);
         }
     }
 

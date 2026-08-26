@@ -28,9 +28,14 @@ final class PageSpeedController {
     }
 
     public function get_results(\WP_REST_Request $request): \WP_REST_Response {
-        $target_url    = sanitize_url((string) ($request->get_param('url') ?? ''));
+        $raw_url       = sanitize_url((string) ($request->get_param('url') ?? ''));
         $strategy      = sanitize_text_field((string) ($request->get_param('strategy') ?? 'mobile'));
         $force_refresh = !empty($request->get_param('force'));
+
+        // Prevent SSRF or external domain quota misuse: restrict target to site host
+        $site_host   = (string) wp_parse_url(home_url(), PHP_URL_HOST);
+        $target_host = (string) wp_parse_url($raw_url, PHP_URL_HOST);
+        $target_url  = (!empty($raw_url) && $target_host === $site_host) ? $raw_url : home_url('/');
 
         $results = $this->service->get_audit_results($target_url, $strategy, $force_refresh);
         return new \WP_REST_Response($results, 200);
