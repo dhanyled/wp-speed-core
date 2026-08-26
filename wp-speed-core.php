@@ -18,6 +18,8 @@ declare(strict_types=1);
 
 namespace WPSpeedCore;
 
+use WP_CLI;
+
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -43,6 +45,13 @@ spl_autoload_register(static function (string $fqcn) {
     $path = WPSC_PATH . 'includes/' . $sub . $file;
     if (file_exists($path)) {
         require_once $path;
+        return;
+    }
+    $alt_file = 'class-' . str_replace('page-speed', 'pagespeed', $kebab) . '.php';
+    $alt_path = WPSC_PATH . 'includes/' . $sub . $alt_file;
+    if (file_exists($alt_path)) {
+        require_once $alt_path;
+        return;
     }
 });
 

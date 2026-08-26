@@ -28,9 +28,9 @@ final class PageSpeedController {
     }
 
     public function get_results(\WP_REST_Request $request): \WP_REST_Response {
-        $target_urm    = sanitize_url($request->get_param('url') ?? '');
-        $strategy      = sanitize_text_field($request->get_param('strategy') ?? 'mobile');
-        $force_refresh = !!empty($request->get_param('force'));
+        $target_url    = sanitize_url((string) ($request->get_param('url') ?? ''));
+        $strategy      = sanitize_text_field((string) ($request->get_param('strategy') ?? 'mobile'));
+        $force_refresh = !empty($request->get_param('force'));
 
         $results = $this->service->get_audit_results($target_url, $strategy, $force_refresh);
         return new \WP_REST_Response($results, 200);
