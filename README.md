@@ -1,7 +1,7 @@
-# ⚡ WP Speed Core `v1.3.1` - Panduan Instalasi, Penggunaan & Dokumentasi
+# ⚡ WP Speed Core `v1.4.0` - Panduan Instalasi, Penggunaan & Dokumentasi
 
 > **Pengembang**: Dhany ([@leddhany](https://t.me/leddhany))  
-> **Versi**: `1.3.1` (Production Ready)
+> **Versi**: `1.4.0` (Production Ready)
 > **Lisensi**: GPL v2 or later  
 
 WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang menggabungkan kontrol bloat script, caching HTML statis berkecepatan tinggi, INP Shield untuk Core Web Vitals, **Adaptive Smart Auto-Tuning Engine**, serta **System & Diagnostic Logger** untuk pemantauan server dan audit performa real-time.
@@ -9,6 +9,17 @@ WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang m
 ---
 
 ## 📜 Changelog / Riwayat Perubahan
+
+### `v1.4.0` (2026-08-25) - Google PageSpeed Dashboard, Facade Optimizer & 1-Click DB Cleaner
+- ⚡ **Google PageSpeed Insights Dashboard Integration**:
+  - Menambahkan integrasi Google PageSpeed Insights REST API v5 dengan pencatatan transient cache 12 jam, visualisasi dual gauge SVG ring, dan pelaporan metrik Core Web Vitals (LCP, FCP, CLS, INP/TBT) langsung di WP-Admin.
+- 🎬 **Smart Media & Iframe Facade Optimizer**:
+  - Mengganti iframe YouTube, Vimeo, dan Google Maps yang berat dengan facade placeholder ultra-ringan menggunakan `WP_HTML_Tag_Processor` native WordPress dan `IntersectionObserver` API JS (<1.5 KB).
+- 🔤 **Smart Font & Resource Preconnect Optimizer**:
+  - Menginjeksi tag `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>` secara otomatis dan memastikan penambahan `display=swap` pada URL Google Fonts.
+- 🧹 **1-Click Database & Transient Cleaner UI**:
+  - Membawa kapabilitas pembersihan database usang (post revision, expired transient, auto-draft, spam comment) dari CLI langsung ke tombol interaktif di UI Dashboard WP-Admin.
+
 
 ### `v1.3.1` (2026-08-25) - UI/UX Refinement & Local Disk Cache Clarity
 - 🎨 **UI/UX Cache Purge Clarity**:
