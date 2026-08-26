@@ -1,7 +1,7 @@
-# ⚡ WP Speed Core `v1.4.4` - Panduan Instalasi, Penggunaan & Dokumentasi
+# ⚡ WP Speed Core `v1.4.5` - Panduan Instalasi, Penggunaan & Dokumentasi
 
 > **Pengembang**: Dhany ([@leddhany](https://t.me/leddhany))  
-> **Versi**: `1.4.4` (Production Ready)  
+> **Versi**: `1.4.5` (Production Ready)  
 > **Lisensi**: GPL v2 or later  
 
 WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang menggabungkan kontrol bloat script, caching HTML statis berkecepatan tinggi, INP Shield untuk Core Web Vitals, **Adaptive Smart Auto-Tuning Engine**, serta **System & Diagnostic Logger** untuk pemantauan server dan audit performa real-time.
@@ -9,6 +9,12 @@ WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang m
 ---
 
 ## 📜 Changelog / Riwayat Perubahan
+
+### `v1.4.5` (2026-08-26) - Asset Unloader Multi-Type Schema, Sample Defaults & Consolidations
+- 📦 **Asset Unloader Schema Compatibility & Default Samples**:
+  - Menampilkan kembali daftar handle sampel default (`jquery-migrate`, `wp-block-library`, `classic-theme-styles`, `global-styles`, `contact-form-7`) saat aturan unloader masih belum dikonfigurasi.
+  - Memperbaiki kompatibilitas format array antara `AssetManagerPanel` dan `AssetGatekeeper` sehingga mendukung penonaktifan Script (JS), Style (CSS), maupun Keduanya (`both`) secara global atau per target URL match.
+  - Menghapus sinkronisasi blokir HTTP request di panel admin guna mempercepat TTFB Dashboard.
 
 ### `v1.4.4` (2026-08-26) - Cache-Busting Cookie Stripping, StackCDN Purge Sync & Security Modernization
 - 🍪 **Cache-Busting Cookie Stripping**:
