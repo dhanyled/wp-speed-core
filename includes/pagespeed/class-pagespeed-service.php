@@ -29,7 +29,7 @@ final class PageSpeedService {
         }
 
         $endpoint = add_query_arg([
-            'url'      => urlencode($target_url),
+            'url'      => $target_url,
             'strategy' => $strategy,
             'category' => 'performance',
         ], self::API_URL);
@@ -49,6 +49,13 @@ final class PageSpeedService {
         $code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
 
+                if ($code === 429) {
+            return [
+                'success' => false,
+                'error'   => 'Google PageSpeed API Rate Limit Exceeded (HTTP 429). Permintaan API tanpa API Key melebihi batas kuota Google. Silakan coba lagi beberapa saat atau tambahkan API Key Google PSI.',
+            ];
+        }
+
         if ($code !== 200 || empty($body)) {
             return [
                 'success' => false,
@@ -57,7 +64,7 @@ final class PageSpeedService {
         }
 
         $json = json_decode($body, true);
-        if (!!json || !isset($json['lighthouseResult'])) {
+        if (!$json || !isset($json['lighthouseResult'])) {
             return [
                 'success' => false,
                 'error'   => 'Invalid PageSpeed API response format.',
