@@ -172,7 +172,8 @@ class Dashboard {
 
             .wpsc-shell {
                 max-width: 1240px;
-                margin: 20px 20px 40px 0;
+                width: 100%;
+                margin: clamp(10px, 2vw, 20px) clamp(10px, 2vw, 20px) 40px 0;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
                 color: var(--wpsc-text-main);
             }
@@ -187,7 +188,7 @@ class Dashboard {
                 backdrop-filter: blur(16px);
                 -webkit-backdrop-filter: blur(16px);
                 border: 1px solid var(--wpsc-card-border);
-                border-radius: 16px;
+                border-radius: clamp(12px, 1.8vw, 16px);
                 box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
                 transition: all 0.25s ease-in-out;
             }
@@ -203,9 +204,9 @@ class Dashboard {
                 align-items: center;
                 justify-content: space-between;
                 flex-wrap: wrap;
-                gap: 20px;
-                padding: 24px 30px;
-                margin-bottom: 24px;
+                gap: clamp(14px, 2vw, 20px);
+                padding: clamp(16px, 2.5vw, 26px) clamp(18px, 3vw, 30px);
+                margin-bottom: clamp(16px, 2vw, 24px);
                 position: relative;
                 overflow: hidden;
             }
@@ -224,37 +225,40 @@ class Dashboard {
             .wpsc-logo-wrap {
                 display: flex;
                 align-items: center;
-                gap: 16px;
+                gap: clamp(10px, 1.5vw, 16px);
             }
 
             .wpsc-logo-icon {
-                width: 48px;
-                height: 48px;
+                width: clamp(38px, 5vw, 48px);
+                height: clamp(38px, 5vw, 48px);
                 background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-                border-radius: 14px;
+                border-radius: clamp(10px, 1.5vw, 14px);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 24px;
+                font-size: clamp(20px, 3vw, 24px);
                 box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+                flex-shrink: 0;
             }
 
             .wpsc-title {
-                font-size: 24px;
+                font-size: clamp(18px, 3.5vw, 24px);
                 font-weight: 800;
                 letter-spacing: -0.5px;
                 margin: 0;
                 background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
+                line-height: 1.2;
             }
 
             .wpsc-subtitle {
-                font-size: 13px;
+                font-size: clamp(11px, 1.5vw, 13px);
                 color: var(--wpsc-text-muted);
-                margin-top: 3px;
+                margin-top: 4px;
                 display: flex;
                 align-items: center;
+                flex-wrap: wrap;
                 gap: 8px;
             }
 
@@ -365,28 +369,28 @@ class Dashboard {
             /* Telemetry Grid */
             .wpsc-telemetry-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                gap: 16px;
-                margin-bottom: 24px;
+                grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+                gap: clamp(10px, 1.5vw, 16px);
+                margin-bottom: clamp(16px, 2vw, 24px);
             }
 
             .wpsc-telemetry-card {
-                padding: 18px;
+                padding: clamp(12px, 2vw, 18px);
                 position: relative;
                 overflow: hidden;
             }
 
             .wpsc-tel-label {
-                font-size: 11px;
+                font-size: clamp(10px, 1.2vw, 11px);
                 text-transform: uppercase;
                 letter-spacing: 0.8px;
                 color: var(--wpsc-text-muted);
-                margin-bottom: 8px;
+                margin-bottom: 6px;
                 font-weight: 600;
             }
 
             .wpsc-tel-val {
-                font-size: 18px;
+                font-size: clamp(15px, 2.5vw, 18px);
                 font-weight: 700;
                 color: #ffffff;
                 display: flex;
@@ -416,13 +420,13 @@ class Dashboard {
             /* Optimization Modules Matrix */
             .wpsc-modules-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                gap: 18px;
-                margin-bottom: 24px;
+                grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+                gap: clamp(12px, 1.8vw, 18px);
+                margin-bottom: clamp(16px, 2vw, 24px);
             }
 
             .wpsc-module-card {
-                padding: 22px;
+                padding: clamp(14px, 2.2vw, 22px);
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
@@ -537,6 +541,47 @@ class Dashboard {
             .wpsc-log-warn { color: #f59e0b; }
             .wpsc-log-err { color: #f87171; }
             .wpsc-log-time { color: #64748b; }
+
+            /* Fluid Responsive Breakpoints & Device Orientations */
+            @media (max-width: 768px) {
+                .wpsc-shell {
+                    margin: 10px 10px 30px 0;
+                }
+                .wpsc-header {
+                    flex-direction: column;
+                    align-items: stretch;
+                    gap: 16px;
+                }
+                .wpsc-header > div:last-child {
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+                    gap: 8px;
+                }
+                .wpsc-header > div:last-child form {
+                    width: 100%;
+                }
+                .wpsc-btn-primary, .wpsc-btn-ghost {
+                    width: 100%;
+                    justify-content: center;
+                    text-align: center;
+                }
+                .wpsc-modules-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            @media (orientation: landscape) and (max-height: 540px) {
+                .wpsc-shell {
+                    margin: 10px 10px 20px 0;
+                }
+                .wpsc-header {
+                    padding: 12px 18px;
+                }
+                .wpsc-terminal-body {
+                    max-height: 220px;
+                }
+            }
         </style>
 
         <div class="wpsc-shell">

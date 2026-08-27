@@ -104,7 +104,9 @@ class AssetManagerPanel {
         <style>
             .wpsc-shell {
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-                margin: 20px 20px 0 0;
+                margin: clamp(10px, 2vw, 20px) clamp(10px, 2vw, 20px) 40px 0;
+                max-width: 1240px;
+                width: 100%;
                 color: #e2e8f0;
             }
 
@@ -112,9 +114,9 @@ class AssetManagerPanel {
                 background: rgba(15, 23, 42, 0.75);
                 backdrop-filter: blur(16px);
                 border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 16px;
-                padding: 24px;
-                margin-bottom: 24px;
+                border-radius: clamp(12px, 1.8vw, 16px);
+                padding: clamp(14px, 2.5vw, 24px);
+                margin-bottom: clamp(16px, 2vw, 24px);
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
             }
 
@@ -122,14 +124,16 @@ class AssetManagerPanel {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 20px 24px;
-                margin-bottom: 24px;
+                flex-wrap: wrap;
+                gap: 16px;
+                padding: clamp(14px, 2.5vw, 20px) clamp(16px, 3vw, 24px);
+                margin-bottom: clamp(16px, 2vw, 24px);
                 background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
             }
 
             .wpsc-title {
                 margin: 0;
-                font-size: 22px;
+                font-size: clamp(18px, 3vw, 22px);
                 font-weight: 800;
                 color: #ffffff;
             }
@@ -162,8 +166,16 @@ class AssetManagerPanel {
                 font-size: 13px;
             }
 
+            .wpsc-table-responsive {
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin-bottom: 16px;
+            }
+
             .wpsc-table {
                 width: 100%;
+                min-width: 680px;
                 border-collapse: separate;
                 border-spacing: 0 8px;
             }
@@ -263,51 +275,52 @@ class AssetManagerPanel {
 
             <form method="post">
                 <?php wp_nonce_field('wpsc_asset_manager_nonce'); ?>
-                <div class="wpsc-glass">
-                    <table class="wpsc-table" id="wpsc-rules-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 220px;">Handle Aset (CSS / JS)</th>
-                                <th style="width: 160px;">Tipe Aset</th>
-                                <th style="width: 150px;">Nonaktifkan Global</th>
-                                <th>Target URL Match (Regex / Path Pattern)</th>
-                                <th style="width: 80px; text-align: center;">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($rules as $idx => $rule):
-                                $handle     = $rule['handle'] ?? (is_string($idx) ? $idx : '');
-                                $type       = $rule['type'] ?? 'script';
-                                $everywhere = !empty($rule['everywhere']);
-                                $url_match  = $rule['url_match'] ?? '';
-                            ?>
+                    <div class="wpsc-table-responsive">
+                        <table class="wpsc-table" id="wpsc-rules-table">
+                            <thead>
                                 <tr>
-                                    <td>
-                                        <input type="text" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][handle]" value="<?php echo esc_attr($handle); ?>" class="wpsc-input" style="color: #00f2fe; font-weight: 700;" placeholder="misal: contact-form-7">
-                                    </td>
-                                    <td>
-                                        <select name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][type]" class="wpsc-select">
-                                            <option value="script" <?php selected($type, 'script'); ?>>Script (JS)</option>
-                                            <option value="style" <?php selected($type, 'style'); ?>>Style (CSS)</option>
-                                            <option value="both" <?php selected($type, 'both'); ?>>Keduanya (CSS & JS)</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                            <input type="checkbox" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][everywhere]" value="1" <?php checked($everywhere); ?>>
-                                            Matikan Semua
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <input type="text" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][url_match]" value="<?php echo esc_attr($url_match); ?>" class="wpsc-input" placeholder="misal: /blog/ atau ^/contact">
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <button type="button" class="wpsc-btn-del" onclick="this.closest('tr').remove();">🗑️ Hapus</button>
-                                    </td>
+                                    <th style="width: 220px;">Handle Aset (CSS / JS)</th>
+                                    <th style="width: 160px;">Tipe Aset</th>
+                                    <th style="width: 150px;">Nonaktifkan Global</th>
+                                    <th>Target URL Match (Regex / Path Pattern)</th>
+                                    <th style="width: 80px; text-align: center;">Aksi</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($rules as $idx => $rule):
+                                    $handle     = $rule['handle'] ?? (is_string($idx) ? $idx : '');
+                                    $type       = $rule['type'] ?? 'script';
+                                    $everywhere = !empty($rule['everywhere']);
+                                    $url_match  = $rule['url_match'] ?? '';
+                                ?>
+                                    <tr>
+                                        <td>
+                                            <input type="text" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][handle]" value="<?php echo esc_attr($handle); ?>" class="wpsc-input" style="color: #00f2fe; font-weight: 700;" placeholder="misal: contact-form-7">
+                                        </td>
+                                        <td>
+                                            <select name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][type]" class="wpsc-select">
+                                                <option value="script" <?php selected($type, 'script'); ?>>Script (JS)</option>
+                                                <option value="style" <?php selected($type, 'style'); ?>>Style (CSS)</option>
+                                                <option value="both" <?php selected($type, 'both'); ?>>Keduanya (CSS & JS)</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                                <input type="checkbox" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][everywhere]" value="1" <?php checked($everywhere); ?>>
+                                                Matikan Semua
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][url_match]" value="<?php echo esc_attr($url_match); ?>" class="wpsc-input" placeholder="misal: /blog/ atau ^/contact">
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <button type="button" class="wpsc-btn-del" onclick="this.closest('tr').remove();">🗑️ Hapus</button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
 
                     <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <button type="button" class="wpsc-btn-ghost" onclick="wpscAddRuleRow()">

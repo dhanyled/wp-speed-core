@@ -1,7 +1,7 @@
-# ⚡ WP Speed Core `v1.4.5` - Panduan Instalasi, Penggunaan & Dokumentasi
+# ⚡ WP Speed Core `v1.4.6` - Panduan Instalasi, Penggunaan & Dokumentasi
 
 > **Pengembang**: Dhany ([@leddhany](https://t.me/leddhany))  
-> **Versi**: `1.4.5` (Production Ready)  
+> **Versi**: `1.4.6` (Production Ready)  
 > **Lisensi**: GPL v2 or later  
 
 WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang menggabungkan kontrol bloat script, caching HTML statis berkecepatan tinggi, INP Shield untuk Core Web Vitals, **Adaptive Smart Auto-Tuning Engine**, serta **System & Diagnostic Logger** untuk pemantauan server dan audit performa real-time.
@@ -9,6 +9,15 @@ WP Speed Core adalah plugin optimasi performa WordPress modern all-in-one yang m
 ---
 
 ## 📜 Changelog / Riwayat Perubahan
+
+### `v1.4.6` (2026-08-27) - Fluid Clamp Responsiveness, Elementor v3/v4 & Bricks Builder Full Compatibility
+- 📱 **Fluid Clamp & Orientation Responsiveness**:
+  - Mengimplementasikan CSS `clamp()` pada Dashboard Admin HUD, Asset Manager Panel, dan PageSpeed Insights Gauge untuk tipografi, padding, dan grid yang fleksibel.
+  - Menambahkan media queries khusus portrait (`max-width: 768px`) dan landscape (`orientation: landscape` & `max-height: 540px`) sehingga tampilan responsif sempurna di seluruh perangkat ponsel, tablet, maupun desktop tanpa overflow horizontal.
+  - Menambahkan kontainer tabel responsif (`.wpsc-table-responsive`) berfitur touch horizontal-scroll pada Asset Unloader Manager.
+- 🧱 **Elementor v3 & v4 + Bricks Builder Compatibility**:
+  - Menambahkan deteksi cerdas kanvas editor visual (`Kernel::is_page_builder_editor()`) yang secara otomatis melewati (*bypass*) penundaan skrip, buffer media, dan page caching saat pengguna sedang mengedit di Elementor (v3 & v4) ataupun Bricks Builder (`?elementor-preview=...`, `?action=elementor`, `?bricks=run`).
+  - Menambahkan perlindungan eksklusi bawaan untuk runtime Elementor dan skrip Bricks (`elementorFrontend`, `bricks.min.js`, `bricks.js`) guna memastikan animasi, toggle mobile menu, dan template hasil export Bricks berjalan 100% mulus.
 
 ### `v1.4.5` (2026-08-26) - Asset Unloader Multi-Type Schema, Sample Defaults & Consolidations
 - 📦 **Asset Unloader Schema Compatibility & Default Samples**:

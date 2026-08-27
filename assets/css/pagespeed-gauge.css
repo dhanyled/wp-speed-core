@@ -1,21 +1,21 @@
 
 .wpsc-psi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    margin-bottom: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: clamp(14px, 2vw, 20px);
+    margin-bottom: clamp(16px, 2vw, 24px);
 }
 .wpsc-gauge-card {
     background: rgba(30, 41, 59, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: clamp(10px, 1.5vw, 12px);
+    padding: clamp(14px, 2.5vw, 20px);
     text-align: center;
 }
 .wpsc-gauge-circle {
     position: relative;
-    width: 120px;
-    height: 120px;
+    width: clamp(90px, 16vw, 120px);
+    height: clamp(90px, 16vw, 120px);
     margin: 0 auto 12px auto;
 }
 .wpsc-gauge-circle svg {
@@ -39,20 +39,20 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 28px;
+    font-size: clamp(20px, 3.5vw, 28px);
     font-weight: 800;
     color: #fff;
 }
 .wpsc-metrics-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+    gap: clamp(8px, 1.5vw, 12px);
     margin-top: 16px;
     text-align: left;
 }
 .wpsc-metric-item {
     background: rgba(15, 23, 42, 0.6);
-    padding: 10px 14px;
+    padding: clamp(8px, 1.5vw, 10px) clamp(10px, 2vw, 14px);
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -62,7 +62,7 @@
     text-transform: uppercase;
 }
 .wpsc-metric-value {
-    font-size: 16px;
+    font-size: clamp(14px, 2vw, 16px);
     font-weight: 700;
     color: #38bdf8;
     margin-top: 4px;

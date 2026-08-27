@@ -72,7 +72,7 @@ class HtmlCacheEngine {
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
             return false;
         }
-        if (wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST) || is_feed()) {
+        if (wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST) || is_feed() || \WPSpeedCore\Kernel::is_page_builder_editor()) {
             return false;
         }
         if (empty($this->opts['cache_authenticated']) && is_user_logged_in()) {

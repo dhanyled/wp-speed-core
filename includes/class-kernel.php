@@ -22,6 +22,49 @@ final class Kernel {
         return $this->registry[$id] ?? null;
     }
 
+    /**
+     * Check if a visual page builder editor/preview canvas is currently active.
+     * Guarantees 100% compatibility with Elementor (v3 & v4), Bricks Builder, Divi, etc.
+     */
+    public static function is_page_builder_editor(): bool {
+        // Elementor v3 & v4 editor and preview canvas
+        if (isset($_GET['elementor-preview']) || (isset($_GET['action']) && $_GET['action'] === 'elementor')) {
+            return true;
+        }
+        if (class_exists('\Elementor\Plugin')) {
+            $plugin = \Elementor\Plugin::$instance;
+            if (isset($plugin->preview) && method_exists($plugin->preview, 'is_preview_mode') && $plugin->preview->is_preview_mode()) {
+                return true;
+            }
+            if (isset($plugin->editor) && method_exists($plugin->editor, 'is_edit_mode') && $plugin->editor->is_edit_mode()) {
+                return true;
+            }
+        }
+
+        // Bricks Builder editor canvas
+        if (isset($_GET['bricks']) && $_GET['bricks'] === 'run') {
+            return true;
+        }
+        if (function_exists('bricks_is_builder') && bricks_is_builder()) {
+            return true;
+        }
+        if (function_exists('bricks_is_builder_call') && bricks_is_builder_call()) {
+            return true;
+        }
+
+        // Divi Builder preview
+        if (isset($_GET['et_fb'])) {
+            return true;
+        }
+
+        // Beaver Builder preview
+        if (isset($_GET['fl_builder'])) {
+            return true;
+        }
+
+        return false;
+    }
+
     private function __construct() {
         $this->boot_engine();
         $this->boot_optimizations();

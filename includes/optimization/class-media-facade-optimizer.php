@@ -28,6 +28,9 @@ final class MediaFacadeOptimizer {
     }
 
     public function start_buffer(): void {
+        if (\WPSpeedCore\Kernel::is_page_builder_editor()) {
+            return;
+        }
         ob_start([$this, 'optimize_iframes']);
     }
 

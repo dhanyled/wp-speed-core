@@ -20,7 +20,7 @@ class MediaController {
     }
 
     public function start_media_buffer(): void {
-        if (is_feed() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST) || wp_is_json_request()) {
+        if (is_feed() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST) || wp_is_json_request() || \WPSpeedCore\Kernel::is_page_builder_editor()) {
             return;
         }
         ob_start([$this, 'process_images']);
