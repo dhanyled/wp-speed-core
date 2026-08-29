@@ -191,110 +191,149 @@ class McpServer {
 
         switch ($tool_name) {
             case 'wpsc_get_telemetry':
-                /** @var EnvironmentScanner|null $env */
-                $env = $kernel->get('env');
-                $env_data = $env ? $env->get() : [];
-
-                $cache_dir   = WPSC_CACHE_DIR . 'html/';
-                $cache_files = glob($cache_dir . '*.html') ?: [];
-                $cache_size  = 0;
-                foreach ($cache_files as $f) {
-                    $cache_size += (int) filesize($f);
-                }
-
-                $disabled_assets = (array) get_option('wpsc_disabled_assets', []);
-
-                return [
-                    'version'         => WPSC_VERSION,
-                    'server'          => $env_data['server']['software'] ?? 'Unknown',
-                    'php_version'     => PHP_VERSION,
-                    'opcache_enabled' => (!empty($env_data['php']['opcache']) || !empty($env_data['php']['opcache_enabled'])),
-                    'jit_enabled'     => (!empty($env_data['php']['jit']) || !empty($env_data['php']['jit_enabled'])),
-                    'memory_limit'    => $env_data['php']['memory_limit'] ?? 'Unknown',
-                    'theme_fse'       => !empty($env_data['wordpress']['is_block_theme']),
-                    'woocommerce'     => !empty($env_data['ecommerce']['woocommerce']),
-                    'cache_count'     => count($cache_files),
-                    'cache_size_kb'   => round($cache_size / 1024, 2),
-                    'disabled_assets' => count($disabled_assets),
-                    'status'          => 'operational',
-                ];
+                return $this->tool_get_telemetry($kernel);
 
             case 'wpsc_purge_cache':
-                $url = sanitize_text_field((string) ($args['url'] ?? ''));
-                if ($url !== '') {
-                    $p = wp_parse_url($url);
-                    $file = WPSC_CACHE_DIR . 'html/' . md5(($p['host'] ?? '') . ($p['path'] ?? '/')) . '.html';
-                    $purged = false;
-                    if (file_exists($file)) {
-                        wp_delete_file($file);
-                        if (file_exists($file . '.gz')) {
-                            wp_delete_file($file . '.gz');
-                        }
-                        $purged = true;
-                    }
-                    return ['success' => true, 'action' => 'single_purge', 'url' => $url, 'purged' => $purged];
-                }
-
-                do_action('wpsc_purge_all');
-                return ['success' => true, 'action' => 'full_purge', 'message' => 'All HTML static cache files purged.'];
+                return $this->tool_purge_cache($args);
 
             case 'wpsc_warm_cache':
-                /** @var \WPSpeedCore\Cache\HtmlCacheEngine|null $cache */
-                $cache = $kernel->get('cache');
-                $warmed = $cache ? $cache->warm_cache() : 0;
-                return ['success' => true, 'warmed_urls_count' => $warmed];
+                return $this->tool_warm_cache($kernel);
 
             case 'wpsc_autotune':
-                /** @var AdaptiveTuner|null $tuner */
-                $tuner = $kernel->get('tuner');
-                $applied = $tuner ? $tuner->apply() : false;
-                return ['success' => $applied, 'message' => 'Adaptive Auto-Tune settings applied.'];
+                return $this->tool_autotune($kernel);
 
             case 'wpsc_audit_conflicts':
-                /** @var TagAuditor|null $auditor */
-                $auditor = $kernel->get('auditor');
-                $duplicates = $auditor ? $auditor->get_duplicates() : [];
-
-                /** @var OverlapArbiter|null $arbiter */
-                $arbiter = $kernel->get('arbiter');
-                $conflicts = $arbiter ? $arbiter->get_conflicts() : [];
-
-                return [
-                    'duplicate_tags'     => $duplicates,
-                    'plugin_overlaps'    => $conflicts,
-                    'overall_risk_level' => (!empty($duplicates) || !empty($conflicts)) ? 'attention_required' : 'optimal',
-                ];
+                return $this->tool_audit_conflicts($kernel);
 
             case 'wpsc_optimize_db':
-                /** @var \WPSpeedCore\Optimization\DatabaseHousekeeper|null $db */
-                $db = $kernel->get('db');
-                if ($db) {
-                    $cleaned = $db->maintain();
-                    $optimized_tables = $db->optimize_tables();
-                    return [
-                        'success'          => true,
-                        'cleaned_records'  => $cleaned,
-                        'optimized_tables' => $optimized_tables,
-                    ];
-                }
-                return ['success' => false, 'error' => 'Database housekeeper module unavailable'];
+                return $this->tool_optimize_db($kernel);
 
             case 'wpsc_get_checklist':
-                $checklist_evaluator = new PerformanceChecklist();
-                return $checklist_evaluator->evaluate();
+                return $this->tool_get_checklist();
 
             case 'wpsc_get_logs':
-                $limit = max(10, min(200, (int) ($args['limit'] ?? 50)));
-                /** @var Logger|null $logger */
-                $logger = $kernel->get('logger');
-                $entries = $logger ? $logger->get_recent($limit) : [];
-                return [
-                    'entries_count' => count($entries),
-                    'logs'          => $entries,
-                ];
+                return $this->tool_get_logs($kernel, $args);
 
             default:
                 return ['error' => 'Unknown tool name: ' . $tool_name];
         }
+    }
+
+    private function tool_get_telemetry(Kernel $kernel): array {
+        /** @var EnvironmentScanner|null $env */
+        $env = $kernel->get('env');
+        $env_data = $env ? $env->get() : [];
+
+        $cache_dir   = WPSC_CACHE_DIR . 'html/';
+        $cache_files = glob($cache_dir . '*.html') ?: [];
+        $cache_size  = 0;
+        foreach ($cache_files as $f) {
+            $cache_size += (int) filesize($f);
+        }
+
+        $disabled_assets = (array) get_option('wpsc_disabled_assets', []);
+
+        return [
+            'version'         => WPSC_VERSION,
+            'server'          => $env_data['server']['software'] ?? 'Unknown',
+            'php_version'     => PHP_VERSION,
+            'opcache_enabled' => (!empty($env_data['php']['opcache']) || !empty($env_data['php']['opcache_enabled'])),
+            'jit_enabled'     => (!empty($env_data['php']['jit']) || !empty($env_data['php']['jit_enabled'])),
+            'memory_limit'    => $env_data['php']['memory_limit'] ?? 'Unknown',
+            'theme_fse'       => !empty($env_data['wordpress']['is_block_theme']),
+            'woocommerce'     => !empty($env_data['ecommerce']['woocommerce']),
+            'cache_count'     => count($cache_files),
+            'cache_size_kb'   => round($cache_size / 1024, 2),
+            'disabled_assets' => count($disabled_assets),
+            'status'          => 'operational',
+        ];
+    }
+
+    private function tool_purge_cache(array $args): array {
+        $url = sanitize_text_field((string) ($args['url'] ?? ''));
+        if ($url !== '') {
+            $p = wp_parse_url($url);
+            $home_host = (string) wp_parse_url(home_url(), PHP_URL_HOST);
+            $url_host  = $p['host'] ?? $home_host;
+
+            if ($home_host !== '' && $url_host !== '' && strcasecmp($url_host, $home_host) !== 0) {
+                return ['success' => false, 'action' => 'single_purge', 'url' => $url, 'error' => 'Invalid host for purge operation.'];
+            }
+
+            $file = WPSC_CACHE_DIR . 'html/' . md5($url_host . ($p['path'] ?? '/')) . '.html';
+            $purged = false;
+            if (file_exists($file)) {
+                wp_delete_file($file);
+                if (file_exists($file . '.gz')) {
+                    wp_delete_file($file . '.gz');
+                }
+                $purged = true;
+            }
+            return ['success' => true, 'action' => 'single_purge', 'url' => $url, 'purged' => $purged];
+        }
+
+        do_action('wpsc_purge_all');
+        return ['success' => true, 'action' => 'full_purge', 'message' => 'All HTML static cache files purged.'];
+    }
+
+    private function tool_warm_cache(Kernel $kernel): array {
+        /** @var \WPSpeedCore\Cache\HtmlCacheEngine|null $cache */
+        $cache = $kernel->get('cache');
+        $warmed = $cache ? $cache->warm_cache() : 0;
+        return ['success' => true, 'warmed_urls_count' => $warmed];
+    }
+
+    private function tool_autotune(Kernel $kernel): array {
+        /** @var AdaptiveTuner|null $tuner */
+        $tuner = $kernel->get('tuner');
+        $applied = $tuner ? $tuner->apply() : false;
+        return ['success' => $applied, 'message' => 'Adaptive Auto-Tune settings applied.'];
+    }
+
+    private function tool_audit_conflicts(Kernel $kernel): array {
+        /** @var TagAuditor|null $auditor */
+        $auditor = $kernel->get('auditor');
+        $duplicates = $auditor ? $auditor->get_duplicates() : [];
+
+        /** @var OverlapArbiter|null $arbiter */
+        $arbiter = $kernel->get('arbiter');
+        $conflicts = $arbiter ? $arbiter->get_conflicts() : [];
+
+        return [
+            'duplicate_tags'     => $duplicates,
+            'plugin_overlaps'    => $conflicts,
+            'overall_risk_level' => (!empty($duplicates) || !empty($conflicts)) ? 'attention_required' : 'optimal',
+        ];
+    }
+
+    private function tool_optimize_db(Kernel $kernel): array {
+        /** @var \WPSpeedCore\Optimization\DatabaseHousekeeper|null $db */
+        $db = $kernel->get('db');
+        if ($db) {
+            $cleaned = $db->maintain();
+            $optimized_tables = $db->optimize_tables();
+            return [
+                'success'          => true,
+                'cleaned_records'  => $cleaned,
+                'optimized_tables' => $optimized_tables,
+            ];
+        }
+        return ['success' => false, 'error' => 'Database housekeeper module unavailable'];
+    }
+
+    private function tool_get_checklist(): array {
+        $checklist_evaluator = new PerformanceChecklist();
+        return $checklist_evaluator->evaluate();
+    }
+
+    private function tool_get_logs(Kernel $kernel, array $args): array {
+        $limit = max(10, min(200, (int) ($args['limit'] ?? 50)));
+        /** @var Logger|null $logger */
+        $logger = $kernel->get('logger');
+        $entries = $logger ? $logger->get_recent($limit) : [];
+        return [
+            'entries_count' => count($entries),
+            'logs'          => $entries,
+        ];
     }
 }
