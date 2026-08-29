@@ -84,6 +84,22 @@ class AssetManagerPanel {
             wp_die(esc_html__('Akses ditolak.', 'wp-speed-core'));
         }
 
+        $rules = $this->get_asset_rules();
+
+        $this->render_styles();
+        ?>
+        <div class="wpsc-shell">
+            <?php
+            $this->render_header();
+            $this->render_update_notice();
+            $this->render_rules_form($rules);
+            $this->render_scripts();
+            ?>
+        </div>
+        <?php
+    }
+
+    private function get_asset_rules(): array {
         $raw_rules = get_option('wpsc_disabled_assets', null);
         $rules     = is_array($raw_rules) ? $raw_rules : [];
 
@@ -100,6 +116,11 @@ class AssetManagerPanel {
                 ];
             }
         }
+
+        return $rules;
+    }
+
+    private function render_styles(): void {
         ?>
         <style>
             .wpsc-shell {
@@ -121,56 +142,61 @@ class AssetManagerPanel {
             }
 
             .wpsc-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                flex-wrap: wrap;
-                gap: 16px;
-                padding: clamp(14px, 2.5vw, 20px) clamp(16px, 3vw, 24px);
-                margin-bottom: clamp(16px, 2vw, 24px);
-                background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
+                background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%);
+                border-left: 4px solid #00f2fe;
             }
 
             .wpsc-title {
                 margin: 0;
-                font-size: clamp(18px, 3vw, 22px);
+                font-size: clamp(18px, 2vw, 22px);
                 font-weight: 800;
-                color: #ffffff;
+                background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
             }
 
             .wpsc-btn-primary {
                 background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-                color: #0f172a;
+                color: #0f172a !important;
                 border: none;
                 padding: 10px 20px;
-                border-radius: 10px;
+                border-radius: 8px;
                 font-weight: 700;
-                font-size: 13px;
                 cursor: pointer;
-                transition: all 0.2s ease;
+                transition: all 0.2s;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 13px;
+
             }
 
             .wpsc-btn-primary:hover {
                 transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(0, 242, 254, 0.45);
+                box-shadow: 0 4px 12px rgba(0, 242, 254, 0.3);
             }
 
             .wpsc-btn-ghost {
                 background: rgba(255, 255, 255, 0.05);
-                color: #00f2fe;
-                border: 1px solid rgba(0, 242, 254, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                color: #e2e8f0 !important;
                 padding: 10px 18px;
-                border-radius: 10px;
+                border-radius: 8px;
+                font-weight: 600;
                 cursor: pointer;
-                font-weight: 700;
+                transition: all 0.2s;
                 font-size: 13px;
             }
 
+            .wpsc-btn-ghost:hover {
+                background: rgba(255, 255, 255, 0.1);
+                color: #ffffff !important;
+            }
+
             .wpsc-table-responsive {
-                width: 100%;
                 overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                margin-bottom: 16px;
+                margin-top: 16px;
             }
 
             .wpsc-table {
@@ -248,125 +274,138 @@ class AssetManagerPanel {
                 color: #ffffff;
             }
         </style>
+        <?php
+    }
 
-        <div class="wpsc-shell">
-            <!-- Header HUD -->
-            <div class="wpsc-glass wpsc-header">
-                <div style="display: flex; align-items: center; gap: 16px;">
-                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px;">📦</div>
-                    <div>
-                        <h1 class="wpsc-title">WP Speed Core - Asset Unloader Manager</h1>
-                        <div style="font-size: 13px; color: #94a3b8; margin-top: 3px;">
-                            Matikan skrip CSS, JS, atau Keduanya secara global atau berdasarkan target URL match yang berbeda untuk nama handle yang sama.
-                        </div>
+    private function render_header(): void {
+        ?>
+        <!-- Header HUD -->
+        <div class="wpsc-glass wpsc-header">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px;">📦</div>
+                <div>
+                    <h1 class="wpsc-title">WP Speed Core - Asset Unloader Manager</h1>
+                    <div style="font-size: 13px; color: #94a3b8; margin-top: 3px;">
+                        Matikan skrip CSS, JS, atau Keduanya secara global atau berdasarkan target URL match yang berbeda untuk nama handle yang sama.
                     </div>
                 </div>
             </div>
-
-            <?php if (isset($_GET['updated'])): ?>
-                <div class="wpsc-alert-success">
-                    <div style="font-size: 20px;">✅</div>
-                    <div>
-                        <strong>Aturan Penonaktifan Aset Berhasil Disimpan!</strong><br>
-                        Sistem akan otomatis melepaskan (dequeue) CSS/JS sesuai target yang Anda tentukan.
-                    </div>
-                </div>
-            <?php endif; ?>
-
-            <form method="post">
-                <?php wp_nonce_field('wpsc_asset_manager_nonce'); ?>
-                    <div class="wpsc-table-responsive">
-                        <table class="wpsc-table" id="wpsc-rules-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 220px;">Handle Aset (CSS / JS)</th>
-                                    <th style="width: 160px;">Tipe Aset</th>
-                                    <th style="width: 150px;">Nonaktifkan Global</th>
-                                    <th>Target URL Match (Regex / Path Pattern)</th>
-                                    <th style="width: 80px; text-align: center;">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($rules as $idx => $rule):
-                                    $handle     = $rule['handle'] ?? (is_string($idx) ? $idx : '');
-                                    $type       = $rule['type'] ?? 'script';
-                                    $everywhere = !empty($rule['everywhere']);
-                                    $url_match  = $rule['url_match'] ?? '';
-                                ?>
-                                    <tr>
-                                        <td>
-                                            <input type="text" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][handle]" value="<?php echo esc_attr($handle); ?>" class="wpsc-input" style="color: #00f2fe; font-weight: 700;" placeholder="misal: contact-form-7">
-                                        </td>
-                                        <td>
-                                            <select name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][type]" class="wpsc-select">
-                                                <option value="script" <?php selected($type, 'script'); ?>>Script (JS)</option>
-                                                <option value="style" <?php selected($type, 'style'); ?>>Style (CSS)</option>
-                                                <option value="both" <?php selected($type, 'both'); ?>>Keduanya (CSS & JS)</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                                <input type="checkbox" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][everywhere]" value="1" <?php checked($everywhere); ?>>
-                                                Matikan Semua
-                                            </label>
-                                        </td>
-                                        <td>
-                                            <input type="text" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][url_match]" value="<?php echo esc_attr($url_match); ?>" class="wpsc-input" placeholder="misal: /blog/ atau ^/contact">
-                                        </td>
-                                        <td style="text-align: center;">
-                                            <button type="button" class="wpsc-btn-del" onclick="this.closest('tr').remove();">🗑️ Hapus</button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                        <button type="button" class="wpsc-btn-ghost" onclick="wpscAddRuleRow()">
-                            + Tambah Baris Aturan Baru
-                        </button>
-                        <button type="submit" name="wpsc_save_assets" class="wpsc-btn-primary">
-                            💾 Simpan Seluruh Aturan Asset Unloader
-                        </button>
-                    </div>
-                </div>
-            </form>
-
-            <script>
-                function wpscAddRuleRow() {
-                    const tbody = document.querySelector('#wpsc-rules-table tbody');
-                    if (!tbody) return;
-                    const idx = Date.now();
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>
-                            <input type="text" name="wpsc_rules[${idx}][handle]" value="" class="wpsc-input" style="color: #00f2fe; font-weight: 700;" placeholder="misal: contact-form-7">
-                        </td>
-                        <td>
-                            <select name="wpsc_rules[${idx}][type]" class="wpsc-select">
-                                <option value="script">Script (JS)</option>
-                                <option value="style">Style (CSS)</option>
-                                <option value="both">Keduanya (CSS & JS)</option>
-                            </select>
-                        </td>
-                        <td>
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <input type="checkbox" name="wpsc_rules[${idx}][everywhere]" value="1">
-                                Matikan Semua
-                            </label>
-                        </td>
-                        <td>
-                            <input type="text" name="wpsc_rules[${idx}][url_match]" value="" class="wpsc-input" placeholder="misal: /blog/ atau ^/contact">
-                        </td>
-                        <td style="text-align: center;">
-                            <button type="button" class="wpsc-btn-del" onclick="this.closest('tr').remove();">🗑️ Hapus</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                }
-            </script>
         </div>
+        <?php
+    }
+
+    private function render_update_notice(): void {
+        if (isset($_GET['updated'])):
+            ?>
+            <div class="wpsc-alert-success">
+                <div style="font-size: 20px;">✅</div>
+                <div>
+                    <strong>Aturan Penonaktifan Aset Berhasil Disimpan!</strong><br>
+                    Sistem akan otomatis melepaskan (dequeue) CSS/JS sesuai target yang Anda tentukan.
+                </div>
+            </div>
+            <?php
+        endif;
+    }
+
+    private function render_rules_form(array $rules): void {
+        ?>
+        <form method="post">
+            <?php wp_nonce_field('wpsc_asset_manager_nonce'); ?>
+            <div class="wpsc-table-responsive">
+                <table class="wpsc-table" id="wpsc-rules-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 220px;">Handle Aset (CSS / JS)</th>
+                            <th style="width: 160px;">Tipe Aset</th>
+                            <th style="width: 150px;">Nonaktifkan Global</th>
+                            <th>Target URL Match (Regex / Path Pattern)</th>
+                            <th style="width: 80px; text-align: center;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($rules as $idx => $rule):
+                            $handle     = $rule['handle'] ?? (is_string($idx) ? $idx : '');
+                            $type       = $rule['type'] ?? 'script';
+                            $everywhere = !empty($rule['everywhere']);
+                            $url_match  = $rule['url_match'] ?? '';
+                        ?>
+                            <tr>
+                                <td>
+                                    <input type="text" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][handle]" value="<?php echo esc_attr($handle); ?>" class="wpsc-input" style="color: #00f2fe; font-weight: 700;" placeholder="misal: contact-form-7">
+                                </td>
+                                <td>
+                                    <select name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][type]" class="wpsc-select">
+                                        <option value="script" <?php selected($type, 'script'); ?>>Script (JS)</option>
+                                        <option value="style" <?php selected($type, 'style'); ?>>Style (CSS)</option>
+                                        <option value="both" <?php selected($type, 'both'); ?>>Keduanya (CSS & JS)</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][everywhere]" value="1" <?php checked($everywhere); ?>>
+                                        Matikan Semua
+                                    </label>
+                                </td>
+                                <td>
+                                    <input type="text" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][url_match]" value="<?php echo esc_attr($url_match); ?>" class="wpsc-input" placeholder="misal: /blog/ atau ^/contact">
+                                </td>
+                                <td style="text-align: center;">
+                                    <button type="button" class="wpsc-btn-del" onclick="this.closest('tr').remove();">🗑️ Hapus</button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <button type="button" class="wpsc-btn-ghost" onclick="wpscAddRuleRow()">
+                    + Tambah Baris Aturan Baru
+                </button>
+                <button type="submit" name="wpsc_save_assets" class="wpsc-btn-primary">
+                    💾 Simpan Seluruh Aturan Asset Unloader
+                </button>
+            </div>
+        </form>
+        <?php
+    }
+
+    private function render_scripts(): void {
+        ?>
+        <script>
+            function wpscAddRuleRow() {
+                const tbody = document.querySelector('#wpsc-rules-table tbody');
+                if (!tbody) return;
+                const idx = Date.now();
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>
+                        <input type="text" name="wpsc_rules[${idx}][handle]" value="" class="wpsc-input" style="color: #00f2fe; font-weight: 700;" placeholder="misal: contact-form-7">
+                    </td>
+                    <td>
+                        <select name="wpsc_rules[${idx}][type]" class="wpsc-select">
+                            <option value="script">Script (JS)</option>
+                            <option value="style">Style (CSS)</option>
+                            <option value="both">Keduanya (CSS & JS)</option>
+                        </select>
+                    </td>
+                    <td>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" name="wpsc_rules[${idx}][everywhere]" value="1">
+                            Matikan Semua
+                        </label>
+                    </td>
+                    <td>
+                        <input type="text" name="wpsc_rules[${idx}][url_match]" value="" class="wpsc-input" placeholder="misal: /blog/ atau ^/contact">
+                    </td>
+                    <td style="text-align: center;">
+                        <button type="button" class="wpsc-btn-del" onclick="this.closest('tr').remove();">🗑️ Hapus</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        </script>
         <?php
     }
 }
