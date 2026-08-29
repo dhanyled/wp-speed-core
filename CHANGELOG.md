@@ -4,6 +4,18 @@ Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** d
 
 ---
 
+## [1.5.1] - 2026-08-29
+
+### 🛡️ Perbaikan Bug & Stabilitas (Bug Fixes & Stability)
+- **Resolusi Fatal Exception pada Dashboard Admin & MCP Server**:
+  - Menambahkan method `Logger::get_recent(int $max_lines = 50): array` untuk mengembalikan array baris riwayat diagnosa sistem, memperbaiki *fatal exception* pada Dashboard rendering dan endpoint REST API MCP Server.
+  - Menambahkan method `TagAuditor::get_duplicates(): array` untuk mengambil transient duplikasi tag tracking secara aman.
+  - Menambahkan method alias `OverlapArbiter::get_conflicts(): array` yang selaras dengan konvensi pemanggilan modul pada Dashboard HUD.
+  - Memperbaiki akurasi deteksi bytecode cache OPcache pada `PerformanceChecklist` dan `McpServer` agar sinkron dengan properti `EnvironmentScanner`.
+  - Meningkatkan fleksibilitas pembacaan payload body/query parameter pada endpoint REST API MCP Server (`/wp-json/wpsc/v1/mcp/execute`).
+
+---
+
 ## [1.5.0] - 2026-08-29
 
 ### 🚀 Fitur Baru (New Features)

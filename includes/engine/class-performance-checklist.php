@@ -33,9 +33,9 @@ class PerformanceChecklist {
                     [
                         'id'          => 'opcache',
                         'title'       => 'Zend OPcache Bytecode Cache',
-                        'status'      => !empty($env['php']['opcache_enabled']) ? 'passed' : 'warning',
-                        'description' => !empty($env['php']['opcache_enabled']) ? 'Zend OPcache is active in memory.' : 'OPcache is not detected. Enabling OPcache reduces CPU compile time to 0ms.',
-                        'badge'       => !empty($env['php']['opcache_enabled']) ? 'Active' : 'Disabled',
+                        'status'      => (!empty($env['php']['opcache']) || !empty($env['php']['opcache_enabled'])) ? 'passed' : 'warning',
+                        'description' => (!empty($env['php']['opcache']) || !empty($env['php']['opcache_enabled'])) ? 'Zend OPcache is active in memory.' : 'OPcache is not detected. Enabling OPcache reduces CPU compile time to 0ms.',
+                        'badge'       => (!empty($env['php']['opcache']) || !empty($env['php']['opcache_enabled'])) ? 'Active' : 'Disabled',
                     ],
                     [
                         'id'          => 'html_cache',

@@ -1,7 +1,7 @@
-# ⚡ WP Speed Core `v1.5.0` - Panduan Instalasi & Penggunaan
+# ⚡ WP Speed Core `v1.5.1` - Panduan Instalasi & Penggunaan
 
 > **Pengembang**: Dhany ([@leddhany](https://t.me/leddhany))  
-> **Versi**: `1.5.0` (Production Ready)  
+> **Versi**: `1.5.1` (Production Ready)  
 > **Lisensi**: GPL v2 or later  
 
 WP Speed Core adalah plugin akselerasi performa WordPress modern all-in-one AI-Native yang menggabungkan caching HTML statis berkecepatan tinggi, **Model Context Protocol (MCP) AI Server**, **Interactive Performance Checklist**, **Smart Contextual Asset Unloader**, INP Shield untuk Core Web Vitals, **Instant Debug / Bypass Mode (`?nowpsc=1`)**, **Adaptive Smart Auto-Tuning Engine**, Google PageSpeed Insights Lab integration, serta **System & Diagnostic Logger** untuk pemantauan server dan audit performa real-time.
@@ -30,7 +30,7 @@ WP Speed Core adalah plugin akselerasi performa WordPress modern all-in-one AI-N
 
 ## 📊 Komparasi vs Kompetitor
 
-| Fitur / Arsitektur | WP Speed Core `v1.5.0` | WP Rocket | Perfmatters | WP Shifty | NitroPack |
+| Fitur / Arsitektur | WP Speed Core `v1.5.1` | WP Rocket | Perfmatters | WP Shifty | NitroPack |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Static Disk HTML Cache** | ✅ Yes (Zero DB Query) | ✅ Yes | ❌ (Butuh Caching Eksternal) | ❌ (Butuh Caching Eksternal) | ✅ (Cloud Service) |
 | **INP Shield (`scheduler.yield`)** | ✅ Yes (Sub-50ms) | ⚠️ (Delay Standar) | ⚠️ (Delay Standar) | ⚠️ (Delay Standar) | ⚠️ (Proprietary JS) |

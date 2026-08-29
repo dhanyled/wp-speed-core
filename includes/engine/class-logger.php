@@ -78,14 +78,20 @@ class Logger {
         ]);
     }
 
-    public function get_logs(int $max_lines = 150): string {
+    /**
+     * Get recent log entries as an array of strings.
+     *
+     * @param int $max_lines Maximum number of lines to return.
+     * @return array
+     */
+    public function get_recent(int $max_lines = 50): array {
         if (!file_exists($this->log_file)) {
-            return 'Belum ada log tercatat.';
+            return [];
         }
 
         $lines = @file($this->log_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if (!$lines) {
-            return 'Log kosong.';
+            return [];
         }
 
         $lines = array_filter($lines, static function (string $line): bool {
@@ -96,7 +102,15 @@ class Logger {
             $lines = array_slice($lines, -$max_lines);
         }
 
-        return implode("\n", array_reverse($lines));
+        return array_values(array_reverse($lines));
+    }
+
+    public function get_logs(int $max_lines = 150): string {
+        $recent = $this->get_recent($max_lines);
+        if (empty($recent)) {
+            return 'Belum ada log tercatat.';
+        }
+        return implode("\n", $recent);
     }
 
     public function clear(): bool {

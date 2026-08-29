@@ -59,4 +59,13 @@ class OverlapArbiter {
 
         return $results;
     }
+
+    /**
+     * Alias for audit_overlaps to match dashboard calling convention.
+     *
+     * @return array
+     */
+    public function get_conflicts(): array {
+        return $this->audit_overlaps();
+    }
 }

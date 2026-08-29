@@ -174,9 +174,9 @@ class McpServer {
     }
 
     public function execute_tool(\WP_REST_Request $request): \WP_REST_Response {
-        $body      = $request->get_json_params() ?? [];
-        $tool_name = sanitize_text_field((string) ($body['tool'] ?? $body['name'] ?? ''));
-        $args      = (array) ($body['arguments'] ?? $body['args'] ?? []);
+        $body      = $request->get_json_params() ?: $request->get_params();
+        $tool_name = sanitize_text_field((string) ($body['tool'] ?? $body['name'] ?? $request->get_param('tool') ?? $request->get_param('name') ?? ''));
+        $args      = (array) ($body['arguments'] ?? $body['args'] ?? $request->get_param('arguments') ?? $request->get_param('args') ?? []);
 
         if ($tool_name === '') {
             return new \WP_REST_Response(['error' => 'Missing tool name'], 400);
@@ -208,8 +208,8 @@ class McpServer {
                     'version'         => WPSC_VERSION,
                     'server'          => $env_data['server']['software'] ?? 'Unknown',
                     'php_version'     => PHP_VERSION,
-                    'opcache_enabled' => !empty($env_data['php']['opcache_enabled']),
-                    'jit_enabled'     => !empty($env_data['php']['jit_enabled']),
+                    'opcache_enabled' => (!empty($env_data['php']['opcache']) || !empty($env_data['php']['opcache_enabled'])),
+                    'jit_enabled'     => (!empty($env_data['php']['jit']) || !empty($env_data['php']['jit_enabled'])),
                     'memory_limit'    => $env_data['php']['memory_limit'] ?? 'Unknown',
                     'theme_fse'       => !empty($env_data['wordpress']['is_block_theme']),
                     'woocommerce'     => !empty($env_data['ecommerce']['woocommerce']),

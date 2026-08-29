@@ -105,4 +105,13 @@ class TagAuditor {
 
         return $html;
     }
+
+    /**
+     * Retrieve detected duplicate tracking tags from transient.
+     *
+     * @return array
+     */
+    public function get_duplicates(): array {
+        return (array) (get_transient('wpsc_tag_audit') ?: []);
+    }
 }
