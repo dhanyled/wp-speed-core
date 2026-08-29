@@ -2,6 +2,17 @@
 
 Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
 
+## [1.5.2] - 2026-08-29
+
+### 🚀 Peningkatan Caching & CrUX Field Data (CrUX & Performance)
+- **CrUX & Ad Query Normalizer (`HtmlCacheEngine`)**:
+  - Menambahkan normalisasi komprehensif untuk parameter pelacak iklan berbayar: `gad_source`, `gad_campaignid`, `gclid`, `gbraid`, `wbraid`, `_gl`, `_ga`, `dclid`, `srsltid`, `fbclid`, `igshid`, `msclkid`, `twclid`, `ttclid`, `epik`, `yclid`, `mc_cid`, `mc_eid`, `_hsenc`, `_hsmi`, dan seluruh awalan `utm_*`.
+  - Mencegah fragmentasi cache statis dan memastikan setiap klik iklan berbayar (Google Ads, Meta Ads) langsung disajikan via static HTML cache dengan 0ms TTFB demi performa maksimal pada **Chrome UX Report (CrUX)** dan **Google Ads Quality Score**.
+- **Komparasi Kompetitor FlyingPress**:
+  - Menambahkan kolom perbandingan arsitektur **FlyingPress** pada tab *Competitor Matrix* di Dashboard dan dokumentasi plugin.
+- **Bypass Synchronization**:
+  - Penegakan `Kernel::is_bypassed()` pada awal eksekusi `is_cacheable()` di `HtmlCacheEngine`.
+
 ---
 
 ## [1.5.1] - 2026-08-29

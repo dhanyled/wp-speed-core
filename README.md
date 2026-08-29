@@ -1,7 +1,7 @@
-# ⚡ WP Speed Core `v1.5.1` - Panduan Instalasi & Penggunaan
+# ⚡ WP Speed Core `v1.5.2` - Panduan Instalasi & Penggunaan
 
 > **Pengembang**: Dhany ([@leddhany](https://t.me/leddhany))  
-> **Versi**: `1.5.1` (Production Ready)  
+> **Versi**: `1.5.2` (Production Ready)  
 > **Lisensi**: GPL v2 or later  
 
 WP Speed Core adalah plugin akselerasi performa WordPress modern all-in-one AI-Native yang menggabungkan caching HTML statis berkecepatan tinggi, **Model Context Protocol (MCP) AI Server**, **Interactive Performance Checklist**, **Smart Contextual Asset Unloader**, INP Shield untuk Core Web Vitals, **Instant Debug / Bypass Mode (`?nowpsc=1`)**, **Adaptive Smart Auto-Tuning Engine**, Google PageSpeed Insights Lab integration, serta **System & Diagnostic Logger** untuk pemantauan server dan audit performa real-time.
@@ -30,16 +30,17 @@ WP Speed Core adalah plugin akselerasi performa WordPress modern all-in-one AI-N
 
 ## 📊 Komparasi vs Kompetitor
 
-| Fitur / Arsitektur | WP Speed Core `v1.5.1` | WP Rocket | Perfmatters | WP Shifty | NitroPack |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Static Disk HTML Cache** | ✅ Yes (Zero DB Query) | ✅ Yes | ❌ (Butuh Caching Eksternal) | ❌ (Butuh Caching Eksternal) | ✅ (Cloud Service) |
-| **INP Shield (`scheduler.yield`)** | ✅ Yes (Sub-50ms) | ⚠️ (Delay Standar) | ⚠️ (Delay Standar) | ⚠️ (Delay Standar) | ⚠️ (Proprietary JS) |
-| **W3C Speculation Rules** | ✅ Yes (Native W3C) | ⚠️ (Instant Page JS) | ⚠️ (Instant Page JS) | ❌ No | ❌ No |
-| **Contextual Asset Unloader** | ✅ Yes (with Exceptions) | ⚠️ (Unused CSS only) | ✅ Yes | ✅ Yes | ⚠️ (Blackbox) |
-| **Model Context Protocol (MCP)**| ✅ Yes (Built-in Server) | ✅ Yes (v3.23+) | ❌ No | ❌ No | ❌ No |
-| **1-Click Adaptive Auto-Tune** | ✅ Yes (Heuristic Scanner) | ❌ (Setup Manual) | ❌ (Setup Manual) | ❌ (Setup Manual) | ⚠️ (Preset Cloud) |
-| **Duplicate Tag Auditor** | ✅ Yes (GA4/GTM/Pixel) | ❌ No | ❌ No | ❌ No | ❌ No |
-| **Instant Bypass URL Parameter**| ✅ `?nowpsc=1` | ✅ `?nowprocket` | ✅ `?nowp` | ✅ `?noshifty` | ⚠️ (Cookie Bypass) |
+| Fitur / Arsitektur | WP Speed Core `v1.5.2` | FlyingPress | WP Rocket | Perfmatters | WP Shifty | NitroPack |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Static Disk HTML Cache** | ✅ Yes (Zero DB Query) | ✅ Yes (Disk Cache) | ✅ Yes | ❌ (Butuh Caching Eksternal) | ❌ (Butuh Caching Eksternal) | ✅ (Cloud Service) |
+| **INP Shield (`scheduler.yield`)** | ✅ Yes (Sub-50ms) | ⚠️ (Delay Standar) | ⚠️ (Delay Standar) | ⚠️ (Delay Standar) | ⚠️ (Delay Standar) | ⚠️ (Proprietary JS) |
+| **CrUX & Ad Query Normalizer** | ✅ Yes (`gad_source`, `gclid`, dsb.) | ✅ Yes | ⚠️ (Dasar) | ❌ No | ❌ No | ⚠️ (Cloud Proxy) |
+| **W3C Speculation Rules** | ✅ Yes (Native W3C) | ⚠️ (Link Preload JS) | ⚠️ (Instant Page JS) | ⚠️ (Instant Page JS) | ❌ No | ❌ No |
+| **Contextual Asset Unloader** | ✅ Yes (with Exceptions) | ⚠️ (Unused CSS) | ⚠️ (Unused CSS only) | ✅ Yes | ✅ Yes | ⚠️ (Blackbox) |
+| **Model Context Protocol (MCP)**| ✅ Yes (Built-in Server) | ❌ No | ✅ Yes (v3.23+) | ❌ No | ❌ No | ❌ No |
+| **1-Click Adaptive Auto-Tune** | ✅ Yes (Heuristic Scanner) | ⚠️ (Preset Config) | ❌ (Setup Manual) | ❌ (Setup Manual) | ❌ (Setup Manual) | ⚠️ (Preset Cloud) |
+| **Duplicate Tag Auditor** | ✅ Yes (GA4/GTM/Pixel) | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
+| **Instant Bypass URL Parameter**| ✅ `?nowpsc=1` | ✅ `?flying_press_bypass` | ✅ `?nowprocket` | ✅ `?nowp` | ✅ `?noshifty` | ⚠️ (Cookie Bypass) |
 
 ---
 

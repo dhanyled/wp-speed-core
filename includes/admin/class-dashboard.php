@@ -848,12 +848,13 @@ class Dashboard {
                     </p>
                 </div>
 
-                <div class="wpsc-glass" style="overflow: hidden; margin-bottom: 24px;">
+                <div class="wpsc-glass" style="overflow: hidden; margin-bottom: 24px; overflow-x: auto;">
                     <table class="wpsc-table">
                         <thead>
                             <tr>
-                                <th style="width: 280px;">Fitur & Kapabilitas Inti</th>
+                                <th style="width: 250px;">Fitur & Kapabilitas Inti</th>
                                 <th style="color: #38bdf8; background: rgba(56,189,248,0.1);">WP Speed Core</th>
+                                <th>FlyingPress</th>
                                 <th>WP Rocket</th>
                                 <th>Perfmatters</th>
                                 <th>WP Shifty</th>
@@ -864,6 +865,7 @@ class Dashboard {
                             <tr>
                                 <td><strong>Static Disk HTML Cache with Gzip</strong></td>
                                 <td style="color: #34d399; font-weight: 700; background: rgba(56,189,248,0.05);">Yes (Zero Query)</td>
+                                <td>Yes (Disk Cache)</td>
                                 <td>Yes</td>
                                 <td>No (Third-party)</td>
                                 <td>No (Third-party)</td>
@@ -872,14 +874,25 @@ class Dashboard {
                             <tr>
                                 <td><strong>INP Shield (scheduler.yield Chunking)</strong></td>
                                 <td style="color: #34d399; font-weight: 700; background: rgba(56,189,248,0.05);">Yes (Sub-50ms)</td>
+                                <td>Delay JS</td>
                                 <td>Basic Delay</td>
                                 <td>Basic Delay</td>
                                 <td>Basic Delay</td>
                                 <td>Proprietary JS</td>
                             </tr>
                             <tr>
+                                <td><strong>CrUX & Ad Query Normalizer (gad_source, gclid, gbraid)</strong></td>
+                                <td style="color: #34d399; font-weight: 700; background: rgba(56,189,248,0.05);">Yes (Zero Cache Fragmentation)</td>
+                                <td>Yes</td>
+                                <td>Yes (Basic)</td>
+                                <td>No (Third-party)</td>
+                                <td>No (Third-party)</td>
+                                <td>Cloud Proxy</td>
+                            </tr>
+                            <tr>
                                 <td><strong>W3C Speculation Rules (Instant Prerender)</strong></td>
                                 <td style="color: #34d399; font-weight: 700; background: rgba(56,189,248,0.05);">Yes (Native W3C)</td>
+                                <td>Link Preload (JS)</td>
                                 <td>Instant Page (JS)</td>
                                 <td>Instant Page (JS)</td>
                                 <td>No</td>
@@ -888,6 +901,7 @@ class Dashboard {
                             <tr>
                                 <td><strong>Smart Contextual Asset Unloader</strong></td>
                                 <td style="color: #34d399; font-weight: 700; background: rgba(56,189,248,0.05);">Yes (with Exceptions)</td>
+                                <td>Unused CSS</td>
                                 <td>Unused CSS only</td>
                                 <td>Script Manager</td>
                                 <td>Scenarios Engine</td>
@@ -896,6 +910,7 @@ class Dashboard {
                             <tr>
                                 <td><strong>Model Context Protocol (MCP) Server</strong></td>
                                 <td style="color: #34d399; font-weight: 700; background: rgba(56,189,248,0.05);">Yes (AI-Native)</td>
+                                <td>No</td>
                                 <td>Yes (v3.23+)</td>
                                 <td>No</td>
                                 <td>No</td>
@@ -904,6 +919,7 @@ class Dashboard {
                             <tr>
                                 <td><strong>1-Click Adaptive Auto-Tune</strong></td>
                                 <td style="color: #34d399; font-weight: 700; background: rgba(56,189,248,0.05);">Yes (Heuristic)</td>
+                                <td>Preset Configs</td>
                                 <td>Manual Setup</td>
                                 <td>Manual Setup</td>
                                 <td>Manual Setup</td>
@@ -916,10 +932,12 @@ class Dashboard {
                                 <td>No</td>
                                 <td>No</td>
                                 <td>No</td>
+                                <td>No</td>
                             </tr>
                             <tr>
                                 <td><strong>Instant Bypass URL Parameter</strong></td>
                                 <td style="color: #34d399; font-weight: 700; background: rgba(56,189,248,0.05);">?nowpsc=1</td>
+                                <td>?flying_press_bypass</td>
                                 <td>?nowprocket</td>
                                 <td>?nowp</td>
                                 <td>?noshifty</td>

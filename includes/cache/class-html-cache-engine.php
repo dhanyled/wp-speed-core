@@ -53,10 +53,27 @@ class HtmlCacheEngine {
 
         if ($query !== '') {
             parse_str($query, $params);
-            $ignored = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'fbclid', 'gclid', 'msclkid'];
-            foreach ($ignored as $key) {
-                unset($params[$key]);
+            $ignored = [
+                // Google Ads, Campaign & Analytics
+                'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id',
+                'utm_source_platform', 'utm_creative_format', 'utm_marketing_tactic',
+                'gad_source', 'gad_campaignid', 'gclid', 'gbraid', 'wbraid', '_gl', '_ga', 'dclid', 'srsltid',
+                // Meta / Facebook & Instagram
+                'fbclid', 'fb_action_ids', 'fb_action_types', 'fb_source', 'igshid',
+                // Microsoft Bing, Twitter, TikTok, Pinterest, Yandex
+                'msclkid', 'twclid', 'ttclid', 'epik', 'yclid',
+                // Mailchimp & Hubspot
+                'mc_cid', 'mc_eid', '_hsenc', '_hsmi', 'hsCtaTracking',
+                // Internal Debug & Bypass
+                'nowpsc', 'wpsc_bypass'
+            ];
+
+            foreach (array_keys($params) as $key) {
+                if (in_array($key, $ignored, true) || strpos((string) $key, 'utm_') === 0) {
+                    unset($params[$key]);
+                }
             }
+
             ksort($params);
             $clean_query = http_build_query($params);
             if ($clean_query !== '') {
@@ -69,10 +86,13 @@ class HtmlCacheEngine {
     }
 
     private function is_cacheable(): bool {
+        if (\WPSpeedCore\Kernel::is_bypassed()) {
+            return false;
+        }
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
             return false;
         }
-        if (wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST) || is_feed() || \WPSpeedCore\Kernel::is_page_builder_editor()) {
+        if (wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST) || is_feed()) {
             return false;
         }
         if (empty($this->opts['cache_authenticated']) && is_user_logged_in()) {
