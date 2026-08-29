@@ -1,0 +1,96 @@
+# 📜 Changelog - WP Speed Core
+
+Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
+
+---
+
+## [1.5.0] - 2026-08-29
+
+### 🚀 Fitur Baru (New Features)
+- **Model Context Protocol (MCP) AI Server (`McpServer`)**:
+  - Implementasi server MCP AI-Native di endpoint `/wp-json/wpsc/v1/mcp` yang kompatibel dengan Claude Desktop, Cursor IDE, Antigravity, dan ChatGPT.
+  - Mendukung 8 kemampuan tool AI: `wpsc_get_telemetry`, `wpsc_purge_cache`, `wpsc_warm_cache`, `wpsc_autotune`, `wpsc_audit_conflicts`, `wpsc_optimize_db`, `wpsc_get_checklist`, dan `wpsc_get_logs`.
+  - Manajemen token autentikasi rahasia (*Secret Bearer Token*) dengan 1-klik generator dan dukungan *WordPress Application Passwords*.
+- **Interactive Performance Checklist & Health Scorecard (`PerformanceChecklist`)**:
+  - Audit kepatuhan kecepatan real-time terinspirasi standar Google Core Web Vitals dan Perfmatters Performance Checklist.
+  - Menilai 14+ kriteria kritis: *PHP 8.1+ Runtime*, *Zend OPcache*, *Static Disk HTML Cache*, *INP Shield (scheduler.yield)*, *Auto-LCP Hero Preload*, *Zero CLS Dimensions*, *W3C Speculation Rules*, *Duotone SVG Stripping*, *XML-RPC Hardening*, dan *Duplicate Tag Auditing*.
+  - Dilengkapi dial gauge skor kesehatan persentase dinamis (*Health Score*).
+- **Architectural Competitor Benchmark Matrix**:
+  - Tab komparasi arsitektural mendalam antara **WP Speed Core** vs **WP Rocket**, **Perfmatters**, **NitroPack**, dan **WP Shifty**.
+- **Instant Debug & Bypass Parameter (`?nowpsc=1` / `?wpsc_bypass=1`)**:
+  - Memungkinkan admin dan developer mem-bypass seluruh optimasi (Static HTML Cache, JS Delay, Content Visibility, Speculation Rules, Asset Unloader) secara instan cukup dengan menambahkan parameter URL.
+  - Mengirim header respons HTTP `X-WPSC-Bypass: 1` untuk verifikasi audit DevTools & PageSpeed Insights.
+- **Frontend Admin Bar Quick HUD & Cache Controller (`AdminBar`)**:
+  - Menu HUD terintegrasi di topbar WordPress saat membuka frontend website:
+    - Status Optimasi / Mode Bypass.
+    - Tombol 1-klik: *Test Tanpa Optimasi (`?nowpsc=1`)*.
+    - Tombol 1-klik: *Purge Cache Halaman Ini (Single URL Purge)*.
+    - Akses cepat ke *Performance Checklist*, *Asset Unloader Manager*, dan *Pengaturan WP Speed Core*.
+- **Futuristic Dark Titanium Metallic HUD**:
+  - Desain ulang seluruh antarmuka dashboard dengan tema futuristik *brushed titanium* dan *metallic cyan glow*.
+  - **Bebas emoji buatan AI**: Mengganti seluruh emoji dengan ikon vektor SVG minimalis modern dan tipografi monospace presisi.
+
+---
+
+## [1.4.6] - 2026-08-27
+
+### ⚡ Peningkatan & Kompatibilitas (Enhancements)
+- **Fluid Clamp Responsiveness**: Penerapan CSS clamp pada seluruh komponen dashboard dan asset manager untuk kenyamanan visual di berbagai resolusi layar.
+- **Page Builder Compatibility**: Integrasi detektor canvas preview editor Elementor v3/v4 dan Bricks Builder untuk mencegah gangguan caching saat mode editing aktif.
+
+---
+
+## [1.4.5] - 2026-08-26
+
+### 🚀 Peningkatan Fitur (Enhancements)
+- **Multi-Type Asset Unloader**: Konsolidasi skema unloading script & style per handle dengan fallback contoh handle bawaan (jQuery Migrate, Block Library, Classic Theme Styles).
+- **Audit Hardening**: Pemeriksaan ganda pada integritas cache key dan pembersihan transient kadaluarsa.
+
+---
+
+## [1.4.4] - 2026-08-26
+
+### 🛡️ Keamanan & Caching (Security & Cache)
+- **Cookie Stripper**: Penanganan otomatis cookie pelacak (Wordfence/PHPSESSID) agar tidak memecah cache key pengunjung.
+- **Universal CDN Purge Sync**: Sinkronisasi sinyal pembersihan cache statis ke CDN CNAME yang terpasang.
+- **Modern Security Headers**: Injeksi header respons `X-Content-Type-Options: nosniff` dan `X-Frame-Options: SAMEORIGIN`.
+
+---
+
+## [1.4.3] - 2026-08-26
+
+### ⚡ Optimasi Engine (Engine Optimization)
+- **Direct Gzip Serve**: Dukungan file `.html.gz` untuk kompresi statis instan tanpa overhead CPU runtime.
+- **Mobile Cache Partition**: Pemisahan direktori cache untuk perangkat seluler jika terdeteksi plugin switcher tema mobile.
+- **Safe DB Clean Routing**: Routing pembersihan tabel database dengan isolasi transaksi aman.
+
+---
+
+## [1.2.0] - 2026-08-25
+
+### 🛡️ Keamanan & CDN (Security & CDN)
+- **Author Enumeration Block**: Pemblokiran pemindaian username admin via `/?author=N`.
+- **REST API Users Endpoint Lockdown**: Pembatasan akses `/wp/v2/users` untuk pengunjung non-login.
+- **CNAME Static Asset Rewriter**: Penulisan ulang URL aset gambar, CSS, JS, dan font ke hostname CDN kustom.
+
+---
+
+## [1.1.0] - 2026-08-25
+
+### 🚫 Pengecualian & Pipeline (Exclusions & Pipeline)
+- **Never Cache URLs Exclusion**: Pengecualian URL dari cache HTML statis berbasis baris string / wildcard.
+- **Tag Processor Buffer Pipeline**: Pemanfaatan `WP_HTML_Tag_Processor` native WordPress untuk manipulasi DOM berkecepatan tinggi.
+
+---
+
+## [1.0.0] - 2026-08-25
+
+### 🚀 Rilis Perdana (Initial Release)
+- **Adaptive Auto-Tuning Engine**: Deteksi otomatis stack hosting (PHP, OPcache, JIT, Nginx/Apache/LiteSpeed, tema FSE/klasik, WooCommerce) dan konfigurasi 1-klik.
+- **INP Shield & Script Controller**: Delay JS aman interaksi pengguna (`mousemove`, `touchstart`, `scroll`, `keydown`) dengan eksekusi bertahap `scheduler.yield()`.
+- **W3C Speculation Rules Engine**: Prerender native dokumen di background browser untuk navigasi instan (0ms TTFB).
+- **Auto-LCP Hero Preload & Zero CLS**: Otomatis mendeteksi gambar utama above-the-fold dan menambahkan `fetchpriority="high"`, `loading="eager"`, serta dimensi gambar.
+- **Static Disk HTML Cache Engine**: Penyimpanan cache statis HTML dan gzip di `/wp-content/cache/wp-speed-core/html/`.
+- **Tracking Duplicate Tag Auditor**: Deteksi duplikasi tag GA4, GTM, Meta Pixel, dan Clarity.
+- **Plugin Overlap Arbiter**: Deteksi konflik dan tumpang tindih fitur dengan plugin caching lain.
+- **WP-CLI Integration**: Perintah CLI `wp wpsc autotune`, `wp wpsc purge`, `wp wpsc warm`, `wp wpsc dbclean`, `wp wpsc status`.

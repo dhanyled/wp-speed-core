@@ -22,6 +22,23 @@ final class Kernel {
         return $this->registry[$id] ?? null;
     }
 
+    public static function is_bypassed(): bool {
+        static $bypassed = null;
+        if ($bypassed !== null) {
+            return $bypassed;
+        }
+
+        $bypassed = (isset($_GET['nowpsc']) && $_GET['nowpsc'] === '1') ||
+                    (isset($_GET['wpsc_bypass']) && $_GET['wpsc_bypass'] === '1') ||
+                    self::is_page_builder_editor();
+
+        if ($bypassed && !headers_sent()) {
+            header('X-WPSC-Bypass: 1');
+        }
+
+        return $bypassed;
+    }
+
     /**
      * Check if a visual page builder editor/preview canvas is currently active.
      * Guarantees 100% compatibility with Elementor (v3 & v4), Bricks Builder, Divi, etc.
@@ -76,11 +93,13 @@ final class Kernel {
         $logger = new Engine\Logger();
         $env    = new Engine\EnvironmentScanner();
 
-        $this->registry['logger']  = $logger;
-        $this->registry['env']     = $env;
-        $this->registry['tuner']   = new Engine\AdaptiveTuner($env, $logger);
-        $this->registry['arbiter'] = new Engine\OverlapArbiter($env);
-        $this->registry['auditor'] = new Engine\TagAuditor($logger);
+        $this->registry['logger']    = $logger;
+        $this->registry['env']       = $env;
+        $this->registry['tuner']     = new Engine\AdaptiveTuner($env, $logger);
+        $this->registry['arbiter']   = new Engine\OverlapArbiter($env);
+        $this->registry['auditor']   = new Engine\TagAuditor($logger);
+        $this->registry['mcp']       = new Engine\McpServer();
+        $this->registry['checklist'] = new Engine\PerformanceChecklist();
     }
 
     private function boot_optimizations(): void {
@@ -114,5 +133,6 @@ final class Kernel {
             $this->registry['dashboard'] = new Admin\Dashboard($this->registry);
             $this->registry['assetui']   = new Admin\AssetManagerPanel();
         }
+        $this->registry['admin_bar'] = new Admin\AdminBar($this->registry);
     }
 }
