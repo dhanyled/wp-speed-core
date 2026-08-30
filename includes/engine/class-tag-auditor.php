@@ -32,13 +32,12 @@ class TagAuditor {
         $duplicates = [];
 
         if (preg_match_all('/(GTM-[A-Z0-9]+)/i', $html, $matches)) {
-            $ids = array_unique($matches[1]);
-            foreach ($ids as $id) {
-                $c = substr_count($html, $id);
+            $counts = array_count_values(array_map('strtoupper', $matches[1]));
+            foreach ($counts as $id => $c) {
                 if ($c > 1) {
                     $duplicates[] = [
                         'type'  => 'Google Tag Manager',
-                        'id'    => $id,
+                        'id'    => (string) $id,
                         'count' => $c,
                         'msg'   => 'GTM Container ' . $id . ' terdeteksi dimuat lebih dari 1x (' . $c . ' occurrences).',
                     ];
@@ -47,13 +46,12 @@ class TagAuditor {
         }
 
         if (preg_match_all('/(?:gtag\s*\(\s*[\'"]config[\'"]\s*,\s*[\'"]|googletagmanager\.com\/gtag\/js\?id=|data-ga-id=["\'])(G-[A-Z0-9]{8,12})/i', $html, $matches)) {
-            $ids = array_unique($matches[1]);
-            foreach ($ids as $id) {
-                $c = substr_count($html, $id);
+            $counts = array_count_values(array_map('strtoupper', $matches[1]));
+            foreach ($counts as $id => $c) {
                 if ($c > 1) {
                     $duplicates[] = [
                         'type'  => 'Google Analytics 4',
-                        'id'    => $id,
+                        'id'    => (string) $id,
                         'count' => $c,
                         'msg'   => 'GA4 Measurement ID ' . $id . ' terpasang ganda (' . $c . ' occurrences).',
                     ];
