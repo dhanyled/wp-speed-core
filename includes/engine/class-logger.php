@@ -46,9 +46,24 @@ class Logger {
 
         $timestamp = function_exists('wp_date') ? wp_date('Y-m-d H:i:s') : (function_exists('date_i18n') ? date_i18n('Y-m-d H:i:s') : gmdate('Y-m-d H:i:s'));
         $ctx_str   = !empty($context) ? ' ' . wp_json_encode($context, JSON_UNESCAPED_SLASHES) : '';
-        $entry     = sprintf("[%s] [%s] %s%s\n", $timestamp, strtoupper($level), $message, $ctx_str);
+        $clean_msg = $this->sanitize_log_text($message);
+        $clean_ctx = $this->sanitize_log_text($ctx_str);
+        $entry     = sprintf("[%s] [%s] %s%s\n", $timestamp, strtoupper($level), $clean_msg, $clean_ctx);
 
         @file_put_contents($this->log_file, $entry, FILE_APPEND | LOCK_EX);
+    }
+
+    /**
+     * Sanitize log text to prevent PHP execution injection and log forging.
+     *
+     * @param string $text Raw text input.
+     * @return string Sanitized text safe for single-line log storage.
+     */
+    private function sanitize_log_text(string $text): string {
+        $text = str_replace("\0", "", $text);
+        $text = str_replace(["<?php", "<?=", "<?", "?>"], ["&lt;?php", "&lt;?=", "&lt;?", "?&gt;"], $text);
+        $text = str_replace(["\r\n", "\r", "\n"], " ", $text);
+        return $text;
     }
 
     public function info(string $message, array $context = []): void {
