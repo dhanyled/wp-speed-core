@@ -155,28 +155,40 @@ class Dashboard {
             $active_tab = 'overview';
         }
 
-        $env_scanner = $this->modules['env'] ?? null;
-        $env_data    = $env_scanner ? $env_scanner->get() : [];
-        $settings    = (array) get_option('wpsc_settings', []);
-        $logger      = $this->modules['logger'] ?? null;
-        $logs        = $logger ? $logger->get_recent(50) : [];
-        $auditor     = $this->modules['auditor'] ?? null;
-        $duplicates  = $auditor ? $auditor->get_duplicates() : [];
-        $arbiter     = $this->modules['arbiter'] ?? null;
-        $conflicts   = $arbiter ? $arbiter->get_conflicts() : [];
-        $mcp_token   = (string) get_option('wpsc_mcp_token', '');
+        $this->render_styles();
+        ?>
+        <div class="wpsc-wrap">
+            <?php $this->render_header(); ?>
+            <?php $this->render_navigation($active_tab); ?>
 
-        $checklist_evaluator = new PerformanceChecklist();
-        $checklist_data      = $checklist_evaluator->evaluate();
+            <?php
+            switch ($active_tab) {
+                case 'checklist':
+                    $this->render_tab_checklist();
+                    break;
+                case 'comparison':
+                    $this->render_tab_comparison();
+                    break;
+                case 'mcp':
+                    $this->render_tab_mcp();
+                    break;
+                case 'settings':
+                    $this->render_tab_settings();
+                    break;
+                case 'logs':
+                    $this->render_tab_logs();
+                    break;
+                case 'overview':
+                default:
+                    $this->render_tab_overview();
+                    break;
+            }
+            ?>
+        </div>
+        <?php
+    }
 
-        $cache_dir   = WPSC_CACHE_DIR . 'html/';
-        $cache_files = glob($cache_dir . '*.html') ?: [];
-        $cache_size  = 0;
-        foreach ($cache_files as $f) {
-            $cache_size += (int) filesize($f);
-        }
-        $cache_size_fmt = $cache_size > 1048576 ? round($cache_size / 1048576, 2) . ' MB' : round($cache_size / 1024, 1) . ' KB';
-        $disabled_assets = (array) get_option('wpsc_disabled_assets', []);
+    private function render_styles(): void {
         ?>
         <style>
             :root {
@@ -602,6 +614,11 @@ class Dashboard {
         </style>
 
         <div class="wpsc-wrap">
+        <?php
+    }
+
+    private function render_header(): void {
+        ?>
             <!-- Header HUD -->
             <div class="wpsc-glass-metallic wpsc-header">
                 <div class="wpsc-brand">
@@ -643,7 +660,11 @@ class Dashboard {
                     </form>
                 </div>
             </div>
+        <?php
+    }
 
+    private function render_navigation(string $active_tab): void {
+        ?>
             <!-- Navigation Tabs Bar -->
             <div class="wpsc-tabs-bar">
                 <a href="<?php echo esc_url(add_query_arg(['page' => 'wp-speed-core', 'tab' => 'overview'], admin_url('options-general.php'))); ?>" class="wpsc-tab-link <?php echo $active_tab === 'overview' ? 'is-active' : ''; ?>">
@@ -675,7 +696,30 @@ class Dashboard {
                     Diagnostics & Logs
                 </a>
             </div>
+        <?php
+    }
 
+    private function render_tab_overview(): void {
+        $env_scanner = $this->modules['env'] ?? null;
+        $env_data    = $env_scanner ? $env_scanner->get() : [];
+        $settings    = (array) get_option('wpsc_settings', []);
+        $auditor     = $this->modules['auditor'] ?? null;
+        $duplicates  = $auditor ? $auditor->get_duplicates() : [];
+        $arbiter     = $this->modules['arbiter'] ?? null;
+        $conflicts   = $arbiter ? $arbiter->get_conflicts() : [];
+
+        $checklist_evaluator = new PerformanceChecklist();
+        $checklist_data      = $checklist_evaluator->evaluate();
+
+        $cache_dir   = WPSC_CACHE_DIR . 'html/';
+        $cache_files = glob($cache_dir . '*.html') ?: [];
+        $cache_size  = 0;
+        foreach ($cache_files as $f) {
+            $cache_size += (int) filesize($f);
+        }
+        $cache_size_fmt = $cache_size > 1048576 ? round($cache_size / 1048576, 2) . ' MB' : round($cache_size / 1024, 1) . ' KB';
+        $disabled_assets = (array) get_option('wpsc_disabled_assets', []);
+        ?>
             <!-- TAB 1: OVERVIEW -->
             <?php if ($active_tab === 'overview'): ?>
                 <div class="wpsc-metrics-grid">
@@ -784,7 +828,13 @@ class Dashboard {
                     </div>
                 </div>
             <?php endif; ?>
+        <?php
+    }
 
+    private function render_tab_checklist(): void {
+        $checklist_evaluator = new PerformanceChecklist();
+        $checklist_data      = $checklist_evaluator->evaluate();
+        ?>
             <!-- TAB 2: PERFORMANCE CHECKLIST -->
             <?php if ($active_tab === 'checklist'): ?>
                 <div class="wpsc-glass wpsc-score-wrap">
@@ -838,7 +888,11 @@ class Dashboard {
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
+        <?php
+    }
 
+    private function render_tab_comparison(): void {
+        ?>
             <!-- TAB 3: COMPETITOR COMPARISON MATRIX -->
             <?php if ($active_tab === 'comparison'): ?>
                 <div class="wpsc-glass" style="padding: 24px; margin-bottom: 24px;">
@@ -947,7 +1001,12 @@ class Dashboard {
                     </table>
                 </div>
             <?php endif; ?>
+        <?php
+    }
 
+    private function render_tab_mcp(): void {
+        $mcp_token = (string) get_option('wpsc_mcp_token', '');
+        ?>
             <!-- TAB 4: AI & MCP PROTOCOL -->
             <?php if ($active_tab === 'mcp'): ?>
                 <div class="wpsc-glass" style="padding: 24px; margin-bottom: 24px;">
@@ -1062,7 +1121,12 @@ class Dashboard {
                     </table>
                 </div>
             <?php endif; ?>
+        <?php
+    }
 
+    private function render_tab_settings(): void {
+        $settings = (array) get_option('wpsc_settings', []);
+        ?>
             <!-- TAB 5: SETTINGS & CDN -->
             <?php if ($active_tab === 'settings'): ?>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
@@ -1135,7 +1199,13 @@ class Dashboard {
                     </div>
                 </div>
             <?php endif; ?>
+        <?php
+    }
 
+    private function render_tab_logs(): void {
+        $logger = $this->modules['logger'] ?? null;
+        $logs   = $logger ? $logger->get_recent(50) : [];
+        ?>
             <!-- TAB 6: DIAGNOSTICS & LOGS -->
             <?php if ($active_tab === 'logs'): ?>
                 <div class="wpsc-terminal" style="margin-bottom: 24px;">
@@ -1162,7 +1232,6 @@ class Dashboard {
                     ?></pre>
                 </div>
             <?php endif; ?>
-        </div>
         <?php
     }
 }
