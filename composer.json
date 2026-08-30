@@ -1,0 +1,21 @@
+{
+    "name": "wpspeedcore/wp-speed-core",
+    "description": "WP Speed Core WordPress Performance Plugin",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "autoload": {
+        "psr-4": {
+            "WPSpeedCore\\": "includes/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6",
+        "10up/wp_mock": "^1.0",
+        "mockery/mockery": "^1.6"
+    },
+    "config": {
+        "allow-plugins": {
+            "10up/wp_mock": true
+        }
+    }
+}
