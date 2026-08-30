@@ -14,3 +14,9 @@ venv/
 # Local cache
 /cache/
 *.log
+vendor/
+.phpunit.result.cache
+
+/vendor/
+vendor/
+.phpunit.result.cache
