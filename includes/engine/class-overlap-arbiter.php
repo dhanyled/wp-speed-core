@@ -47,8 +47,10 @@ class OverlapArbiter {
             ],
         ];
 
+        $active_map = array_flip((array) $active);
+
         foreach ($known as $plugin_file => $info) {
-            if (in_array($plugin_file, $active, true)) {
+            if (isset($active_map[$plugin_file])) {
                 $results[] = [
                     'plugin'   => $info['name'],
                     'features' => $info['features'],

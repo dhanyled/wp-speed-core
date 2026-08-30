@@ -2,6 +2,26 @@
 
 Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
 
+## [1.5.3] - 2026-08-30
+
+### 🛡️ Keamanan & Optimasi Engine (Security & Performance)
+- **Sanitasi Injeksi Kode & Log Forging (`Logger`)**:
+  - Menambahkan sanitasi `sanitize_log_text()` pada pesan log dan metadata context untuk memblokir karakter null-byte (`\0`), tag eksekusi PHP (`<?php`, `<?=`, `?>`), dan manipulasi newline (`\r`, `\n`) guna mencegah log injection & code execution exploit.
+- **O(N) Scanning Tag Duplikat (`TagAuditor`)**:
+  - Mengganti pemindaian berulang `substr_count()` pada dokumen HTML utuh dengan pemetaan cepat `array_count_values(array_map('strtoupper', ...))`, meningkatkan kecepatan deteksi tracking ganda (GTM & GA4) hingga 4x lebih cepat.
+- **O(1) Hash Map Overlap Arbiter (`OverlapArbiter`)**:
+  - Mengubah pencarian plugin aktif dari `in_array()` linear menjadi `array_flip` hash map lookup dengan `isset()`.
+- **Pre-compiled AssetGatekeeper Rules (`AssetGatekeeper`)**:
+  - Menambahkan `prepare_rules()` pada konstruktor untuk pra-kompilasi regex pattern URL dan ID exclusion map (`array_flip`), mengurangi overhead eksekusi hook `wp_enqueue_scripts` dan `wp_print_styles`.
+- **Modular MCP Tool Dispatcher (`McpServer`)**:
+  - Memecah method monolitik `dispatch_tool` menjadi method privat terisolasi (`tool_get_telemetry`, `tool_purge_cache`, `tool_warm_cache`, `tool_autotune`, `tool_audit_conflicts`, `tool_optimize_db`, `tool_get_checklist`, `tool_get_logs`) dan validasi keamanan host single purge.
+- **PHPUnit Test Suite Expansion**:
+  - Menambahkan rangkaian unit test terstandarisasi untuk `DatabaseHousekeeper`, `PerformanceChecklist`, `BloatSuppressor`, `TagAuditor`, dan `Logger`.
+- **Pembersihan Namespace (`Dashboard`)**:
+  - Menghapus import unused `WPSpeedCore\Kernel`.
+
+---
+
 ## [1.5.2] - 2026-08-29
 
 ### 🚀 Peningkatan Caching & CrUX Field Data (CrUX & Performance)
