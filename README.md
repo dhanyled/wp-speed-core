@@ -1,7 +1,7 @@
-# ⚡ WP Speed Core `v1.6.2` - Panduan Instalasi & Penggunaan
+# ⚡ WP Speed Core `v1.6.4` - Panduan Instalasi & Penggunaan
 
 > **Pengembang**: Dhany ([@leddhany](https://t.me/leddhany))  
-> **Versi**: `1.6.2` (Production Ready)
+> **Versi**: `1.6.4` (Production Ready)
 > **Lisensi**: GPL v2 or later  
 
 WP Speed Core adalah plugin akselerasi performa WordPress modern all-in-one AI-Native yang menggabungkan caching HTML statis berkecepatan tinggi dengan kompresi GZIP, **Model Context Protocol (MCP) AI Server (10 Tools)**, **Cloudflare Edge Cache API Sync**, **1-Click Settings Importer (WP Rocket & Perfmatters)**, **Granular WooCommerce Cache Invalidation**, **Interactive Performance Checklist**, **Smart Contextual Asset Unloader**, INP Shield untuk Core Web Vitals, **Instant Debug / Bypass Mode (`?nowpsc=1`)**, **Adaptive Smart Auto-Tuning Engine**, Google PageSpeed Insights Lab integration, serta **System & Diagnostic Logger** untuk pemantauan server dan audit performa real-time.
@@ -35,7 +35,7 @@ WP Speed Core adalah plugin akselerasi performa WordPress modern all-in-one AI-N
 
 ## 📊 Komparasi vs Kompetitor
 
-| Fitur / Arsitektur | WP Speed Core `v1.6.2` | FlyingPress | WP Rocket | Perfmatters | xSpeed Cache | NitroPack |
+| Fitur / Arsitektur | WP Speed Core `v1.6.4` | FlyingPress | WP Rocket | Perfmatters | xSpeed Cache | NitroPack |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Static Disk HTML Cache** | ✅ Yes (Zero DB Query) | ✅ Yes (Disk Cache) | ✅ Yes | ❌ (Butuh Caching Eksternal) | ✅ Yes | ✅ (Cloud Service) |
 | **GZIP Pre-compression** | ✅ Yes (`.html.gz`) | ✅ Yes | ✅ Yes | ❌ No | ✅ Yes | ✅ Yes |
