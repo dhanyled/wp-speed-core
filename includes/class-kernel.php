@@ -101,7 +101,9 @@ final class Kernel {
         $this->registry['mcp']       = new Engine\McpServer();
         $this->registry['checklist'] = new Engine\PerformanceChecklist();
         $this->registry['migration'] = new Engine\MigrationManager($logger);
-        $this->registry['updater']   = new Engine\GitHubUpdater('dhanyled/wp-speed-core', WPSC_BASENAME, WPSC_VERSION, $logger);
+        if (class_exists(Engine\GitHubUpdater::class)) {
+            $this->registry['updater'] = new Engine\GitHubUpdater('dhanyled/wp-speed-core', WPSC_BASENAME, WPSC_VERSION, $logger);
+        }
     }
 
     private function boot_optimizations(): void {

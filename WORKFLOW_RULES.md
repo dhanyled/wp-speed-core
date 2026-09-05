@@ -74,3 +74,26 @@ graph TD
     B --> I["HtmlCacheEngine"]
     B --> J["Admin Dashboard & Logs Viewer"]
 ```
+
+---
+
+## 5. 📦 Release Packaging & GitHub Updater Resilience Protocol
+
+Untuk mencegah terulangnya **Critical Error** saat user melakukan pembaruan plugin (update) dari dashboard WordPress, setiap rilis wajib mematuhi aturan berikut:
+
+1. **Defensive Autoloading & Boot Isolation**:
+   - Seluruh inisialisasi modul engine opsional (seperti `GitHubUpdater`) di `Kernel::boot_engine()` wajib dibungkus dengan pengecekan `class_exists()`.
+   - Jika file updater atau komponen eksternal corrupt/hilang selama proses ekstraksi ZIP oleh WordPress, plugin **tidak boleh memicu Fatal Error** dan website tetap berjalan normal (fail-safe fallback).
+
+2. **Clean ZIP Distribution Standard**:
+   - Dilarang membuat arsip `wp-speed-core.zip` menggunakan wildcard liar (`*`) yang dapat menyertakan folder `.git/`, `.phpunit.result.cache`, atau cache log internal.
+   - Packaging rilis hanya boleh menyertakan file inti plugin:
+     ```powershell
+     Compress-Archive -Path 'assets','includes','tests','wp-content','wp-speed-core.php','composer.json','composer.lock','phpunit.xml','README.md','CHANGELOG.md','WORKFLOW_RULES.md' -DestinationPath 'wp-speed-core.zip' -Force
+     ```
+   - Verifikasi integritas direktori root arsip ZIP sebelum git push atau tagging rilis. File `class-github-updater.php` dan file class kernel lainnya wajib berada di path yang tepat (`includes/engine/class-github-updater.php`).
+
+3. **Sync Tag & Release Asset**:
+   - Setiap pembuatan tag rilis Git (`vX.X.X`), file rilis `wp-speed-core.zip` yang ter-compile bersih wajib ikut di-commit ke branch `main`.
+   - Fallback download URL updater menargetkan branch `main/wp-speed-core.zip` untuk menjamin file yang diunduh selalu memiliki struktur direktori valid.
+
