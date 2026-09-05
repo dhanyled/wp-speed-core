@@ -223,14 +223,19 @@ class McpServer {
                 $url = sanitize_text_field((string) ($args['url'] ?? ''));
                 if ($url !== '') {
                     $p = wp_parse_url($url);
-                    $file = WPSC_CACHE_DIR . 'html/' . md5(($p['host'] ?? '') . ($p['path'] ?? '/')) . '.html';
+                    $home_host = (string) wp_parse_url(home_url(), PHP_URL_HOST);
+                    $target_host = $p['host'] ?? $home_host;
                     $purged = false;
-                    if (file_exists($file)) {
-                        wp_delete_file($file);
-                        if (file_exists($file . '.gz')) {
-                            wp_delete_file($file . '.gz');
+
+                    if (!empty($home_host) && strcasecmp($target_host, $home_host) === 0) {
+                        $file = WPSC_CACHE_DIR . 'html/' . md5($target_host . ($p['path'] ?? '/')) . '.html';
+                        if (file_exists($file)) {
+                            wp_delete_file($file);
+                            if (file_exists($file . '.gz')) {
+                                wp_delete_file($file . '.gz');
+                            }
+                            $purged = true;
                         }
-                        $purged = true;
                     }
                     return ['success' => true, 'action' => 'single_purge', 'url' => $url, 'purged' => $purged];
                 }
