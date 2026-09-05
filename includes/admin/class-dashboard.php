@@ -220,6 +220,19 @@ class Dashboard {
         if ($cf_test_msg) {
             delete_transient('wpsc_cf_test_msg');
         }
+
+        /** @var \WPSpeedCore\Engine\GitHubUpdater|null $updater */
+        $updater = $this->modules['updater'] ?? null;
+        $update_status = $updater ? $updater->get_update_status() : [
+            'has_update'      => false,
+            'current_version' => WPSC_VERSION,
+            'latest_version'  => WPSC_VERSION,
+            'release_url'     => 'https://github.com/dhanyled/wp-speed-core/releases',
+            'check_url'       => '#',
+            'update_url'      => '#',
+            'changelog'       => '',
+            'published_at'    => '',
+        ];
         ?>
         <style>
             :root {
@@ -654,7 +667,21 @@ class Dashboard {
                         </svg>
                     </div>
                     <div class="wpsc-title-group">
-                        <h1>WP Speed Core <span class="wpsc-version-badge">v<?php echo esc_html(WPSC_VERSION); ?></span></h1>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <h1 style="margin: 0; display: inline-flex; align-items: center; gap: 8px;">WP Speed Core <span class="wpsc-version-badge">v<?php echo esc_html(WPSC_VERSION); ?></span></h1>
+                            <?php if ($update_status['has_update']) : ?>
+                                <a href="<?php echo esc_url($update_status['update_url']); ?>" class="wpsc-badge wpsc-badge-amber" style="font-size: 11px; padding: 4px 10px; border-radius: 20px; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+                                    Update Tersedia: v<?php echo esc_html($update_status['latest_version']); ?> (Update Now)
+                                </a>
+                            <?php else : ?>
+                                <span class="wpsc-badge wpsc-badge-emerald" style="font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Versi Terbaru
+                                </span>
+                            <?php endif; ?>
+                            <a href="<?php echo esc_url($update_status['check_url']); ?>" style="font-size: 11px; color: #38bdf8; text-decoration: none; opacity: 0.85;" title="Cek pembaruan dari GitHub">↻ Cek Update</a>
+                        </div>
                         <div class="wpsc-subtitle">
                             <span class="wpsc-status-radar"><span class="wpsc-radar-light"></span> High-Velocity Engine</span>
                             <span>&bull; Server: <?php echo esc_html($env_data['server']['software'] ?? 'PHP Server'); ?></span>
@@ -686,6 +713,31 @@ class Dashboard {
                     </form>
                 </div>
             </div>
+
+            <?php if (isset($_GET['update_checked'])) : ?>
+                <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px; padding: 12px 18px; margin-bottom: 20px; color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span><?php echo !empty($_GET['has_new']) ? 'Pemeriksaan GitHub selesai: Versi baru v' . esc_html($update_status['latest_version']) . ' tersedia!' : 'Pemeriksaan GitHub selesai: WP Speed Core sudah mutakhir (versi v' . esc_html(WPSC_VERSION) . ' terbaru).'; ?></span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($update_status['has_update']) : ?>
+                <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="background: rgba(245, 158, 11, 0.2); border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: #fbbf24;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                        </div>
+                        <div>
+                            <strong style="color: #fff; font-size: 14px;">Pembaruan Baru Tersedia: WP Speed Core v<?php echo esc_html($update_status['latest_version']); ?></strong>
+                            <p style="color: #cbd5e1; font-size: 12px; margin: 4px 0 0 0;">Versi terpasang saat ini: v<?php echo esc_html(WPSC_VERSION); ?>. Paket rilis diunduh langsung dari GitHub resmi.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <a href="<?php echo esc_url($update_status['release_url']); ?>" target="_blank" class="wpsc-btn-metallic" style="font-size: 12px; padding: 8px 14px;">Lihat Rilis</a>
+                        <a href="<?php echo esc_url($update_status['update_url']); ?>" class="wpsc-btn-primary" style="font-size: 12px; padding: 8px 16px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">Perbarui Sekarang</a>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <!-- Navigation Tabs Bar -->
             <div class="wpsc-tabs-bar">

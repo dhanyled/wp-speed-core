@@ -2,6 +2,29 @@
 
 Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
 
+## [1.6.1] - 2026-09-05
+
+### 🚀 Fitur Baru: Native GitHub Plugin Updater & Release Sync (`GitHubUpdater`)
+- **Pembaruan Manual Langsung dari Menu WordPress**:
+  - Mengintegrasikan WordPress hook `pre_set_site_transient_update_plugins` dan `plugins_api`.
+  - Di halaman `wp-admin > Plugins`, WordPress akan secara otomatis memunculkan notifikasi resmi jika terdapat rilis baru di repositori GitHub (`dhanyled/wp-speed-core`).
+  - Administrator cukup mengklik tautan **"Update now" (Perbarui sekarang)** untuk mengunduh, mengekstrak, dan memperbarui plugin secara langsung tanpa FTP atau re-upload manual.
+  - Tautan **"View version details"** menampilkan pop-up modal WordPress native lengkap dengan deskripsi dan changelog dari GitHub Releases.
+- **Dukungan Pembaruan Otomatis (Auto-Updates)**:
+  - Sepenuhnya kompatibel dengan fitur native *Enable auto-updates* WordPress 5.5+.
+  - WordPress Background Cron (`wp_version_check`) dapat memperbarui plugin secara otomatis saat rilis baru diluncurkan.
+- **Transient Caching & Rate-Limit Shield (12 Jam)**:
+  - Menyimpan informasi rilis dari GitHub API di WordPress Transient selama 12 jam untuk mencegah pembatasan kuota (*rate limiting*).
+  - Menyediakan tombol manual **"↻ Cek Update"** di header Dashboard WP Speed Core untuk pengecekan instan kapan saja.
+- **Post-Install Directory Sanitization (`upgrader_post_install`)**:
+  - Menjamin folder ekstraksi plugin selalu bernama `wp-speed-core/` sehingga tidak terjadi duplikasi folder atau plugin dinonaktifkan pasca pembaruan.
+- **Status Versi di Telemetry HUD**:
+  - Header Dashboard menampilkan badge versi terkini (`v1.6.1`), badge status *"Versi Terbaru"*, serta banner alert interaktif jika versi baru tersedia.
+- **PHPUnit Test Coverage**:
+  - Menambahkan unit test suite `GitHubUpdaterTest` di `tests/Unit/Engine/GitHubUpdaterTest.php`.
+
+---
+
 ## [1.6.0] - 2026-09-05
 
 ### 🚀 Fitur Baru & Peningkatan Performa (Major Release)
