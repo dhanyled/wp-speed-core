@@ -39,66 +39,27 @@ class DatabaseHousekeeperTest extends TestCase {
         $wpdb = $this->createWpdbMock();
         $wpdb->posts = 'wp_posts';
 
-        $expectedSql = "DELETE FROM wp_posts WHERE post_type = 'revision' AND post_status = 'inherit'";
-
         $wpdb->expects($this->once())
-             ->method('prepare')
-             ->with(
-                 "DELETE FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s",
-                 'revision',
-                 'inherit'
-             )
-             ->willReturn($expectedSql);
+             ->method('get_col')
+             ->willReturn([10, 11, 12]);
 
-        $wpdb->expects($this->once())
-             ->method('query')
-             ->with($expectedSql)
-             ->willReturn(5);
+        WP_Mock::userFunction('wp_delete_post_revision')
+            ->times(3)
+            ->andReturn(true);
 
         $GLOBALS['wpdb'] = $wpdb;
 
         $housekeeper = new DatabaseHousekeeper();
         $result = $housekeeper->trim_revisions();
 
-        $this->assertSame(5, $result);
+        $this->assertSame(3, $result);
     }
 
     public function test_trim_revisions_handles_zero_rows_deleted(): void {
         $wpdb = $this->createWpdbMock();
         $wpdb->posts = 'wp_posts';
 
-        $wpdb->method('prepare')->willReturn('DELETE QUERY');
-        $wpdb->method('query')->willReturn(0);
-
-        $GLOBALS['wpdb'] = $wpdb;
-
-        $housekeeper = new DatabaseHousekeeper();
-        $result = $housekeeper->trim_revisions();
-
-        $this->assertSame(0, $result);
-    }
-
-    public function test_trim_revisions_casts_query_result_to_int(): void {
-        $wpdb = $this->createWpdbMock();
-        $wpdb->posts = 'wp_posts';
-
-        $wpdb->method('prepare')->willReturn('DELETE QUERY');
-        $wpdb->method('query')->willReturn('12');
-
-        $GLOBALS['wpdb'] = $wpdb;
-
-        $housekeeper = new DatabaseHousekeeper();
-        $result = $housekeeper->trim_revisions();
-
-        $this->assertSame(12, $result);
-    }
-
-    public function test_trim_revisions_handles_false_query_return(): void {
-        $wpdb = $this->createWpdbMock();
-        $wpdb->posts = 'wp_posts';
-
-        $wpdb->method('prepare')->willReturn('DELETE QUERY');
-        $wpdb->method('query')->willReturn(false);
+        $wpdb->method('get_col')->willReturn([]);
 
         $GLOBALS['wpdb'] = $wpdb;
 
@@ -200,25 +161,19 @@ class DatabaseHousekeeperTest extends TestCase {
              ->willReturn('_transient_timeout_');
 
         $wpdb->expects($this->once())
-             ->method('prepare')
-             ->with(
-                 "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s AND CAST(option_value AS UNSIGNED) < %d",
-                 '_transient_timeout_%',
-                 $this->isType('int')
-             )
-             ->willReturn('DELETE TRANSIENTS SQL');
+             ->method('get_col')
+             ->willReturn(['_transient_timeout_foo', '_transient_timeout_bar']);
 
-        $wpdb->expects($this->once())
-             ->method('query')
-             ->with('DELETE TRANSIENTS SQL')
-             ->willReturn(4);
+        WP_Mock::userFunction('delete_transient')
+            ->times(2)
+            ->andReturn(true);
 
         $GLOBALS['wpdb'] = $wpdb;
 
         $housekeeper = new DatabaseHousekeeper();
         $result = $housekeeper->trim_transients();
 
-        $this->assertSame(4, $result);
+        $this->assertSame(2, $result);
     }
 
     public function test_optimize_tables_optimizes_all_tables_and_logs(): void {
@@ -298,7 +253,11 @@ class DatabaseHousekeeperTest extends TestCase {
 
         $wpdb->method('prepare')->willReturn('DUMMY SQL');
         $wpdb->method('query')->willReturn(1);
+        $wpdb->method('get_col')->willReturn(['_transient_timeout_test']);
         $wpdb->method('esc_like')->willReturn('_transient_timeout_');
+
+        WP_Mock::userFunction('wp_delete_post_revision')->andReturn(true);
+        WP_Mock::userFunction('delete_transient')->andReturn(true);
 
         $GLOBALS['wpdb'] = $wpdb;
 
@@ -314,7 +273,11 @@ class DatabaseHousekeeperTest extends TestCase {
 
         $wpdb->method('prepare')->willReturn('DUMMY SQL');
         $wpdb->method('query')->willReturn(1);
+        $wpdb->method('get_col')->willReturn(['_transient_timeout_test']);
         $wpdb->method('esc_like')->willReturn('_transient_timeout_');
+
+        WP_Mock::userFunction('wp_delete_post_revision')->andReturn(true);
+        WP_Mock::userFunction('delete_transient')->andReturn(true);
 
         $GLOBALS['wpdb'] = $wpdb;
 

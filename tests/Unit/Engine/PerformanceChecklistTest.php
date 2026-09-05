@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 declare(strict_types=1);
 
 namespace WPSpeedCore\Tests\Unit\Engine;
@@ -19,12 +19,11 @@ class PerformanceChecklistTest extends TestCase {
 
     public function test_evaluate_returns_expected_structure(): void {
         WP_Mock::userFunction('get_option')
-            ->with('wpsc_settings', [])
-            ->andReturn([]);
-
-        WP_Mock::userFunction('get_option')
-            ->with('wpsc_disabled_assets', [])
-            ->andReturn([]);
+            ->andReturnUsing(function ($option, $default = false) {
+                if ($option === 'wpsc_settings') return [];
+                if ($option === 'wpsc_disabled_assets') return [];
+                return $default;
+            });
 
         WP_Mock::userFunction('esc_html__')
             ->andReturnArg(0);
@@ -76,15 +75,14 @@ class PerformanceChecklistTest extends TestCase {
         ];
 
         WP_Mock::userFunction('get_option')
-            ->with('wpsc_settings', [])
-            ->andReturn($all_settings);
-
-        WP_Mock::userFunction('get_option')
-            ->with('wpsc_disabled_assets', [])
-            ->andReturn([
-                ['handle' => 'style-1', 'target' => 'everywhere'],
-                ['handle' => 'script-1', 'target' => 'everywhere'],
-            ]);
+            ->andReturnUsing(function ($option, $default = false) use ($all_settings) {
+                if ($option === 'wpsc_settings') return $all_settings;
+                if ($option === 'wpsc_disabled_assets') return [
+                    ['handle' => 'style-1', 'target' => 'everywhere'],
+                    ['handle' => 'script-1', 'target' => 'everywhere'],
+                ];
+                return $default;
+            });
 
         WP_Mock::userFunction('esc_html__')
             ->andReturnArg(0);

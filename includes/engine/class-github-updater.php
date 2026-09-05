@@ -39,8 +39,7 @@ class GitHubUpdater {
     }
 
     private function register_hooks(): void {
-        // Inject update data into WordPress plugin update transients (both save and get)
-        add_filter('pre_set_site_transient_update_plugins', [$this, 'check_update']);
+        // Inject update data into WordPress plugin update transients
         add_filter('site_transient_update_plugins', [$this, 'check_update']);
 
         // Supply data for the "View version details" modal popup

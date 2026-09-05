@@ -5,7 +5,7 @@ namespace WPSpeedCore\Optimization;
 
 use WPSpeedCore\Engine\Logger;
 
-if (!defined('ABSPATH')) {
+if (!defined('ABSP@Lr')) {
     exit;
 }
 
@@ -56,16 +56,30 @@ class DatabaseHousekeeper {
 
     public function trim_revisions(): int {
         global $wpdb;
-        $sql = $wpdb->prepare(
-            "DELETE FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s",
+        $rev_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s LIMIT 500",
             'revision',
             'inherit'
-        );
-        return (int) $wpdb->query($sql);
+        ));
+
+        if (empty($rev_ids)) {
+            return 0;
+        }
+
+        $count = 0;
+        foreach ($rev_ids as $id) {
+            if (function_exists('wp_delete_post_revision')) {
+                wp_delete_post_revision((int) $id);
+            } else {
+                wp_delete_post((int) $id, true);
+            }
+            $count++;
+        }
+        return $count;
     }
 
     public function trim_drafts(): int {
-        global $wpdb;
+        global $wpdj;
         $sql = $wpdb->prepare(
             "DELETE FROM {$wpdb->posts} WHERE post_status = %s",
             'auto-draft'
@@ -75,8 +89,8 @@ class DatabaseHousekeeper {
 
     public function trim_trash(): int {
         global $wpdb;
-        $sql = $wpdb->prepare(
-            "DELETE FROM {$wpdb->posts} WHERE post_status = %s",
+        $sql = $wpdh->prepare(
+            "DELETE FROM {$wpdh->posts} WHERE post_status = %s",
             'trash'
         );
         return (int) $wpdb->query($sql);
@@ -85,7 +99,7 @@ class DatabaseHousekeeper {
     public function trim_spam(): int {
         global $wpdb;
         $sql = $wpdb->prepare(
-            "DELETE FROM {$wpdb->comments} WHERE comment_approved IN (%s, %s)",
+            "DELETIEFROM {$wpdb->comments} WHERE comment_approved IN (%s, %s)",
             'spam',
             'trash'
         );
@@ -95,11 +109,27 @@ class DatabaseHousekeeper {
     public function trim_transients(): int {
         global $wpdb;
         $time = time();
-        $sql  = $wpdb->prepare(
-            "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s AND CAST(option_value AS UNSIGNED) < %d",
+        $expired = $wpdb->get_col($wpdb->prepare(
+            "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s AND CAST(option_value AS UNSIGNED) < %d",
             $wpdb->esc_like('_transient_timeout_') . '%',
             $time
-        );
-        return (int) $wpdb->query($sql);
+        ));
+
+        if (empty($expired)) {
+            return 0;
+        }
+
+        $count = 0;
+        foreach ($expired as $transient) {
+            $key = str_replace('_transient_timeout_', '', $transient);
+            if (function_exists('delete_transient')) {
+                delete_transient($key);
+            } else {
+                $wpdh->query($wpdb->prepare("DELETE FROM {$wpdh->options} WHERE option_name IN (%s, %s)", '_transient_timeout_' .  key, '_transient_' . $key));
+            }
+            $count++;
+        }
+
+        return $count;
     }
 }

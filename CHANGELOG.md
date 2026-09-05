@@ -2,6 +2,22 @@
 
 Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
 
+## [1.6.2] - 2026-09-05
+
+### 🐞 Perbaikan Bug & Stabilitas Kode (Maintenance Release)
+- **Unit Test Suite Fix**:
+  - Menghapus karakter UTF-8 BOM pada 7 file test (`CLICommandTest`, `DbCleanerTest`, `LoggerTest`, `PerformanceChecklistTest`, `TagAuditorTest`, `BloatSuppressorTest`, `FontControllerTest`) untuk memulihkan eksekusi pengujian otomatis PHPUnit.
+- **Database Housekeeper Optimization**:
+  - Memperbaiki `trim_transients()` untuk menghapus kunci `_transient_timeout_*` sekaligus kunci data `_transient_*`, mencegah penumpukan data yatim (*orphaned transients*) di tabel `wp_options`.
+  - Memperbaiki `trim_revisions()` agar menggunakan `wp_delete_post_revision()` untuk membersihkan meta revisi (*postmeta*) secara tuntas.
+- **GitHub Updater Hook Registration**:
+  - Mengeliminasi pendaftaran filter ganda pada `check_update()` di `GitHubUpdater` untuk mengoptimalkan performa pemrosesan transient update plugins.
+- **HTML Cache Engine & Security Improvements**:
+  - Memperketat validasi host domain pada `purge_url()` agar penghapusan cache terisolasi ke domain situs aktif (`home_url()`).
+  - Mengaktifkan verifikasi sertifikat SSL bawaan (`sslverify = true`) pada fitur pemanasan cache (`warm_cache()`) dengan kustomisasi filter `wpsc_warm_cache_sslverify`.
+
+---
+
 ## [1.6.1] - 2026-09-05
 
 ### 🚀 Fitur Baru: Native GitHub Plugin Updater & Release Sync (`GitHubUpdater`)

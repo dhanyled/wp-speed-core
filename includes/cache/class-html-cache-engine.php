@@ -226,10 +226,16 @@ class HtmlCacheEngine {
         if (empty($url)) {
             return;
         }
-        $p    = wp_parse_url($url);
-        $host = $p['host'] ?? (string) wp_parse_url(home_url(), PHP_URL_HOST);
+        $p         = wp_parse_url($url);
+        $home_host = (string) wp_parse_url(home_url(), PHP_URL_HOST);
+        $url_host  = $p['host'] ?? $home_host;
+
+        if (!empty($home_host) && !empty($url_host) && strcasecmp($url_host, $home_host) !== 0) {
+            return;
+        }
+
         $path = $p['path'] ?? '/';
-        $base = $this->dir . md5($host . $path);
+        $base = $this->dir . md5($home_host . $path);
 
         foreach (['.html', '.mobile.html', '.html.gz', '.mobile.html.gz'] as $suffix) {
             $f = $base . $suffix;
@@ -378,7 +384,7 @@ class HtmlCacheEngine {
         foreach ($sitemap_candidates as $sm_url) {
             $sm_resp = wp_remote_get($sm_url, [
                 'timeout'   => 4,
-                'sslverify' => false,
+                'sslverify' => apply_filters('wpsc_warm_cache_sslverify', true),
                 'headers'   => ['User-Agent' => 'WPSC-CacheWarmer/1.0'],
             ]);
             if (!is_wp_error($sm_resp) && wp_remote_retrieve_response_code($sm_resp) === 200) {
@@ -399,7 +405,7 @@ class HtmlCacheEngine {
         foreach (array_unique($urls) as $u) {
             $response = wp_remote_get($u, [
                 'timeout'   => 5,
-                'sslverify' => false,
+                'sslverify' => apply_filters('wpsc_warm_cache_sslverify', true),
                 'headers'   => ['User-Agent' => 'WPSC-CacheWarmer/1.0'],
             ]);
             if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {

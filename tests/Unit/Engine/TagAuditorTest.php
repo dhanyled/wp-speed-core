@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 declare(strict_types=1);
 
 namespace WPSpeedCore\Tests\Unit\Engine;
@@ -23,7 +23,7 @@ class TagAuditorTest extends TestCase {
 
         $auditor = new TagAuditor();
 
-        $html = '<html><head><script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({\'gtm.start\':new Date().getTime(),event:\'gtm.js\'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!=\'dataLayer\'?\'&l=\'+l:\'\';j.async=true;j.src=\'https://www.googletagmanager.com/gtm.js?id=\'+i+dl;f.parentNode.insertBefore(j,f);})(window,document,\'script\',\'dataLayer\',\'GTM-XXXXXX\');</script><script>/* duplicate */ GTM-XXXXXX</script></head><body>Hello World</body></html>';
+        $html = '<html><head><script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({\'gtm.start\':new Date().getTime(),event:\'gtm.js\'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!=\'dataLayer\'?\'&l=\'+l:\'\';j.async=true;j.src=\'https://www.googletagmanager.com/gtm.js?id=\'+i+dl;f.parentNode.insertBefore(j,f);})(window,document,\'script\',\'dataLayer\',\'GTM-XXXXXX\');</script><script>/* duplicate */ GTM-XXXXXX</script></head><body>Hello World - Padding to exceed 200 chars limit for tag auditing scanner.</body></html>';
 
         $result = $auditor->scan_html($html);
         $this->assertEquals($html, $result);
@@ -36,7 +36,7 @@ class TagAuditorTest extends TestCase {
 
         $auditor = new TagAuditor();
 
-        $html = '<html><head><script>gtag(\'config\', \'G-ABC1234567\');</script></head><body>Clean page without duplicates</body></html>';
+        $html = '<html><head><script>gtag(\'config\', \'G-ABC1234567\');</script></head><body>Clean page without duplicates. Additional content added here to ensure the total string length exceeds 200 characters requirement for tag auditor scanning.</body></html>';
 
         $result = $auditor->scan_html($html);
         $this->assertEquals($html, $result);
