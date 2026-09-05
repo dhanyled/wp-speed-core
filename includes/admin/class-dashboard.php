@@ -690,6 +690,15 @@ class Dashboard {
                         <div class="wpsc-subtitle">
                             <span class="wpsc-status-radar"><span class="wpsc-radar-light"></span> High-Velocity Engine</span>
                             <span>&bull; Server: <?php echo esc_html($env_data['server']['software'] ?? 'PHP Server'); ?></span>
+                            <span>&bull; Auto-Updates: 
+                                <?php if (!empty($update_status['is_autoupdate_enabled'])) : ?>
+                                    <span class="wpsc-badge-cyan" style="font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 700;">ON</span>
+                                    <a href="<?php echo esc_url($update_status['toggle_autoupdate_url']); ?>" style="color: #94a3b8; font-size: 11px; text-decoration: underline;" title="Klik untuk nonaktifkan pembaruan otomatis">(Nonaktifkan)</a>
+                                <?php else : ?>
+                                    <span class="wpsc-badge-slate" style="font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 700;">OFF</span>
+                                    <a href="<?php echo esc_url($update_status['toggle_autoupdate_url']); ?>" style="color: #38bdf8; font-size: 11px; text-decoration: underline;" title="Klik untuk aktifkan pembaruan otomatis">(Aktifkan)</a>
+                                <?php endif; ?>
+                            </span>
                             <span>&bull; Author: <a href="https://t.me/leddhany" target="_blank" style="color: #38bdf8; text-decoration: none;">Dhany (@leddhany)</a></span>
                         </div>
                     </div>
@@ -718,6 +727,13 @@ class Dashboard {
                     </form>
                 </div>
             </div>
+
+            <?php if (isset($_GET['autoupdate_toggled'])) : ?>
+                <div style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 10px; padding: 12px 18px; margin-bottom: 20px; color: #38bdf8; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span><?php echo $_GET['autoupdate_toggled'] === 'enable' ? 'Pembaruan otomatis (Auto-Updates) WP Speed Core berhasil DIAKTIFKAN!' : 'Pembaruan otomatis (Auto-Updates) WP Speed Core berhasil DINONAKTIFKAN.'; ?></span>
+                </div>
+            <?php endif; ?>
 
             <?php if (isset($_GET['update_checked'])) : ?>
                 <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 10px; padding: 12px 18px; margin-bottom: 20px; color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 8px;">

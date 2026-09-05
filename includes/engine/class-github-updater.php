@@ -54,6 +54,12 @@ class GitHubUpdater {
 
         // Allow manual trigger to force check for updates
         add_action('admin_init', [$this, 'handle_force_check']);
+
+        // Auto-update filter for WordPress core background cron
+        add_filter('auto_update_plugin', [$this, 'should_auto_update'], 10, 2);
+
+        // Allow 1-click toggle auto-update from WP Speed Core Dashboard
+        add_action('admin_init', [$this, 'handle_toggle_auto_update']);
     }
 
     /**
@@ -344,6 +350,54 @@ class GitHubUpdater {
     }
 
     /**
+     * Ensure WordPress auto-updates recognize WP Speed Core when enabled.
+     *
+     * @param bool|null $update
+     * @param object $item
+     * @return bool|null
+     */
+    public function should_auto_update($update, $item) {
+        if (!empty($item->plugin) && $item->plugin === $this->plugin_basename) {
+            $auto_plugins = (array) get_site_option('auto_update_plugins', []);
+            if (in_array($this->plugin_basename, $auto_plugins, true)) {
+                return true;
+            }
+        }
+        return $update;
+    }
+
+    /**
+     * Handle 1-click toggle auto-update action.
+     */
+    public function handle_toggle_auto_update(): void {
+        if (!is_admin() || !current_user_can('manage_options')) {
+            return;
+        }
+
+        if (isset($_GET['wpsc_toggle_autoupdate']) && check_admin_referer('wpsc_toggle_autoupdate_nonce')) {
+            $auto_plugins = (array) get_site_option('auto_update_plugins', []);
+            $state        = sanitize_key($_GET['state'] ?? 'enable');
+
+            if ($state === 'enable') {
+                $auto_plugins[] = $this->plugin_basename;
+                $auto_plugins   = array_unique($auto_plugins);
+            } else {
+                $auto_plugins = array_diff($auto_plugins, [$this->plugin_basename]);
+            }
+
+            update_site_option('auto_update_plugins', array_values($auto_plugins));
+
+            $tab = sanitize_key($_GET['tab'] ?? 'overview');
+            wp_safe_redirect(add_query_arg([
+                'page'               => 'wp-speed-core',
+                'tab'                => $tab,
+                'autoupdate_toggled' => $state,
+            ], admin_url('options-general.php')));
+            exit;
+        }
+    }
+
+    /**
      * Get update status info for the Admin Dashboard.
      *
      * @return array
@@ -363,15 +417,24 @@ class GitHubUpdater {
             'upgrade-plugin_' . $this->plugin_basename
         );
 
+        $auto_plugins          = (array) get_site_option('auto_update_plugins', []);
+        $is_autoupdate_enabled = in_array($this->plugin_basename, $auto_plugins, true);
+        $toggle_autoupdate_url = wp_nonce_url(
+            admin_url('options-general.php?page=wp-speed-core&wpsc_toggle_autoupdate=1&state=' . ($is_autoupdate_enabled ? 'disable' : 'enable')),
+            'wpsc_toggle_autoupdate_nonce'
+        );
+
         return [
-            'has_update'      => $has_update,
-            'current_version' => $this->current_version,
-            'latest_version'  => $latest_ver,
-            'release_url'     => $release['url'] ?? "https://github.com/{$this->repo}/releases",
-            'check_url'       => $check_url,
-            'update_url'      => $update_url,
-            'changelog'       => $release['changelog'] ?? '',
-            'published_at'    => $release['published_at'] ?? '',
+            'has_update'            => $has_update,
+            'current_version'       => $this->current_version,
+            'latest_version'        => $latest_ver,
+            'release_url'           => $release['url'] ?? "https://github.com/{$this->repo}/releases",
+            'check_url'             => $check_url,
+            'update_url'            => $update_url,
+            'changelog'             => $release['changelog'] ?? '',
+            'published_at'          => $release['published_at'] ?? '',
+            'is_autoupdate_enabled' => $is_autoupdate_enabled,
+            'toggle_autoupdate_url' => $toggle_autoupdate_url,
         ];
     }
 }
