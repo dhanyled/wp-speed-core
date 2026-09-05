@@ -133,6 +133,38 @@ class Dashboard {
             exit;
         }
 
+        if (isset($_POST['wpsc_save_cloudflare']) && check_admin_referer('wpsc_cloudflare_nonce')) {
+            $curr = (array) get_option('wpsc_settings', []);
+            $curr['cloudflare']['enable']    = !empty($_POST['wpsc_cf_enable']) ? 1 : 0;
+            $curr['cloudflare']['api_token'] = sanitize_text_field($_POST['wpsc_cf_token'] ?? '');
+            $curr['cloudflare']['zone_id']   = sanitize_text_field($_POST['wpsc_cf_zone'] ?? '');
+            update_option('wpsc_settings', $curr);
+            wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'tab' => 'settings', 'cf_saved' => '1'], admin_url('options-general.php')));
+            exit;
+        }
+
+        if (isset($_POST['wpsc_test_cloudflare']) && check_admin_referer('wpsc_cloudflare_nonce')) {
+            /** @var \WPSpeedCore\Optimization\CloudflarePurger|null $cf */
+            $cf = $this->modules['cloudflare'] ?? null;
+            $res = $cf ? $cf->test_connection() : ['success' => false, 'message' => 'Modul Cloudflare tidak tersedia.'];
+            set_transient('wpsc_cf_test_msg', $res['message'], 60);
+            $arg = $res['success'] ? 'cf_ok' : 'cf_fail';
+            wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'tab' => 'settings', 'cf_test' => $arg], admin_url('options-general.php')));
+            exit;
+        }
+
+        if (isset($_POST['wpsc_migrate_plugin']) && check_admin_referer('wpsc_migrate_nonce')) {
+            $source = sanitize_key($_POST['wpsc_migration_source'] ?? '');
+            /** @var \WPSpeedCore\Engine\MigrationManager|null $migration */
+            $migration = $this->modules['migration'] ?? null;
+            if ($migration && $source) {
+                $res = $migration->import_settings($source);
+                set_transient('wpsc_migrate_notice', $res['message'], 60);
+            }
+            wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'tab' => 'overview', 'migrated' => '1'], admin_url('options-general.php')));
+            exit;
+        }
+
         if (isset($_POST['wpsc_clear_logs']) && check_admin_referer('wpsc_clear_logs_nonce')) {
             $logger = $this->modules['logger'] ?? null;
             if ($logger) {
@@ -176,6 +208,18 @@ class Dashboard {
         }
         $cache_size_fmt = $cache_size > 1048576 ? round($cache_size / 1048576, 2) . ' MB' : round($cache_size / 1024, 1) . ' KB';
         $disabled_assets = (array) get_option('wpsc_disabled_assets', []);
+
+        /** @var \WPSpeedCore\Engine\MigrationManager|null $migration */
+        $migration = $this->modules['migration'] ?? null;
+        $available_migrations = $migration ? $migration->get_available_migrations() : [];
+        $migrate_notice = get_transient('wpsc_migrate_notice');
+        if ($migrate_notice) {
+            delete_transient('wpsc_migrate_notice');
+        }
+        $cf_test_msg = get_transient('wpsc_cf_test_msg');
+        if ($cf_test_msg) {
+            delete_transient('wpsc_cf_test_msg');
+        }
         ?>
         <style>
             :root {
@@ -675,8 +719,51 @@ class Dashboard {
                 </a>
             </div>
 
+            <!-- Notice Alerts -->
+            <?php if (!empty($migrate_notice)): ?>
+                <div class="wpsc-glass" style="padding: 14px 20px; margin-bottom: 20px; border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">✅</span> <?php echo esc_html($migrate_notice); ?>
+                </div>
+            <?php endif; ?>
+            <?php if (!empty($cf_test_msg)): ?>
+                <div class="wpsc-glass" style="padding: 14px 20px; margin-bottom: 20px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">🌐</span> <strong>Cloudflare Status:</strong> <?php echo esc_html($cf_test_msg); ?>
+                </div>
+            <?php endif; ?>
+
             <!-- TAB 1: OVERVIEW -->
             <?php if ($active_tab === 'overview'): ?>
+                <?php if (!empty($available_migrations)): ?>
+                    <div class="wpsc-glass-metallic" style="padding: 20px 24px; margin-bottom: 24px; border: 1px solid rgba(56, 189, 248, 0.35);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.2); display: flex; align-items: center; justify-content: center; font-size: 20px;">⚡</div>
+                                <div>
+                                    <h3 style="margin: 0 0 4px 0; font-size: 15px; font-weight: 700; color: #fff;">
+                                        1-Click Settings Importer (Migrasi Plugin Terdeteksi)
+                                    </h3>
+                                    <p style="margin: 0; font-size: 12px; color: #94a3b8;">
+                                        Ditemukan data konfigurasi dari plugin performa lain. Salin aturan caching, delay JS, lazyload, dan CDN seketika ke WP Speed Core.
+                                    </p>
+                                </div>
+                            </div>
+                            <form method="post" style="display: flex; gap: 10px; align-items: center; margin: 0;">
+                                <?php wp_nonce_field('wpsc_migrate_nonce'); ?>
+                                <select name="wpsc_migration_source" class="wpsc-select" style="background: #050811; border: 1px solid rgba(255,255,255,0.15); color: #38bdf8; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600;">
+                                    <?php foreach ($available_migrations as $source_key => $mig_info): ?>
+                                        <option value="<?php echo esc_attr($source_key); ?>">
+                                            <?php echo esc_html($mig_info['name'] . ' (' . $mig_info['count'] . ' opsi)'); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button type="submit" name="wpsc_migrate_plugin" class="wpsc-btn-primary" style="padding: 9px 18px; font-size: 13px;">
+                                    Impor ke WP Speed Core
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <div class="wpsc-metrics-grid">
                     <div class="wpsc-glass wpsc-metric-card">
                         <div class="wpsc-metric-label">
@@ -1057,6 +1144,16 @@ class Dashboard {
                                 <td>Mengambil kepatuhan checklist performa dan skor kesehatan web.</td>
                                 <td style="text-align: right;"><span class="wpsc-badge wpsc-badge-green">Active</span></td>
                             </tr>
+                            <tr>
+                                <td><code style="color: #38bdf8;">wpsc_sync_cloudflare</code></td>
+                                <td>Sinkronisasi pembersihan cache Cloudflare Edge CDN via API (full zone atau single URL).</td>
+                                <td style="text-align: right;"><span class="wpsc-badge wpsc-badge-green">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td><code style="color: #38bdf8;">wpsc_migrate_settings</code></td>
+                                <td>Mendeteksi dan mengimpor konfigurasi dari WP Rocket, Perfmatters, atau LiteSpeed Cache.</td>
+                                <td style="text-align: right;"><span class="wpsc-badge wpsc-badge-green">Active</span></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -1064,6 +1161,44 @@ class Dashboard {
 
             <!-- TAB 5: SETTINGS & CDN -->
             <?php if ($active_tab === 'settings'): ?>
+                <!-- Cloudflare Edge Cache Integration -->
+                <div class="wpsc-glass" style="padding: 24px; margin-bottom: 24px;">
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                        <div>
+                            <h3 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+                                Cloudflare CDN Edge Cache API Sync
+                            </h3>
+                            <p style="margin: 0; font-size: 13px; color: #94a3b8; max-width: 750px;">
+                                Hubungkan API Cloudflare agar setiap pembersihan cache WordPress (baik Purge All maupun Single Page) otomatis membersihkan cache di edge network Cloudflare.
+                            </p>
+                        </div>
+                    </div>
+                    <form method="post">
+                        <?php wp_nonce_field('wpsc_cloudflare_nonce'); ?>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
+                            <div>
+                                <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Cloudflare API Token:</label>
+                                <input type="password" name="wpsc_cf_token" value="<?php echo esc_attr($settings['cloudflare']['api_token'] ?? ''); ?>" placeholder="v1.0-..." style="width: 100%; background: #050811; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-size: 12px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Cloudflare Zone ID:</label>
+                                <input type="text" name="wpsc_cf_zone" value="<?php echo esc_attr($settings['cloudflare']['zone_id'] ?? ''); ?>" placeholder="misal: 023e105f4ecef8ad9ca31a8372d0c353" style="width: 100%; background: #050811; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-size: 12px;">
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                <input type="checkbox" name="wpsc_cf_enable" value="1" <?php checked(!empty($settings['cloudflare']['enable'])); ?>>
+                                Aktifkan Sinkronisasi Purge Cloudflare Otomatis
+                            </label>
+                            <div style="display: flex; gap: 10px;">
+                                <button type="submit" name="wpsc_test_cloudflare" class="wpsc-btn-metallic" style="font-size: 12px;">Test Koneksi Cloudflare</button>
+                                <button type="submit" name="wpsc_save_cloudflare" class="wpsc-btn-primary" style="font-size: 12px;">Simpan Kredensial Cloudflare</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
                     <!-- CDN Configuration -->
                     <div class="wpsc-glass" style="padding: 24px;">

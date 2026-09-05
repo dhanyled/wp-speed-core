@@ -2,6 +2,34 @@
 
 Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
 
+## [1.6.0] - 2026-09-05
+
+### 🚀 Fitur Baru & Peningkatan Performa (Major Release)
+- **Cloudflare CDN Edge Cache API Sync (`CloudflarePurger`)**:
+  - Mengintegrasikan Cloudflare API v4 ke dalam engine pembersihan cache.
+  - Setiap pembersihan cache (baik Purge All maupun Single Page) otomatis mengirim sinyal pembersihan ke edge CDN Cloudflare secara aman dan non-blocking.
+  - Ditambahkan form konfigurasi API Token, Zone ID, dan tombol verifikasi koneksi (*Test Connection*) di tab Settings Dashboard.
+- **1-Click Settings Importer & Migration Hub (`MigrationManager`)**:
+  - Otomatis mendeteksi keberadaan konfigurasi dari plugin performa sebelumnya (**WP Rocket**, **Perfmatters**, dan **LiteSpeed Cache**).
+  - Memungkinkan import 1-klik untuk seluruh aturan caching, JavaScript delay & defer, media lazy loading, bloat cleaning, dan CDN URLs ke WP Speed Core.
+- **Granular WooCommerce & FSE Cache Invalidation (`HtmlCacheEngine`)**:
+  - Pembersihan cache selektif pada produk, variasi, kategori, tag, dan arsip toko saat harga atau stok berganti tanpa menghapus cache seluruh website.
+  - Mencegah serangan *cache-wipe* dari ulasan pengunjung anonim (ulasan hanya membersihkan halaman produk setelah disetujui).
+  - Invalidasi cache otomatis saat template Full Site Editing (FSE), template parts, global styles, dan menu navigasi diperbarui.
+- **Nonce & Dynamic Form Lifetime Awareness (`HtmlCacheEngine`)**:
+  - Mendeteksi formulir yang membawa WordPress nonces atau token form (`_wpnonce`, `woocommerce-login-nonce`, `wpcf7-nonce`).
+  - Membatasi masa simpan cache halaman formulir maksimal 10 jam untuk mencegah error *invalid nonce* / *link expired* pada pengunjung anonim.
+- **XML Sitemap Cache Preloader (`HtmlCacheEngine`)**:
+  - Meningkatkan algoritma pemanasan cache (*Cache Warmer*) untuk mengekstrak dan mem-preload URL dari XML sitemap standar (`wp-sitemap.xml`, `sitemap_index.xml`, `sitemap.xml`).
+- **Ekspansi AI Model Context Protocol (10 Tools) (`McpServer`)**:
+  - Menambahkan 2 tool MCP baru: `wpsc_sync_cloudflare` (pembersihan edge CDN Cloudflare via AI) dan `wpsc_migrate_settings` (deteksi dan migrasi konfigurasi via AI).
+- **Interactive Performance Checklist Update (`PerformanceChecklist`)**:
+  - Menambahkan kriteria deteksi *Persistent Object Cache (Redis/Memcached)* dan *Cloudflare Edge Cache API Sync*.
+- **PHPUnit Test Expansion**:
+  - Menambahkan test suite baru `CloudflarePurgerTest` dan `MigrationManagerTest`.
+
+---
+
 ## [1.5.3] - 2026-08-30
 
 ### 🛡️ Keamanan & Optimasi Engine (Security & Performance)

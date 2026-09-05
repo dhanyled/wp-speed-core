@@ -100,6 +100,7 @@ final class Kernel {
         $this->registry['auditor']   = new Engine\TagAuditor($logger);
         $this->registry['mcp']       = new Engine\McpServer();
         $this->registry['checklist'] = new Engine\PerformanceChecklist();
+        $this->registry['migration'] = new Engine\MigrationManager($logger);
     }
 
     private function boot_optimizations(): void {
@@ -113,6 +114,7 @@ final class Kernel {
         $this->registry['preload'] = new Optimization\SpeculationEngine();
         $this->registry['assets']  = new Optimization\AssetGatekeeper();
         $this->registry['cdn']     = new Optimization\CdnRewriter();
+        $this->registry['cloudflare']   = new Optimization\CloudflarePurger($logger);
         $this->registry['db']      = new Optimization\DatabaseHousekeeper($logger);
         $this->registry['media_facade'] = new Optimization\MediaFacadeOptimizer();
         $this->registry['font_opt']     = new Optimization\FontOptimizer();

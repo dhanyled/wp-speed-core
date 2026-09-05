@@ -51,6 +51,13 @@ class PerformanceChecklist {
                         'description' => 'Allocated memory limit: ' . ($env['php']['memory_limit'] ?? 'Unknown'),
                         'badge'       => $env['php']['memory_limit'] ?? 'Unknown',
                     ],
+                    [
+                        'id'          => 'object_cache',
+                        'title'       => 'Persistent Object Cache (Redis/Memcached)',
+                        'status'      => (function_exists('wp_using_ext_object_cache') && wp_using_ext_object_cache()) ? 'passed' : 'warning',
+                        'description' => (function_exists('wp_using_ext_object_cache') && wp_using_ext_object_cache()) ? 'Persistent object cache is active in memory.' : 'Object cache is not active. Redis/Memcached retains repeated database queries in RAM.',
+                        'badge'       => (function_exists('wp_using_ext_object_cache') && wp_using_ext_object_cache()) ? 'Active' : 'Not Active',
+                    ],
                 ],
             ],
             'core_web_vitals' => [
@@ -135,6 +142,13 @@ class PerformanceChecklist {
                         'status'      => 'passed',
                         'description' => 'AI assistants (Claude Desktop, Cursor, Antigravity) can query and control performance via MCP.',
                         'badge'       => 'AI Ready',
+                    ],
+                    [
+                        'id'          => 'cloudflare_sync',
+                        'title'       => 'Cloudflare Edge Cache API Sync',
+                        'status'      => (!empty($settings['cloudflare']['enable']) && !empty($settings['cloudflare']['api_token'])) ? 'passed' : 'warning',
+                        'description' => (!empty($settings['cloudflare']['enable']) && !empty($settings['cloudflare']['api_token'])) ? 'Cloudflare API edge purge synchronization is active.' : 'Cloudflare API sync is inactive. Configure in Settings to auto-purge edge CDN cache.',
+                        'badge'       => (!empty($settings['cloudflare']['enable']) && !empty($settings['cloudflare']['api_token'])) ? 'Active Sync' : 'Standby',
                     ],
                 ],
             ],

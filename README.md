@@ -1,38 +1,51 @@
-# ⚡ WP Speed Core `v1.5.3` - Panduan Instalasi & Penggunaan
+# ⚡ WP Speed Core `v1.6.0` - Panduan Instalasi & Penggunaan
 
 > **Pengembang**: Dhany ([@leddhany](https://t.me/leddhany))  
-> **Versi**: `1.5.3` (Production Ready)  
+> **Versi**: `1.6.0` (Production Ready)  
 > **Lisensi**: GPL v2 or later  
 
-WP Speed Core adalah plugin akselerasi performa WordPress modern all-in-one AI-Native yang menggabungkan caching HTML statis berkecepatan tinggi, **Model Context Protocol (MCP) AI Server**, **Interactive Performance Checklist**, **Smart Contextual Asset Unloader**, INP Shield untuk Core Web Vitals, **Instant Debug / Bypass Mode (`?nowpsc=1`)**, **Adaptive Smart Auto-Tuning Engine**, Google PageSpeed Insights Lab integration, serta **System & Diagnostic Logger** untuk pemantauan server dan audit performa real-time.
+WP Speed Core adalah plugin akselerasi performa WordPress modern all-in-one AI-Native yang menggabungkan caching HTML statis berkecepatan tinggi dengan kompresi GZIP, **Model Context Protocol (MCP) AI Server (10 Tools)**, **Cloudflare Edge Cache API Sync**, **1-Click Settings Importer (WP Rocket & Perfmatters)**, **Granular WooCommerce Cache Invalidation**, **Interactive Performance Checklist**, **Smart Contextual Asset Unloader**, INP Shield untuk Core Web Vitals, **Instant Debug / Bypass Mode (`?nowpsc=1`)**, **Adaptive Smart Auto-Tuning Engine**, Google PageSpeed Insights Lab integration, serta **System & Diagnostic Logger** untuk pemantauan server dan audit performa real-time.
 
 ---
 
 ## 🚀 Fitur Utama
 
-1. **AI Model Context Protocol (MCP) Server**: Integrasi protokol AI standar terbuka (`/wp-json/wpsc/v1/mcp`) untuk menghubungkan Claude Desktop, Cursor IDE, Antigravity, dan ChatGPT secara langsung guna diagnosis otomatis dan eksekusi optimasi.
-2. **Interactive Performance Checklist & Scorecard**: Audit kepatuhan kecepatan real-time (14+ kriteria kepatuhan Core Web Vitals) dengan dial gauge skor kesehatan persentase.
-3. **Adaptive Auto-Tuning Engine**: Otomatis mendeteksi PHP, OPcache, JIT, Web Server, tema FSE/klasik, dan plugin aktif untuk menerapkan profil kecepatan terbaik dengan 1-klik.
-4. **INP Shield & Script Controller**: Menunda eksekusi skrip berat dengan `scheduler.yield()` inspektur bertahap (chunked execution) agar Interaction to Next Paint (INP) tetap hijau (< 50ms).
-5. **Smart Contextual Asset Unloader**: Mematikan file CSS & JavaScript yang tidak terpakai secara kontekstual (*Global*, *Homepage*, *Single Posts*, *Pages*, *WooCommerce*, atau *Custom Regex*) dengan dukungan pengecualian URL/ID (*Exceptions*) tanpa merusak cache HTML statis.
-6. **Instant Debug / Bypass Mode (`?nowpsc=1`)**: Parameter URL instan untuk mem-bypass seluruh optimasi & cache statis untuk keperluan testing performa A/B dan debugging tanpa menonaktifkan plugin.
-7. **Frontend Admin Bar Quick HUD**: Bar menu terintegrasi di topbar WordPress untuk memantau status cache, beralih ke mode bypass 1-klik, dan membersihkan cache halaman aktif seketika.
-8. **Auto-LCP Hero Preload & Zero CLS**: Otomatis mendeteksi gambar utama above-the-fold dan menginjeksi `fetchpriority="high"` & `loading="eager"`.
-9. **W3C Speculation Rules API**: Navigasi halaman seketika (0ms TTFB) dengan prerender native di background browser.
-10. **Static Disk HTML Cache**: Melayani halaman dalam format HTML statis super cepat dari `/wp-content/cache/wp-speed-core/html/`.
-11. **Selective Inline Bloat Suppressor**: Menghapus duotone SVG filters, classic theme styles, dan inline global styles Gutenberg yang tidak terpakai.
-12. **Smart Tag Auditor**: Mendeteksi dan memperingatkan tag analitik/tracking (GA4, GTM, Meta Pixel, Clarity) yang terpasang ganda.
-13. **Plugin Overlap Arbiter**: Mendeteksi fitur yang bertabrakan dengan plugin lain (LiteSpeed, WP Rocket, Autoptimize, Smush) dan memberi rekomendasi pengaturan terbaik.
-14. **Database Housekeeper**: Pembersihan terjadwal untuk revisi pos, draf otomatis, pos di kotak sampah, komentar spam, dan transient kadaluarsa.
-15. **System & Diagnostic Logger**: Menyimpan log diagnosa sistem, server software, PHP, OPcache, aktivitas pembersihan cache, dan riwayat Auto-Tune langsung di dashboard admin.
+1. **AI Model Context Protocol (MCP) Server (10 Tools)**: Integrasi protokol AI standar terbuka (`/wp-json/wpsc/v1/mcp`) untuk menghubungkan Claude Desktop, Cursor IDE, Antigravity, dan ChatGPT secara langsung guna diagnosis otomatis, eksekusi optimasi, Cloudflare edge purge, dan migrasi konfigurasi.
+2. **Cloudflare CDN Edge Cache API Sync**: Sinkronisasi pembersihan cache otomatis langsung ke edge network Cloudflare via Cloudflare API v4 setiap kali cache WordPress dibersihkan (Purge All maupun Single URL).
+3. **1-Click Settings Importer (Migration Hub)**: Deteksi otomatis dan migrasi 1-klik untuk mengimpor konfigurasi dari WP Rocket, Perfmatters, dan LiteSpeed Cache tanpa setup manual yang rumit.
+4. **Granular WooCommerce & FSE Cache Invalidation**: Membersihkan cache produk, kategori, dan shop archive otomatis saat harga atau stok berganti tanpa menghapus cache seluruh website; auto-purge saat template FSE dan menu navigasi diperbarui.
+5. **Nonce-Aware Form Lifetime Protection**: Mendeteksi input nonce pada halaman formulir dinamis dan membatasi masa aktif cache agar pengunjung formulir tidak mengalami error *invalid nonce*.
+6. **XML Sitemap Cache Preloader**: Memanaskan cache secara otomatis dengan mengekstrak URL dari XML sitemap WordPress Core (`wp-sitemap.xml`) atau sitemap SEO.
+7. **Interactive Performance Checklist & Scorecard**: Audit kepatuhan kecepatan real-time (16+ kriteria kepatuhan Core Web Vitals) dengan dial gauge skor kesehatan persentase.
+8. **Adaptive Auto-Tuning Engine**: Otomatis mendeteksi PHP, OPcache, JIT, Web Server, tema FSE/klasik, dan plugin aktif untuk menerapkan profil kecepatan terbaik dengan 1-klik.
+9. **INP Shield & Script Controller**: Menunda eksekusi skrip berat dengan `scheduler.yield()` inspektur bertahap (chunked execution) agar Interaction to Next Paint (INP) tetap hijau (< 50ms).
+10. **Smart Contextual Asset Unloader**: Mematikan file CSS & JavaScript yang tidak terpakai secara kontekstual (*Global*, *Homepage*, *Single Posts*, *Pages*, *WooCommerce*, atau *Custom Regex*) dengan dukungan pengecualian URL/ID (*Exceptions*) tanpa merusak cache HTML statis.
+11. **Instant Debug / Bypass Mode (`?nowpsc=1`)**: Parameter URL instan untuk mem-bypass seluruh optimasi & cache statis untuk keperluan testing performa A/B dan debugging tanpa menonaktifkan plugin.
+12. **Frontend Admin Bar Quick HUD**: Bar menu terintegrasi di topbar WordPress untuk memantau status cache, beralih ke mode bypass 1-klik, dan membersihkan cache halaman aktif seketika.
+13. **Auto-LCP Hero Preload & Zero CLS**: Otomatis mendeteksi gambar utama above-the-fold dan menginjeksi `fetchpriority="high"` & `loading="eager"`.
+14. **W3C Speculation Rules API**: Navigasi halaman seketika (0ms TTFB) dengan prerender native di background browser.
+15. **Static Disk HTML Cache with GZIP**: Melayani halaman dalam format HTML statis super cepat dan terkompresi GZIP dari `/wp-content/cache/wp-speed-core/html/`.
+16. **Selective Inline Bloat Suppressor**: Menghapus duotone SVG filters, classic theme styles, dan inline global styles Gutenberg yang tidak terpakai.
+17. **Smart Tag Auditor**: Mendeteksi dan memperingatkan tag analitik/tracking (GA4, GTM, Meta Pixel, Clarity) yang terpasang ganda.
+18. **Plugin Overlap Arbiter**: Mendeteksi fitur yang bertabrakan dengan plugin lain (LiteSpeed, WP Rocket, Autoptimize, Smush) dan memberi rekomendasi pengaturan terbaik.
+19. **Database Housekeeper**: Pembersihan terjadwal untuk revisi pos, draf otomatis, pos di kotak sampah, komentar spam, dan transient kadaluarsa.
+20. **System & Diagnostic Logger**: Menyimpan log diagnosa sistem, server software, PHP, OPcache, aktivitas pembersihan cache, dan riwayat Auto-Tune langsung di dashboard admin.
 
 ---
 
 ## 📊 Komparasi vs Kompetitor
 
-| Fitur / Arsitektur | WP Speed Core `v1.5.2` | FlyingPress | WP Rocket | Perfmatters | WP Shifty | NitroPack |
+| Fitur / Arsitektur | WP Speed Core `v1.6.0` | FlyingPress | WP Rocket | Perfmatters | xSpeed Cache | NitroPack |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Static Disk HTML Cache** | ✅ Yes (Zero DB Query) | ✅ Yes (Disk Cache) | ✅ Yes | ❌ (Butuh Caching Eksternal) | ❌ (Butuh Caching Eksternal) | ✅ (Cloud Service) |
+| **Static Disk HTML Cache** | ✅ Yes (Zero DB Query) | ✅ Yes (Disk Cache) | ✅ Yes | ❌ (Butuh Caching Eksternal) | ✅ Yes | ✅ (Cloud Service) |
+| **GZIP Pre-compression** | ✅ Yes (`.html.gz`) | ✅ Yes | ✅ Yes | ❌ No | ✅ Yes | ✅ Yes |
+| **INP Shield (`scheduler.yield`)** | ✅ Yes (Sub-50ms) | ⚠️ (Delay Standar) | ⚠️ (Delay Standar) | ⚠️ (Delay Standar) | ⚠️ (Delay Standar) | ⚠️ (Proprietary JS) |
+| **Cloudflare Edge Cache Sync** | ✅ Yes (API v4) | ⚠️ (Addon) | ✅ Yes | ❌ No | ✅ Yes | ⚠️ (Cloud Native) |
+| **1-Click Settings Importer** | ✅ Yes (WPR/PM/LSC) | ❌ No | ❌ No | ❌ No | ✅ Yes | ❌ No |
+| **Granular WooCommerce Purge**| ✅ Yes (Price/Stock) | ✅ Yes | ✅ Yes | ❌ No | ✅ Yes | ✅ Yes |
+| **W3C Speculation Rules** | ✅ Yes (Native W3C) | ⚠️ (Link Preload JS) | ⚠️ (Instant Page JS) | ⚠️ (Instant Page JS) | ❌ No | ❌ No |
+| **Contextual Asset Unloader** | ✅ Yes (with Exceptions) | ⚠️ (Unused CSS) | ⚠️ (Unused CSS only) | ✅ Yes | ❌ No | ⚠️ (Blackbox) |
+| **Model Context Protocol (MCP)**| ✅ Yes (10 AI Tools) | ❌ No | ✅ Yes (v3.23+) | ❌ No | ✅ Yes (Basic) | ❌ No |
 | **INP Shield (`scheduler.yield`)** | ✅ Yes (Sub-50ms) | ⚠️ (Delay Standar) | ⚠️ (Delay Standar) | ⚠️ (Delay Standar) | ⚠️ (Delay Standar) | ⚠️ (Proprietary JS) |
 | **CrUX & Ad Query Normalizer** | ✅ Yes (`gad_source`, `gclid`, dsb.) | ✅ Yes | ⚠️ (Dasar) | ❌ No | ❌ No | ⚠️ (Cloud Proxy) |
 | **W3C Speculation Rules** | ✅ Yes (Native W3C) | ⚠️ (Link Preload JS) | ⚠️ (Instant Page JS) | ⚠️ (Instant Page JS) | ❌ No | ❌ No |

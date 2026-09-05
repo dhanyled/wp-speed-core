@@ -130,6 +130,32 @@ class McpServer {
                     ],
                 ],
             ],
+            [
+                'name'        => 'wpsc_sync_cloudflare',
+                'description' => 'Purge edge cache on Cloudflare CDN via API (supports full site or single URL).',
+                'inputSchema' => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'url' => [
+                            'type'        => 'string',
+                            'description' => 'Optional specific URL to purge from Cloudflare edge. If omitted, purges entire zone cache.',
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'name'        => 'wpsc_migrate_settings',
+                'description' => 'Detect and import performance settings from WP Rocket, Perfmatters, or LiteSpeed Cache.',
+                'inputSchema' => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'source' => [
+                            'type'        => 'string',
+                            'description' => 'Source plugin to import from: "wp_rocket", "perfmatters", or "litespeed". If "detect", lists available sources.',
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         return new \WP_REST_Response([
@@ -213,6 +239,12 @@ class McpServer {
 
             case 'wpsc_get_logs':
                 return $this->tool_get_logs($kernel, $args);
+
+            case 'wpsc_sync_cloudflare':
+                return $this->tool_sync_cloudflare($kernel, $args);
+
+            case 'wpsc_migrate_settings':
+                return $this->tool_migrate_settings($kernel, $args);
 
             default:
                 return ['error' => 'Unknown tool name: ' . $tool_name];
@@ -335,5 +367,51 @@ class McpServer {
             'entries_count' => count($entries),
             'logs'          => $entries,
         ];
+    }
+
+    private function tool_sync_cloudflare(Kernel $kernel, array $args): array {
+        /** @var \WPSpeedCore\Optimization\CloudflarePurger|null $cf */
+        $cf = $kernel->get('cloudflare');
+        if (!$cf || !$cf->is_enabled()) {
+            return [
+                'success' => false,
+                'error'   => 'Cloudflare API sync is not configured or disabled in settings.',
+            ];
+        }
+
+        $url = sanitize_text_field((string) ($args['url'] ?? ''));
+        if ($url !== '') {
+            $success = $cf->purge_url($url);
+            return [
+                'success' => $success,
+                'action'  => 'single_url_purge',
+                'url'     => $url,
+            ];
+        }
+
+        $success = $cf->purge_all();
+        return [
+            'success' => $success,
+            'action'  => 'purge_everything',
+        ];
+    }
+
+    private function tool_migrate_settings(Kernel $kernel, array $args): array {
+        /** @var MigrationManager|null $migration */
+        $migration = $kernel->get('migration');
+        if (!$migration) {
+            return ['success' => false, 'error' => 'Migration manager module unavailable'];
+        }
+
+        $source = sanitize_key((string) ($args['source'] ?? 'detect'));
+        if ($source === 'detect' || $source === '') {
+            return [
+                'success'   => true,
+                'action'    => 'detect',
+                'available' => $migration->get_available_migrations(),
+            ];
+        }
+
+        return $migration->import_settings($source);
     }
 }

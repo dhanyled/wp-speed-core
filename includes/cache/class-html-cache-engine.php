@@ -38,6 +38,19 @@ class HtmlCacheEngine {
         add_action('wp_trash_post', [$this, 'purge_post']);
         add_action('wpsc_purge_all', [$this, 'purge_all']);
         add_action('wpsc_warm_cache', [$this, 'warm_cache']);
+
+        // WooCommerce Granular Invalidation
+        add_action('woocommerce_update_product', [$this, 'purge_wc_product']);
+        add_action('woocommerce_product_set_stock', [$this, 'purge_wc_product']);
+        add_action('woocommerce_variation_has_changed', [$this, 'purge_wc_product']);
+
+        // FSE & Theme Invalidation
+        add_action('wp_update_nav_menu', [$this, 'purge_all']);
+        add_action('after_switch_theme', [$this, 'purge_all']);
+        add_action('customize_save_after', [$this, 'purge_all']);
+        add_action('save_post_wp_template', [$this, 'purge_all']);
+        add_action('save_post_wp_template_part', [$this, 'purge_all']);
+        add_action('save_post_wp_global_styles', [$this, 'purge_all']);
     }
 
     private function cache_file(): string {
@@ -152,6 +165,15 @@ class HtmlCacheEngine {
         $ttl  = (int) ($this->opts['cache_ttl'] ?? 86400);
 
         if (file_exists($file) && (time() - filemtime($file)) < $ttl) {
+            // Nonce Lifetime Awareness: If page carries an active form nonce and is older than 10h, let WP re-render fresh token
+            $age = time() - filemtime($file);
+            if ($age > 36000) {
+                $tail = file_get_contents($file, false, null, -120);
+                if ($tail && strpos($tail, 'Nonce-Protected') !== false) {
+                    return;
+                }
+            }
+
             header('X-WPSC-Cache: HIT');
             header('Content-Type: text/html; charset=UTF-8');
 
@@ -182,7 +204,10 @@ class HtmlCacheEngine {
         if (!file_exists(dirname($file))) {
             wp_mkdir_p(dirname($file));
         }
-        $content = $html . "\n/* WP Speed Core Cached: " . gmdate('Y-m-d H:i:s') . " UTC */";
+
+        $has_form_nonce = (bool) preg_match('/name=["\'](?:_wpnonce|woocommerce-login-nonce|woocommerce-register-nonce|wpcf7-nonce)["\']/i', $html);
+        $nonce_tag = $has_form_nonce ? ' [Nonce-Protected: Max TTL 10h]' : '';
+        $content = $html . "\n/* WP Speed Core Cached" . $nonce_tag . ": " . gmdate('Y-m-d H:i:s') . " UTC */";
         file_put_contents($file, $content, LOCK_EX);
 
         if (function_exists('gzencode')) {
@@ -212,6 +237,9 @@ class HtmlCacheEngine {
                 wp_delete_file($f);
             }
         }
+
+        // Trigger action for external edge purgers (e.g. Cloudflare API Sync)
+        do_action('wpsc_purge_single_url', $url);
 
         // Synchronize URL purge with hosting edge cache if active (e.g. StackCache)
         if (class_exists('\WPStackCache') && method_exists('\WPStackCache', 'purge')) {
@@ -245,6 +273,60 @@ class HtmlCacheEngine {
         $comment = get_comment($comment_id);
         if ($comment && !empty($comment->comment_post_ID)) {
             $this->purge_post((int) $comment->comment_post_ID);
+        }
+    }
+
+    /**
+     * Granular cache purge for WooCommerce products, category archives, and shop page.
+     * Prevents cache desynchronization when prices, sales, or stock counts change.
+     */
+    public function purge_wc_product($product_id): void {
+        $id = is_numeric($product_id) ? (int) $product_id : 0;
+        if ($id <= 0) {
+            return;
+        }
+
+        $url = get_permalink($id);
+        if ($url) {
+            $this->purge_url($url);
+        }
+
+        // If it is a variation, also purge the parent product
+        $parent_id = wp_get_post_parent_id($id);
+        if ($parent_id > 0) {
+            $parent_url = get_permalink($parent_id);
+            if ($parent_url) {
+                $this->purge_url($parent_url);
+            }
+        }
+
+        // Purge shop archive page
+        if (function_exists('wc_get_page_id')) {
+            $shop_page_id = wc_get_page_id('shop');
+            if ($shop_page_id > 0) {
+                $shop_url = get_permalink($shop_page_id);
+                if ($shop_url) {
+                    $this->purge_url($shop_url);
+                }
+            }
+        }
+
+        // Purge associated product category archives
+        $cats = get_the_terms($id, 'product_cat');
+        if (!empty($cats) && !is_wp_error($cats)) {
+            foreach ($cats as $cat) {
+                $term_link = get_term_link($cat);
+                if (!is_wp_error($term_link) && is_string($term_link)) {
+                    $this->purge_url($term_link);
+                }
+            }
+        }
+
+        // Purge homepage
+        $this->purge_url(home_url('/'));
+
+        if ($this->logger) {
+            $this->logger->info('WooCommerce granular cache purge executed for product ID: ' . $id, ['url' => $url]);
         }
     }
 
@@ -286,8 +368,35 @@ class HtmlCacheEngine {
             $urls[] = $rss_feed;
         }
 
+        // Extract top URLs from XML sitemap (Core wp-sitemap.xml or Yoast/RankMath)
+        $sitemap_candidates = [
+            home_url('/wp-sitemap.xml'),
+            home_url('/sitemap_index.xml'),
+            home_url('/sitemap.xml'),
+        ];
+
+        foreach ($sitemap_candidates as $sm_url) {
+            $sm_resp = wp_remote_get($sm_url, [
+                'timeout'   => 4,
+                'sslverify' => false,
+                'headers'   => ['User-Agent' => 'WPSC-CacheWarmer/1.0'],
+            ]);
+            if (!is_wp_error($sm_resp) && wp_remote_retrieve_response_code($sm_resp) === 200) {
+                $body = wp_remote_retrieve_body($sm_resp);
+                if (preg_match_all('#<loc>([^<]+)</loc>#i', $body, $matches)) {
+                    foreach (array_slice($matches[1], 0, 25) as $loc) {
+                        $loc = esc_url_raw(trim($loc));
+                        if ($loc && !in_array($loc, $urls, true) && strpos($loc, '.xml') === false) {
+                            $urls[] = $loc;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+
         $warmed = 0;
-        foreach ($urls as $u) {
+        foreach (array_unique($urls) as $u) {
             $response = wp_remote_get($u, [
                 'timeout'   => 5,
                 'sslverify' => false,
@@ -299,7 +408,7 @@ class HtmlCacheEngine {
         }
 
         if ($this->logger) {
-            $this->logger->info('Cache warming process executed.', ['warmed_urls_count' => $warmed]);
+            $this->logger->info('Cache warming process executed.', ['warmed_urls_count' => $warmed, 'sampled_urls' => array_slice($urls, 0, 8)]);
         }
 
         return $warmed;
