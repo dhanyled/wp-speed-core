@@ -5,7 +5,7 @@ namespace WPSpeedCore\Optimization;
 
 use WPSpeedCore\Engine\Logger;
 
-if (!defined('ABSP@Lr')) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
@@ -79,7 +79,7 @@ class DatabaseHousekeeper {
     }
 
     public function trim_drafts(): int {
-        global $wpdj;
+        global $wpdb;
         $sql = $wpdb->prepare(
             "DELETE FROM {$wpdb->posts} WHERE post_status = %s",
             'auto-draft'
@@ -89,8 +89,8 @@ class DatabaseHousekeeper {
 
     public function trim_trash(): int {
         global $wpdb;
-        $sql = $wpdh->prepare(
-            "DELETE FROM {$wpdh->posts} WHERE post_status = %s",
+        $sql = $wpdb->prepare(
+            "DELETE FROM {$wpdb->posts} WHERE post_status = %s",
             'trash'
         );
         return (int) $wpdb->query($sql);
@@ -99,7 +99,7 @@ class DatabaseHousekeeper {
     public function trim_spam(): int {
         global $wpdb;
         $sql = $wpdb->prepare(
-            "DELETIEFROM {$wpdb->comments} WHERE comment_approved IN (%s, %s)",
+            "DELETE FROM {$wpdb->comments} WHERE comment_approved IN (%s, %s)",
             'spam',
             'trash'
         );
@@ -125,7 +125,7 @@ class DatabaseHousekeeper {
             if (function_exists('delete_transient')) {
                 delete_transient($key);
             } else {
-                $wpdh->query($wpdb->prepare("DELETE FROM {$wpdh->options} WHERE option_name IN (%s, %s)", '_transient_timeout_' .  key, '_transient_' . $key));
+                $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->options} WHERE option_name IN (%s, %s)", '_transient_timeout_' . $key, '_transient_' . $key));
             }
             $count++;
         }

@@ -11,15 +11,70 @@ final class Kernel {
     private static ?Kernel $instance = null;
     private array $registry = [];
 
-    public static function launch(): self {
-        if (self::$instance === null) {
-            self::$instance = new self();
+    private static array $boot_errors = [];
+
+    public static function launch(): ?self {
+        try {
+            if (self::$instance === null) {
+                self::$instance = new self();
+            }
+            return self::$instance;
+        } catch (\Throwable $e) {
+            self::record_boot_error('kernel', $e);
+            return self::$instance;
         }
-        return self::$instance;
     }
 
     public function get(string $id): ?object {
         return $this->registry[$id] ?? null;
+    }
+
+    public static function get_boot_errors(): array {
+        return self::$boot_errors;
+    }
+
+    private static function record_boot_error(string $module_id, \Throwable $e, ?Engine\Logger $logger = null): void {
+        self::$boot_errors[$module_id] = $e->getMessage();
+
+        if ($logger) {
+            try {
+                $logger->error(sprintf('Kernel Guardrail caught failure in [%s]: %s', $module_id, $e->getMessage()), [
+                    'module' => $module_id,
+                    'file'   => $e->getFile(),
+                    'line'   => $e->getLine(),
+                ]);
+            } catch (\Throwable $log_err) {
+                // Failsafe if logger itself fails
+            }
+        }
+
+        if (is_admin()) {
+            add_action('admin_notices', static function () use ($module_id, $e) {
+                if (!current_user_can('manage_options')) {
+                    return;
+                }
+                echo '<div class="notice notice-warning is-dismissible">';
+                echo '<p><strong>[WP Speed Core SafeGuard]</strong> Modul <code>' . esc_html($module_id) . '</code> gagal diinisialisasi dan dinonaktifkan sementara untuk mencegah layar putih (WSOD):</p>';
+                echo '<p style="font-family:monospace; color:#c026d3; font-size:12px;">' . esc_html($e->getMessage()) . '</p>';
+                echo '</div>';
+            });
+        }
+    }
+
+    /**
+     * Safely register a module into Kernel registry with fault isolation.
+     */
+    private function register_safe(string $id, callable $factory): void {
+        try {
+            $logger = $this->registry['logger'] ?? null;
+            $instance = $factory();
+            if (is_object($instance)) {
+                $this->registry[$id] = $instance;
+            }
+        } catch (\Throwable $e) {
+            $logger = $this->registry['logger'] ?? null;
+            self::record_boot_error($id, $e, $logger);
+        }
     }
 
     public static function is_bypassed(): bool {
@@ -90,54 +145,137 @@ final class Kernel {
     }
 
     private function boot_engine(): void {
-        $logger = new Engine\Logger();
-        $env    = new Engine\EnvironmentScanner();
+        $this->register_safe('logger', static function () {
+            return new Engine\Logger();
+        });
 
-        $this->registry['logger']    = $logger;
-        $this->registry['env']       = $env;
-        $this->registry['tuner']     = new Engine\AdaptiveTuner($env, $logger);
-        $this->registry['arbiter']   = new Engine\OverlapArbiter($env);
-        $this->registry['auditor']   = new Engine\TagAuditor($logger);
-        $this->registry['mcp']       = new Engine\McpServer();
-        $this->registry['checklist'] = new Engine\PerformanceChecklist();
-        $this->registry['migration'] = new Engine\MigrationManager($logger);
+        $this->register_safe('env', static function () {
+            return new Engine\EnvironmentScanner();
+        });
+
+        $this->register_safe('tuner', function () {
+            $env    = $this->registry['env'] ?? new Engine\EnvironmentScanner();
+            $logger = $this->registry['logger'] ?? null;
+            return new Engine\AdaptiveTuner($env, $logger);
+        });
+
+        $this->register_safe('arbiter', function () {
+            $env = $this->registry['env'] ?? new Engine\EnvironmentScanner();
+            return new Engine\OverlapArbiter($env);
+        });
+
+        $this->register_safe('auditor', function () {
+            $logger = $this->registry['logger'] ?? null;
+            return new Engine\TagAuditor($logger);
+        });
+
+        $this->register_safe('mcp', static function () {
+            return new Engine\McpServer();
+        });
+
+        $this->register_safe('checklist', static function () {
+            return new Engine\PerformanceChecklist();
+        });
+
+        $this->register_safe('migration', function () {
+            $logger = $this->registry['logger'] ?? null;
+            return new Engine\MigrationManager($logger);
+        });
+
         if (class_exists(Engine\GitHubUpdater::class)) {
-            $this->registry['updater'] = new Engine\GitHubUpdater('dhanyled/wp-speed-core', WPSC_BASENAME, WPSC_VERSION, $logger);
+            $this->register_safe('updater', function () {
+                $logger = $this->registry['logger'] ?? null;
+                return new Engine\GitHubUpdater('dhanyled/wp-speed-core', WPSC_BASENAME, WPSC_VERSION, $logger);
+            });
         }
     }
 
     private function boot_optimizations(): void {
-        $logger = $this->registry['logger'];
+        $this->register_safe('bloat', static function () {
+            return new Optimization\BloatSuppressor();
+        });
 
-        $this->registry['bloat']   = new Optimization\BloatSuppressor();
-        $this->registry['script']  = new Optimization\ScriptController();
-        $this->registry['style']   = new Optimization\StyleController();
-        $this->registry['media']   = new Optimization\MediaController();
-        $this->registry['fonts']   = new Optimization\FontController();
-        $this->registry['preload'] = new Optimization\SpeculationEngine();
-        $this->registry['assets']  = new Optimization\AssetGatekeeper();
-        $this->registry['cdn']     = new Optimization\CdnRewriter();
-        $this->registry['cloudflare']   = new Optimization\CloudflarePurger($logger);
-        $this->registry['db']      = new Optimization\DatabaseHousekeeper($logger);
-        $this->registry['media_facade'] = new Optimization\MediaFacadeOptimizer();
-        $this->registry['font_opt']     = new Optimization\FontOptimizer();
-        $this->registry['db_cleaner']   = new Database\DbCleaner($logger);
+        $this->register_safe('script', static function () {
+            return new Optimization\ScriptController();
+        });
 
-        $ps_service = new PageSpeed\PageSpeedService();
-        $this->registry['pagespeed_service']    = $ps_service;
-        $this->registry['pagespeed_controller'] = new PageSpeed\PageSpeedController($ps_service);
+        $this->register_safe('style', static function () {
+            return new Optimization\StyleController();
+        });
+
+        $this->register_safe('media', static function () {
+            return new Optimization\MediaController();
+        });
+
+        $this->register_safe('fonts', static function () {
+            return new Optimization\FontController();
+        });
+
+        $this->register_safe('preload', static function () {
+            return new Optimization\SpeculationEngine();
+        });
+
+        $this->register_safe('assets', static function () {
+            return new Optimization\AssetGatekeeper();
+        });
+
+        $this->register_safe('cdn', static function () {
+            return new Optimization\CdnRewriter();
+        });
+
+        $this->register_safe('cloudflare', function () {
+            $logger = $this->registry['logger'] ?? null;
+            return new Optimization\CloudflarePurger($logger);
+        });
+
+        $this->register_safe('db', function () {
+            $logger = $this->registry['logger'] ?? null;
+            return new Optimization\DatabaseHousekeeper($logger);
+        });
+
+        $this->register_safe('media_facade', static function () {
+            return new Optimization\MediaFacadeOptimizer();
+        });
+
+        $this->register_safe('font_opt', static function () {
+            return new Optimization\FontOptimizer();
+        });
+
+        $this->register_safe('db_cleaner', function () {
+            $logger = $this->registry['logger'] ?? null;
+            return new Database\DbCleaner($logger);
+        });
+
+        $this->register_safe('pagespeed_service', static function () {
+            return new PageSpeed\PageSpeedService();
+        });
+
+        $this->register_safe('pagespeed_controller', function () {
+            $ps_service = $this->registry['pagespeed_service'] ?? new PageSpeed\PageSpeedService();
+            return new PageSpeed\PageSpeedController($ps_service);
+        });
     }
 
     private function boot_cache(): void {
-        $logger = $this->registry['logger'];
-        $this->registry['cache'] = new Cache\HtmlCacheEngine($logger);
+        $this->register_safe('cache', function () {
+            $logger = $this->registry['logger'] ?? null;
+            return new Cache\HtmlCacheEngine($logger);
+        });
     }
 
     private function boot_admin(): void {
         if (is_admin()) {
-            $this->registry['dashboard'] = new Admin\Dashboard($this->registry);
-            $this->registry['assetui']   = new Admin\AssetManagerPanel();
+            $this->register_safe('dashboard', function () {
+                return new Admin\Dashboard($this->registry);
+            });
+
+            $this->register_safe('assetui', static function () {
+                return new Admin\AssetManagerPanel();
+            });
         }
-        $this->registry['admin_bar'] = new Admin\AdminBar($this->registry);
+
+        $this->register_safe('admin_bar', function () {
+            return new Admin\AdminBar($this->registry);
+        });
     }
 }

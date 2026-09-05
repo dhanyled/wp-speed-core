@@ -2,6 +2,20 @@
 
 Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
 
+## [1.6.4] - 2026-09-05
+
+### 🛡️ Kernel Guardrail & Fault-Isolated Boot Architecture (Hotfix)
+- **Granular Kernel Guardrail (`register_safe`)**:
+  - Mengimplementasikan mekanisme *Fault-Isolation* berbasis `try-catch (\Throwable)` pada setiap modul internal kernel (`Kernel::register_safe()`).
+  - Jika salah satu modul gagal inisialisasi karena dependensi lingkungan, database, atau galat berkas, modul terkait dinonaktifkan secara aman dan dicatat ke log diagnostik tanpa mematikan modul lain dan tanpa memicu *White Screen of Death* (WSOD).
+  - Menampilkan notifikasi visual admin yang informatif (`admin_notices`) bagi Administrator tanpa mengganggu tampilan halaman WordPress.
+- **Top-Level Lifecycle Guardrail**:
+  - Membungkus pemanggilan `Kernel::launch()`, `Bootstrap::activate()`, dan `Bootstrap::deactivate()` dengan blok perlindungan `try-catch (\Throwable)` di level root plugin `wp-speed-core.php`.
+- **Critical Typo Fix**:
+  - Memperbaiki konstanta pengecekan direct-access pada `includes/optimization/class-database-housekeeper.php` dari typo `ABSP@Lr` kembali menjadi `ABSPATH`, mengatasi masalah penghentian paksa (`exit;`) seketika saat aktivasi modul database.
+
+---
+
 ## [1.6.3] - 2026-09-05
 
 ### 🛡️ Boot Hardening & Release Packaging Resilience (Hotfix)

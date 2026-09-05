@@ -3,7 +3,7 @@
  * Plugin Name:       WP Speed Core
  * Plugin URI:        https://t.me/leddhany
  * Description:       All-in-one WordPress performance engine with AI Model Context Protocol (MCP), Adaptive Auto-Tuning, Tracking Conflict Inspector, Overlap Arbiter, Disk HTML Cache, INP-safe script delay, auto-LCP priority, Speculation Rules prerender, Contextual Asset Unloader, and DB housekeeping.
- * Version:           1.6.3
+ * Version:           1.6.4
  * Requires at least: 6.2
  * Requires PHP:      8.0
  * Author:            Dhany (@leddhany)
@@ -24,7 +24,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('WPSC_VERSION', '1.6.3');
+define('WPSC_VERSION', '1.6.4');
 define('WPSC_FILE', __FILE__);
 define('WPSC_PATH', plugin_dir_path(__FILE__));
 define('WPSC_URL', plugin_dir_url(__FILE__));
@@ -56,17 +56,40 @@ spl_autoload_register(static function (string $fqcn) {
 });
 
 register_activation_hook(__FILE__, static function () {
-    Bootstrap::activate();
+    try {
+        Bootstrap::activate();
+    } catch (\Throwable $e) {
+        // Safe fallback: don't white-screen WordPress during activation
+        error_log('[WP Speed Core Activation Error] ' . $e->getMessage());
+    }
 });
 
 register_deactivation_hook(__FILE__, static function () {
-    Bootstrap::deactivate();
+    try {
+        Bootstrap::deactivate();
+    } catch (\Throwable $e) {
+        error_log('[WP Speed Core Deactivation Error] ' . $e->getMessage());
+    }
 });
 
 add_action('plugins_loaded', static function () {
-    Kernel::launch();
+    try {
+        Kernel::launch();
 
-    if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {
-        WP_CLI::add_command('wpsc', \WPSpeedCore\CLI\CLICommand::class);
+        if (defined('WP_CLI') && WP_CLI && class_exists('WP_CLI')) {
+            WP_CLI::add_command('wpsc', \WPSpeedCore\CLI\CLICommand::class);
+        }
+    } catch (\Throwable $e) {
+        error_log('[WP Speed Core Kernel Launch Error] ' . $e->getMessage());
+        if (is_admin()) {
+            add_action('admin_notices', static function () use ($e) {
+                if (!current_user_can('manage_options')) {
+                    return;
+                }
+                echo '<div class="notice notice-error is-dismissible">';
+                echo '<p><strong>[WP Speed Core SafeGuard]</strong> Terjadi kesalahan saat memuat modul kernel: ' . esc_html($e->getMessage()) . '</p>';
+                echo '</div>';
+            });
+        }
     }
 }, 5);
