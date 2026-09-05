@@ -2,6 +2,20 @@
 
 Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
 
+## [1.6.3] - 2026-09-05
+
+### 🛡️ Boot Hardening & Release Packaging Resilience (Hotfix)
+- **Defensive Kernel Booting (White Screen Prevention)**:
+  - Mengisolasi inisialisasi `GitHubUpdater` di `Kernel::boot_engine()` menggunakan proteksi `class_exists(Engine\GitHubUpdater::class)`.
+  - Mencegah *Fatal Critical Error* pada seluruh situs jika proses ekstraksi pembaruan zip oleh WordPress terputus atau mengalami keterlambatan penulisan file ke disk server.
+- **Strict Whitelist ZIP Distribution Standard**:
+  - Menghentikan pembuatan arsip rilis zip liar dan menerapkan whitelist folder inti (`assets`, `includes`, `tests`, `wp-content`, `wp-speed-core.php`, metadata).
+  - Menjamin struktur direktori `includes/engine/` selalu utuh dan konsisten saat diekstrak oleh WordPress Upgrader.
+- **Workflow Rules Update**:
+  - Menambahkan bab standar rilis *Release Packaging & GitHub Updater Resilience Protocol* di `WORKFLOW_RULES.md`.
+
+---
+
 ## [1.6.2] - 2026-09-05
 
 ### 🐞 Perbaikan Bug & Stabilitas Kode (Maintenance Release)
