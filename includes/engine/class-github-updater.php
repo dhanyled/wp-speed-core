@@ -39,8 +39,9 @@ class GitHubUpdater {
     }
 
     private function register_hooks(): void {
-        // Inject update data into WordPress plugin update transients
+        // Inject update data into WordPress plugin update transients (both save and get)
         add_filter('pre_set_site_transient_update_plugins', [$this, 'check_update']);
+        add_filter('site_transient_update_plugins', [$this, 'check_update']);
 
         // Supply data for the "View version details" modal popup
         add_filter('plugins_api', [$this, 'plugin_info'], 20, 3);
@@ -300,7 +301,7 @@ class GitHubUpdater {
             $this->logger->info('GitHub Updater: Plugin berhasil diperbarui ke folder ' . $proper_destination);
         }
 
-        return $result;
+        return $response;
     }
 
     /**
