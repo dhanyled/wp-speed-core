@@ -121,11 +121,16 @@ class Dashboard {
             $url_to_purge = esc_url_raw(urldecode((string) $_GET['wpsc_purge_url']));
             if ($url_to_purge) {
                 $p = wp_parse_url($url_to_purge);
-                $file = WPSC_CACHE_DIR . 'html/' . md5(($p['host'] ?? '') . ($p['path'] ?? '/')) . '.html';
-                if (file_exists($file)) {
-                    wp_delete_file($file);
-                    if (file_exists($file . '.gz')) {
-                        wp_delete_file($file . '.gz');
+                $home_host   = (string) wp_parse_url(home_url(), PHP_URL_HOST);
+                $target_host = $p['host'] ?? $home_host;
+
+                if (!empty($home_host) && strcasecmp($target_host, $home_host) === 0) {
+                    $file = WPSC_CACHE_DIR . 'html/' . md5($target_host . ($p['path'] ?? '/')) . '.html';
+                    if (file_exists($file)) {
+                        wp_delete_file($file);
+                        if (file_exists($file . '.gz')) {
+                            wp_delete_file($file . '.gz');
+                        }
                     }
                 }
             }
