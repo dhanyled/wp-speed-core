@@ -48,7 +48,7 @@ spl_autoload_register(static function (string $fqcn) {
         require_once $path;
         return;
     }
-    $alt_file = 'class-' . str_replace('page-speed', 'pagespeed', $kebab) . '.php';
+    $alt_file = 'class-' . str_replace(['page-speed', 'git-hub'], ['pagespeed', 'github'], $kebab) . '.php';
     $alt_path = WPSC_PATH . 'includes/' . $sub . $alt_file;
     if (file_exists($alt_path)) {
         require_once $alt_path;

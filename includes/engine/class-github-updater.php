@@ -641,18 +641,28 @@ class GitHubUpdater {
             return $meta;
         }
 
-        // ThickBox modal URL for WordPress plugin information popup
-        $details_url = self_admin_url(
-            'plugin-install.php?tab=plugin-information&plugin=wp-speed-core&TB_iframe=true&width=772&height=550'
-        );
+        // Only append "View details" if WordPress core did not already include one
+        $has_details = false;
+        foreach ($meta as $item) {
+            if (strpos($item, 'open-plugin-details-modal') !== false || strpos($item, 'plugin-information') !== false) {
+                $has_details = true;
+                break;
+            }
+        }
 
-        $meta[] = sprintf(
-            '<a href="%s" class="thickbox open-plugin-details-modal" aria-label="%s" data-title="%s">%s</a>',
-            esc_url($details_url),
-            esc_attr__('Lihat detail WP Speed Core', 'wp-speed-core'),
-            esc_attr('WP Speed Core'),
-            esc_html__('View details', 'wp-speed-core')
-        );
+        if (!$has_details) {
+            $details_url = self_admin_url(
+                'plugin-install.php?tab=plugin-information&plugin=wp-speed-core&TB_iframe=true&width=772&height=550'
+            );
+
+            $meta[] = sprintf(
+                '<a href="%s" class="thickbox open-plugin-details-modal" aria-label="%s" data-title="%s">%s</a>',
+                esc_url($details_url),
+                esc_attr__('Lihat detail WP Speed Core', 'wp-speed-core'),
+                esc_attr('WP Speed Core'),
+                esc_html__('View details', 'wp-speed-core')
+            );
+        }
 
         // Direct link to online changelog
         $meta[] = sprintf(
