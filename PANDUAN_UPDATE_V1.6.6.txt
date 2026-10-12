@@ -1,0 +1,67 @@
+================================================================================
+  PANDUAN PERBAIKAN & UPDATE WP SPEED CORE v1.6.6 (HAJIDANTRAVELUMROH.COM)
+================================================================================
+
+1. PENYEBAB ERROR "Could not remove the current plugin":
+--------------------------------------------------------------------------------
+- Saat proses pembaruan sebelumnya gagal, WordPress sempat menghapus sebagian berkas
+  lama tetapi gagal membersihkan berkas sisa (seperti file cache log / .htaccess)
+  karena perizinan (file permissions) terkunci oleh sistem web server.
+- Akibatnya, saat mencoba instal ulang atau replace dari dashboard, PHP WordPress 
+  tidak memiliki hak akses untuk menghapus folder sisa tersebut secara otomatis.
+
+
+2. CARA MENGATASI (SOLUSI CEPAT & BERSIH):
+--------------------------------------------------------------------------------
+
+LANGKAH A: Hapus Folder yang Terkunci di Server (Paling Pasti via File Manager)
+--------------------------------------------------------------------------------
+1. Buka cPanel / DirectAdmin / CyberPanel / Plesk atau hubungkan via FTP (FileZilla).
+2. Buka File Manager dan navigasi ke direktori plugins:
+   public_html/wp-content/plugins/
+3. HAPUS (DELETE) kedua folder berikut jika ada:
+   - wp-speed-core
+   - wp-speed-core-1
+   (Menghapus via File Manager hosting memiliki hak akses penuh, sehingga folder 
+    yang terkunci dijamin terhapus tuntas).
+
+* Catatan: Anda juga bisa mencoba klik tombol merah "Delete" langsung dari dashboard
+  WordPress (wp-admin/plugins.php). Jika berhasil terhapus dari sana, Anda tidak 
+  perlu membuka cPanel.
+
+
+LANGKAH B: Pasang Ulang File Resmi Versi v1.6.6
+--------------------------------------------------------------------------------
+1. Unduh paket resmi terbaru dari GitHub (ukuran ~116 KB):
+   https://github.com/dhanyled/wp-speed-core/releases/download/v1.6.6/wp-speed-core.zip
+
+   * PENTING: 
+     - Pastikan nama file adalah "wp-speed-core.zip".
+     - JANGAN DIEKSTRAK di komputer (biarkan dalam format .zip).
+
+2. Masuk ke Dashboard WordPress:
+   Plugins > Add New Plugin > Upload Plugin (Tambah Baru > Unggah Plugin).
+
+3. Pilih berkas "wp-speed-core.zip" lalu klik tombol "Install Now" (Pasang Sekarang).
+
+4. Klik "Activate Plugin" (Aktifkan Plugin).
+
+
+3. JAMINAN DATA:
+--------------------------------------------------------------------------------
+- Semua pengaturan konfigurasi WP Speed Core (pengaturan cache, Delay JS, 
+  CDN, Cloudflare, Speculation Rules, dsb.) tersimpan dengan aman di database 
+  WordPress (tabel wp_options).
+- Menghapus folder plugin dan mengunggah ulang TIDAK AKAN mereset atau 
+  menghapus pengaturan yang sudah dibuat.
+
+
+4. UPDATE OTOMATIS KE DEPAN:
+--------------------------------------------------------------------------------
+Setelah versi v1.6.6 terpasang:
+- Sistem updater GitHub resmi telah distandarkan tanpa limit API.
+- Untuk update versi berikutnya di masa mendatang, cukup klik "Check Update" 
+  di menu WP Speed Core atau klik "Update Now" di daftar Plugins WordPress tanpa 
+  perlu mengunggah zip secara manual lagi.
+
+================================================================================
