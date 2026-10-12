@@ -55,6 +55,9 @@ class GitHubUpdater {
         // Ensure thickbox assets are enqueued on plugins page
         add_action('admin_enqueue_scripts', [$this, 'ensure_thickbox']);
 
+        // Clean stale temp backup folder before upgrade to prevent rollback directory errors
+        add_filter('upgrader_pre_install', [$this, 'pre_install_cleanup'], 10, 2);
+
         // Normalize destination directory after upgrader extracts zip
         add_filter('upgrader_post_install', [$this, 'post_install'], 10, 3);
 
@@ -424,6 +427,39 @@ class GitHubUpdater {
         }
 
         return $html;
+    }
+
+    /**
+     * Clean stale upgrade-temp-backup before upgrader tries to move the old version.
+     * Prevents WordPress 6.3+ core error: "Could not move the old version to the upgrade-temp-backup directory."
+     *
+     * @param bool|array|\WP_Error $response
+     * @param array $hook_extra
+     * @return bool|array|\WP_Error
+     */
+    public function pre_install_cleanup($response, array $hook_extra) {
+        global $wp_filesystem;
+
+        if (!isset($hook_extra['plugin']) || $hook_extra['plugin'] !== $this->plugin_basename) {
+            return $response;
+        }
+
+        $temp_backup_dir = WP_CONTENT_DIR . '/upgrade-temp-backup/plugins/' . dirname($this->plugin_basename);
+
+        if ($wp_filesystem && $wp_filesystem->exists($temp_backup_dir)) {
+            $wp_filesystem->delete($temp_backup_dir, true);
+        } elseif (file_exists($temp_backup_dir)) {
+            if (function_exists('wp_delete_file_from_filesystem')) {
+                wp_delete_file_from_filesystem($temp_backup_dir);
+            }
+        }
+
+        $parent_temp = WP_CONTENT_DIR . '/upgrade-temp-backup/plugins';
+        if (!file_exists($parent_temp)) {
+            wp_mkdir_p($parent_temp);
+        }
+
+        return $response;
     }
 
     /**
