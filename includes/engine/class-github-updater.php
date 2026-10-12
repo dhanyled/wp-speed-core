@@ -442,8 +442,20 @@ class GitHubUpdater {
 
         $proper_destination = WP_PLUGIN_DIR . '/wp-speed-core';
 
+        // Deteksi & ratakan (flatten) jika terjadi folder bersarang wp-speed-core/wp-speed-core
+        $nested_subfolder = $proper_destination . '/wp-speed-core';
+        if ($wp_filesystem && $wp_filesystem->is_dir($nested_subfolder)) {
+            if (function_exists('copy_dir')) {
+                copy_dir($nested_subfolder, $proper_destination);
+            }
+            $wp_filesystem->delete($nested_subfolder, true);
+        }
+
         if (isset($result['destination']) && $result['destination'] !== $proper_destination) {
             if ($wp_filesystem && $wp_filesystem->exists($result['destination'])) {
+                if ($wp_filesystem->exists($proper_destination)) {
+                    $wp_filesystem->delete($proper_destination, true);
+                }
                 $wp_filesystem->move($result['destination'], $proper_destination, true);
                 $result['destination']      = $proper_destination;
                 $result['destination_name'] = 'wp-speed-core';
