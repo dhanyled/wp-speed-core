@@ -46,6 +46,15 @@ class GitHubUpdater {
         // Supply data for the "View version details" modal popup
         add_filter('plugins_api', [$this, 'plugin_info'], 20, 3);
 
+        // Action links under plugin name (Settings link)
+        add_filter('plugin_action_links_' . $this->plugin_basename, [$this, 'plugin_action_links']);
+
+        // Row meta links beside version/author (View details modal & Changelog link)
+        add_filter('plugin_row_meta', [$this, 'plugin_row_meta'], 10, 2);
+
+        // Ensure thickbox assets are enqueued on plugins page
+        add_action('admin_enqueue_scripts', [$this, 'ensure_thickbox']);
+
         // Normalize destination directory after upgrader extracts zip
         add_filter('upgrader_post_install', [$this, 'post_install'], 10, 3);
 
@@ -578,5 +587,68 @@ class GitHubUpdater {
             'is_autoupdate_enabled' => $is_autoupdate_enabled,
             'toggle_autoupdate_url' => $toggle_autoupdate_url,
         ];
+    }
+
+    /**
+     * Enqueue Thickbox assets on the plugins list screen to support the details modal.
+     */
+    public function ensure_thickbox(string $hook_suffix): void {
+        if ($hook_suffix === 'plugins.php') {
+            add_thickbox();
+            wp_enqueue_script('plugin-install');
+        }
+    }
+
+    /**
+     * Add "Settings" shortcut link in plugin actions (beside Deactivate).
+     *
+     * @param array $actions
+     * @return array
+     */
+    public function plugin_action_links(array $actions): array {
+        $settings_url  = admin_url('options-general.php?page=wp-speed-core');
+        $settings_link = sprintf(
+            '<a href="%s">%s</a>',
+            esc_url($settings_url),
+            esc_html__('Settings', 'wp-speed-core')
+        );
+
+        array_unshift($actions, $settings_link);
+        return $actions;
+    }
+
+    /**
+     * Add "View details" (modal popup) and "Changelog" to plugin row meta in wp-admin/plugins.php.
+     *
+     * @param array  $meta Existing meta items (Version X | By Author | Visit plugin site).
+     * @param string $file The plugin basename being evaluated.
+     * @return array
+     */
+    public function plugin_row_meta(array $meta, string $file): array {
+        if ($file !== $this->plugin_basename) {
+            return $meta;
+        }
+
+        // ThickBox modal URL for WordPress plugin information popup
+        $details_url = self_admin_url(
+            'plugin-install.php?tab=plugin-information&plugin=wp-speed-core&TB_iframe=true&width=772&height=550'
+        );
+
+        $meta[] = sprintf(
+            '<a href="%s" class="thickbox open-plugin-details-modal" aria-label="%s" data-title="%s">%s</a>',
+            esc_url($details_url),
+            esc_attr__('Lihat detail WP Speed Core', 'wp-speed-core'),
+            esc_attr('WP Speed Core'),
+            esc_html__('View details', 'wp-speed-core')
+        );
+
+        // Direct link to online changelog
+        $meta[] = sprintf(
+            '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
+            esc_url('https://github.com/' . $this->repo . '/blob/main/CHANGELOG.md'),
+            esc_html__('Changelog', 'wp-speed-core')
+        );
+
+        return $meta;
     }
 }

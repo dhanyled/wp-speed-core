@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       WP Speed Core
- * Plugin URI:        https://t.me/leddhany
+ * Plugin URI:        https://github.com/dhanyled/wp-speed-core
  * Description:       All-in-one WordPress performance engine with AI Model Context Protocol (MCP), Adaptive Auto-Tuning, Tracking Conflict Inspector, Overlap Arbiter, Disk HTML Cache, INP-safe script delay, auto-LCP priority, Speculation Rules prerender, Contextual Asset Unloader, and DB housekeeping.
  * Version:           1.6.6
  * Requires at least: 6.2
