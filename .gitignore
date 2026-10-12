@@ -13,6 +13,7 @@ venv/
 
 # Local cache
 /cache/
+/wp-content/
 *.log
 vendor/
 .phpunit.result.cache

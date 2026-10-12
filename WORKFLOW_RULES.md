@@ -89,7 +89,7 @@ Untuk mencegah terulangnya **Critical Error** saat user melakukan pembaruan plug
    - Dilarang membuat arsip `wp-speed-core.zip` menggunakan wildcard liar (`*`) yang dapat menyertakan folder `.git/`, `.phpunit.result.cache`, atau cache log internal.
    - Packaging rilis hanya boleh menyertakan file inti plugin:
      ```powershell
-     Compress-Archive -Path 'assets','includes','tests','wp-content','wp-speed-core.php','composer.json','composer.lock','phpunit.xml','README.md','CHANGELOG.md','WORKFLOW_RULES.md' -DestinationPath 'wp-speed-core.zip' -Force
+     Compress-Archive -Path 'assets','includes','tests','wp-speed-core.php','composer.json','composer.lock','phpunit.xml','README.md','CHANGELOG.md','WORKFLOW_RULES.md','version.json' -DestinationPath 'wp-speed-core.zip' -Force
      ```
    - Verifikasi integritas direktori root arsip ZIP sebelum git push atau tagging rilis. File `class-github-updater.php` dan file class kernel lainnya wajib berada di path yang tepat (`includes/engine/class-github-updater.php`).
 
