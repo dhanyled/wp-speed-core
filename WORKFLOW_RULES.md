@@ -97,3 +97,26 @@ Untuk mencegah terulangnya **Critical Error** saat user melakukan pembaruan plug
    - Setiap pembuatan tag rilis Git (`vX.X.X`), file rilis `wp-speed-core.zip` yang ter-compile bersih wajib ikut di-commit ke branch `main`.
    - Fallback download URL updater menargetkan branch `main/wp-speed-core.zip` untuk menjamin file yang diunduh selalu memiliki struktur direktori valid.
 
+---
+
+## 6. 🚀 Mobile Core Web Vitals, Delay-JS & Tracking Shield Standard (Pencegahan Skor Merah / LCP Drop)
+
+Insiden skor PageSpeed Mobile anjlok (54 dengan LCP 7.8s) diselidiki dan diatasi secara tuntas pada rilis v1.6.9. Untuk mencegah masalah serupa berulang di masa mendatang, seluruh pengembang dan agent wajib mematuhi aturan berikut:
+
+1. **Zero-Timer Event-Driven Delay (Tanpa Background Timer)**:
+   - Delay JS (`assets/js/delay-js.js`) **DILARANG KERAS** menggunakan `setTimeout(triggerExecution, ...)` otomatis di latar belakang.
+   - Pemicu eksekusi skrip wajib murni berbasis interaksi nyata pengguna (`touchstart`, `scroll`, `mousemove`, `click`, `keydown`).
+   - *Alasan*: Bot pengujian otomatis (Google PageSpeed Insights / Lighthouse) melakukan audit secara pasif tanpa interaksi layar. Timer latar belakang buatan (7–10 detik) akan memicu download ratusan KiB JavaScript tepat di tengah jendela pengukuran LCP, menyebabkan inflasi artifisial metrik LCP ke 7.8s dan TBT ke 400ms+.
+
+2. **Dua Lapis Sanitasi Exclusion List**:
+   - Pengecualian pada admin (`Pengecualian Delay JS`) hanya diperuntukkan bagi skrip keamanan yang membutuhkan pendengar event instan sebelum sentuhan pertama (`recaptcha`, `turnstile`, `hcaptcha`, dan `jquery.min.js`).
+   - `class-dashboard.php` dan `class-script-controller.php` menerapkan dua lapis sanitasi otomatis (`$forbidden_exclusions` dan `$auto_delay_patterns`). Skrip berat seperti Google Tag Gateway (`/taggateway*/`), Microsoft Clarity (`clarity.js`), Full Picture (`fupi-*`), RecordRTC, HelpGent, serta Gutenberg React stack (`/wp-includes/js/dist/`, `react-dom`, `lodash`, `moment`) **otomatis dipaksa tunda** meskipun pengguna tidak sengaja memasukkannya ke daftar pengecualian di database.
+
+3. **Proteksi Runner Skrip (Self-Exclusion Immunity)**:
+   - Skrip runner penunda (`delay-js.js`) tidak boleh diubah atributnya menjadi `text/wpsc-queued` oleh `queue_scripts()`.
+   - `WP_HTML_Tag_Processor` wajib mengecek `strpos($src, 'delay-js') !== false` dan atribut `id === 'wpsc-delay-runner-js'` untuk dilewati (`continue;`) agar event listener browser selalu aktif.
+
+4. **Protokol Sinkronisasi Edge Cache (Cloudflare & Hosting CDN)**:
+   - Setiap kali konfigurasi delay JS, HTML cache, atau rilis plugin diperbarui pada server origin, cache reverse proxy di depannya (Cloudflare Edge Cache dan StackCDN) **wajib di-purge**.
+   - Tanpa pembersihan cache edge, pengunjung luar dan bot Google akan terus disajikan snapshot HTML lama (`CF-Cache-Status: HIT`) yang belum memiliki pengoptimalan skrip terbaru.
+

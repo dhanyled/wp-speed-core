@@ -98,7 +98,22 @@ class Dashboard {
             $curr['script']['delayed_execution']  = !empty($_POST['wpsc_delayed_execution']) ? 1 : 0;
             $curr['script']['use_native_defer']   = !empty($_POST['wpsc_use_native_defer']) ? 1 : 0;
             $curr['script']['execution_strategy'] = in_array($_POST['wpsc_execution_strategy'] ?? '', ['chunked', 'sync'], true) ? $_POST['wpsc_execution_strategy'] : 'chunked';
-            $curr['script']['exclusion_list']     = sanitize_textarea_field($_POST['wpsc_script_exclusions'] ?? '');
+            $raw_ex = sanitize_textarea_field($_POST['wpsc_script_exclusions'] ?? '');
+            $forbidden_exclusions = [
+                'gtag', 'gtag.js', 'google-analytics', 'analytics.js',
+                'taggateway', 'taggatewayhaji', 'fupi', 'clarity',
+                'helpgent', 'helpgent-pro', 'full-picture', 'fp-',
+                '/wp-includes/js/dist/', 'wp-includes/js/dist',
+                'react', 'react-dom', 'lodash', 'moment', 'recordrtc'
+            ];
+            $ex_lines = array_filter(array_map('trim', explode("\n", $raw_ex)));
+            $clean_ex_lines = [];
+            foreach ($ex_lines as $el) {
+                if (!in_array(strtolower($el), $forbidden_exclusions, true)) {
+                    $clean_ex_lines[] = $el;
+                }
+            }
+            $curr['script']['exclusion_list'] = implode("\n", $clean_ex_lines);
 
             // Preload / Speculation Rules & Resource Hints
             $curr['preload']['speculation_rules'] = !empty($_POST['wpsc_speculation_rules']) ? 1 : 0;
@@ -1421,6 +1436,9 @@ class Dashboard {
                                 <div>
                                     <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Pengecualian Delay JS (1 keyword/handle per baris):</label>
                                     <textarea name="wpsc_script_exclusions" rows="3" style="width: 100%; background: #050811; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-size: 12px;"><?php echo esc_textarea($settings['script']['exclusion_list'] ?? "recaptcha\nturnstile\nhcaptcha\njquery.min.js\njquery.js"); ?></textarea>
+                                    <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0;">
+                                        * Hanya kecualikan library keamanan/klik instan (misal: recaptcha, turnstile, jquery). JANGAN masukkan script tracking, HelpGent, atau Gutenberg React karena otomatis di-shielding oleh engine.
+                                    </p>
                                 </div>
                             </div>
                         </div>

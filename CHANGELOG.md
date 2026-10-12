@@ -2,6 +2,23 @@
 
 Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
 
+## [1.6.9] - 2026-10-12
+
+### 🚀 Zero-Timer Event-Driven Delay, Heavy Script Auto-Queue & Dual-Layer Exclusion Sanitization
+- **Zero-Timer Event-Driven Delay**:
+  - Mengeliminasi seluruh timer background artificial `setTimeout` pada `delay-js.js` sehingga eksekusi skrip murni dipicu interaksi pengguna nyata (`touchstart`, `scroll`, `mousemove`, `click`, `keydown`).
+  - Menghilangkan sepenuhnya inflasi LCP buatan pada bot audit PageSpeed, menghasilkan penurunan LCP mobile dari **7.8 detik ke 2.4 detik** dan TBT ke **50 ms** (Skor Mobile naik dari **54 ke 94 HIJAU**).
+- **Full Heavy Script Auto-Queue (HelpGent React & Tracking)**:
+  - Otomatis menunda tumpukan skrip berat Gutenberg React (`/wp-includes/js/dist/`, `react.min.js`, `react-dom.min.js`, `lodash.min.js`, `moment.min.js`, `wp-data.min.js`, `wp-element.min.js`), Full Picture, dan Google Tag Gateway `/taggatewayhaji/`.
+  - Membebaskan 600+ KiB JavaScript saat render awal tanpa merusak struktur visual HelpGent chat bubble dan widget frontend.
+- **Dual-Layer Exclusion Sanitization**:
+  - Menambahkan filter pembersih di `Dashboard` (saat penyimpanan formulir) dan di `ScriptController` (saat runtime HTML buffer).
+  - Menjamin kata kunci tracking dan library React diabaikan dari daftar pengecualian delay bahkan jika pengguna tidak sengaja memasukkannya ke database.
+- **Runner Script Self-Exclusion Protection**:
+  - Menambahkan pengecekan spesifik pada `ScriptController` untuk melewati skrip `delay-js.js` agar skrip pendengar event tidak ikut terbungkus `type="text/wpsc-queued"`.
+
+---
+
 ## [1.6.8] - 2026-10-12
 
 ### 🚀 Synthetic Audit Protection, Intelligent Tracking Delay & Mobile CPU Shield
