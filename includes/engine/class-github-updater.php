@@ -322,10 +322,98 @@ class GitHubUpdater {
 
         $info->sections = [
             'description' => '<p>All-in-one WordPress performance engine with AI Model Context Protocol (MCP), Adaptive Auto-Tuning, Tracking Conflict Inspector, Overlap Arbiter, Disk HTML Cache, INP-safe script delay, auto-LCP priority, Speculation Rules prerender, Contextual Asset Unloader, and DB housekeeping.</p>',
-            'changelog'   => '<pre style="white-space:pre-wrap; font-family:inherit;">' . $changelog_content . '</pre>',
+            'changelog'   => $this->get_formatted_changelog($release['changelog'] ?? null),
         ];
 
         return $info;
+    }
+
+    /**
+     * Parse CHANGELOG.md into semantic, chronological HTML for WordPress modal.
+     */
+    private function get_formatted_changelog(?string $fallback = null): string {
+        $markdown = '';
+        $local_path = defined('WPSC_PATH') ? WPSC_PATH . 'CHANGELOG.md' : dirname(__DIR__, 2) . '/CHANGELOG.md';
+        if (file_exists($local_path) && is_readable($local_path)) {
+            $markdown = (string) file_get_contents($local_path);
+        }
+
+        if (empty($markdown)) {
+            $raw_url = "https://raw.githubusercontent.com/{$this->repo}/main/CHANGELOG.md";
+            $resp    = wp_remote_get($raw_url, ['timeout' => 5]);
+            if (!is_wp_error($resp) && wp_remote_retrieve_response_code($resp) === 200) {
+                $markdown = (string) wp_remote_retrieve_body($resp);
+            }
+        }
+
+        if (empty($markdown)) {
+            return !empty($fallback) ? '<div style="font-family:sans-serif; line-height:1.5;">' . nl2br(esc_html($fallback)) . '</div>' : '<p>Pembaruan berkala performa dan stabilitas.</p>';
+        }
+
+        $lines   = explode("\n", $markdown);
+        $html    = '';
+        $in_list = false;
+
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+            if ($trimmed === '' || $trimmed === '---' || strpos($trimmed, '# 📜 Changelog') === 0 || strpos($trimmed, 'Semua perubahan') === 0) {
+                if ($in_list && $trimmed === '') {
+                    $html .= "</ul>\n";
+                    $in_list = false;
+                }
+                continue;
+            }
+
+            // Version headers: ## [1.6.6] - 2026-10-12
+            if (preg_match('/^##\s+\[?([0-9\.]+)\]?(?:\s+-\s+(.+))?/', $trimmed, $m)) {
+                if ($in_list) {
+                    $html .= "</ul>\n";
+                    $in_list = false;
+                }
+                $version_str = 'Versi ' . esc_html($m[1]);
+                $date_str    = !empty($m[2]) ? ' <span style="font-size:12px; font-weight:normal; color:#64748b;">(' . esc_html($m[2]) . ')</span>' : '';
+                $html .= '<h4 style="margin: 22px 0 8px 0; padding-bottom: 5px; border-bottom: 1px solid #cbd5e1; color: #0284c7; font-size: 15px;">' . $version_str . $date_str . "</h4>\n";
+                continue;
+            }
+
+            // Category headers: ### 🚀 ...
+            if (preg_match('/^###\s+(.+)/', $trimmed, $m)) {
+                if ($in_list) {
+                    $html .= "</ul>\n";
+                    $in_list = false;
+                }
+                $html .= '<p style="margin: 10px 0 4px 0; font-weight: 600; color: #1e293b;">' . esc_html($m[1]) . "</p>\n";
+                continue;
+            }
+
+            // Top-level bullet: - **Title**: Description or - Text
+            if (preg_match('/^-\s+(.+)/', $trimmed, $m)) {
+                if (!$in_list) {
+                    $html .= "<ul style=\"margin: 4px 0 14px 20px; list-style-type: disc;\">\n";
+                    $in_list = true;
+                }
+                $item_text = $m[1];
+                $item_text = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $item_text);
+                $item_text = preg_replace('/`(.+?)`/', '<code>$1</code>', $item_text);
+                $html .= '<li style="margin-bottom: 4px; line-height: 1.5;">' . wp_kses_post($item_text) . "</li>\n";
+                continue;
+            }
+
+            // Indented sub-bullet: "  - Text"
+            if (preg_match('/^\s{2,}-\s+(.+)/', $line, $m)) {
+                $sub_text = $m[1];
+                $sub_text = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $sub_text);
+                $sub_text = preg_replace('/`(.+?)`/', '<code>$1</code>', $sub_text);
+                $html .= '<li style="margin-left: 20px; margin-bottom: 3px; list-style-type: circle; color: #475569;">' . wp_kses_post($sub_text) . "</li>\n";
+                continue;
+            }
+        }
+
+        if ($in_list) {
+            $html .= "</ul>\n";
+        }
+
+        return $html;
     }
 
     /**
