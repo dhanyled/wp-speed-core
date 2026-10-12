@@ -162,8 +162,50 @@ KLIK TOMBOL:
 Klik tombol hijau 'Publish release'.
 
 ================================================================================
+5. PUBLIKASI RELEASE v1.6.7 (LATEST / TERBARU)
+================================================================================
+Buka Browser ke tautan ini:
+https://github.com/dhanyled/wp-speed-core/releases/new?tag=v1.6.7
+
+KOLOM YANG HARUS DIISI:
+-----------------------
+Tag:
+v1.6.7
+
+Target:
+main
+
+Release title:
+Release v1.6.7 - Critical PageSpeed Optimization, Render-Blocking Elimination & Cloudflare Edge Alignment
+
+Description:
+### ⚡ Critical PageSpeed Optimization, Render-Blocking Elimination & Cloudflare Edge Alignment
+- **Frontend Gutenberg Bloat Suppressor**:
+  - Mengeliminasi beban render-blocking 12,400 ms di `<head>` frontpage publik yang disebabkan oleh plugin pihak ketiga memuat dependensi Block Editor (`wp-block-editor`, `wp-components`, `wp-blocks`, `react`, `react-dom`, dll.) pada tema non-Gutenberg (Bricks Builder).
+  - Melindungi integritas admin, post editor, customizer preview, dan page builder.
+- **Dual-Layer Auto-Defer Fallback Engine**:
+  - Secara otomatis menginjeksi atribut `defer` pada seluruh skrip eksternal di `<head>` yang di-skip atau dikecualikan dari antrean delay JS, melenyapkan parser lock browser.
+- **Autoplay Video Throttler**:
+  - Menahan unduhan video autoplay (seperti widget chat bubble WebM 646 KiB) sampai adanya event interaksi pengguna pertama (`keydown`, `mousemove`, `touchstart`, `scroll`, `click`).
+- **Cloudflare Edge Cache-Control Header Synchronization**:
+  - Mengirimkan `Cache-Control: no-cache` pada respons MISS agar Cloudflare tidak mengunci halaman yang belum siap, dan `Cache-Control: public, max-age=14400, s-maxage=86400` pada respons HIT untuk pengiriman instan dari Cloudflare Edge.
+- **Updater Directory Move Resilience (`pre_install_cleanup`)**:
+  - Membersihkan folder `upgrade-temp-backup` secara otomatis sebelum proses upgrade dimulai guna meniadakan galat WordPress 6.3+ rollback move directory.
+
+LAMPIRAN WAJIB (ATTACH BINARIES):
+- Di bawah kotak deskripsi ada kotak: 'Attach binaries by dropping them here or selecting them'
+- Upload/tarik file zip berikut ke kotak tersebut:
+  D:\Dhany\Plugin_flyingpress_perfmatter\wp-speed-core.zip
+
+OPSI CHECKBOX:
+- [X] CENTANG opsi 'Set as the latest release'.
+
+KLIK TOMBOL:
+Klik tombol hijau 'Publish release'.
+
+================================================================================
 SELESAI!
-Setelah langkah ke-4 dipublikasikan, repositori GitHub Anda di:
-https://github.com/dhanyled/wp-speed-core
-akan otomatis resmi menampilkan badge hijau: 'v1.6.6 Latest'
+Setelah langkah ke-5 dipublikasikan, repositori GitHub Anda di:
+https://github.com/dhanyled/wp-speed-core/releases
+akan resmi menampilkan badge hijau: 'v1.6.7 Latest'
 ================================================================================
