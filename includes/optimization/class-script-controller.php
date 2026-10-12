@@ -65,6 +65,29 @@ class ScriptController {
         $ex_raw  = $this->opts['exclusion_list'] ?? '';
         $ex_list = array_filter(array_map('trim', explode(chr(10), $ex_raw)));
 
+        // Remove tracking keywords from exclusions so tracking scripts (GTM, GA4, Clarity) are delayed by default
+        $tracking_keywords = ['gtag', 'gtag.js', 'google-analytics', 'analytics.js', 'taggateway', 'fupi', 'clarity'];
+        $clean_ex_list = [];
+        foreach ($ex_list as $ex) {
+            $ex_trim = strtolower(trim($ex));
+            if (!in_array($ex_trim, $tracking_keywords, true)) {
+                $clean_ex_list[] = $ex_trim;
+            }
+        }
+
+        // Auto-delay patterns for known heavy third-party & tracking scripts (600ms+ mobile CPU saving)
+        $auto_delay_patterns = [
+            'taggateway',
+            'fupi-',
+            'clarity.js',
+            'googletagmanager.com',
+            'google-analytics.com',
+            'connect.facebook.net',
+            'static.cloudflareinsights.com',
+            'RecordRTC',
+            'helpgent/assets',
+        ];
+
         if (!class_exists('\WP_HTML_Tag_Processor')) {
             return $html;
         }
@@ -94,26 +117,41 @@ class ScriptController {
             }
 
             $skip = false;
+            $force_delay = false;
+
             if ($src) {
                 if (strpos($src, 'wpsc-delay-runner') !== false) {
                     continue;
                 }
-                foreach ($ex_list as $ex) {
-                    if (!empty($ex) && strlen($ex) >= 3 && stripos($src, $ex) !== false) {
-                        $skip = true;
+
+                foreach ($auto_delay_patterns as $pattern) {
+                    if (stripos($src, $pattern) !== false) {
+                        $force_delay = true;
                         break;
+                    }
+                }
+
+                if (!$force_delay) {
+                    foreach ($clean_ex_list as $ex) {
+                        if (!empty($ex) && strlen($ex) >= 3 && stripos($src, $ex) !== false) {
+                            $skip = true;
+                            break;
+                        }
                     }
                 }
             } else {
                 $skip = true;
             }
 
-            if (!$skip) {
+            if (!$skip || $force_delay) {
                 $p->set_attribute('type', 'text/wpsc-queued');
                 if ($src) {
                     $p->remove_attribute('src');
                     $p->set_attribute('data-wpsc-src', $src);
                 }
+                $p->remove_attribute('data-no-defer');
+                $p->remove_attribute('data-no-optimize');
+                $p->remove_attribute('nowprocket');
             } else {
                 // Dual-Layer Safety Fallback: If external script was skipped from delayed queue,
                 // ensure it does not render-block by injecting 'defer' if missing.

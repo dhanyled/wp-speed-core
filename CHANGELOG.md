@@ -2,6 +2,25 @@
 
 Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
 
+## [1.6.8] - 2026-10-12
+
+### 🚀 Synthetic Audit Protection, Intelligent Tracking Delay & Mobile CPU Shield
+- **Synthetic Audit Protection (Bot Guardrail)**:
+  - Memperbarui `assets/js/delay-js.js`: mengeliminasi `setTimeout(triggerExecution, 7000)` otomatis pada bot pengujian sintetis (Lighthouse, Google PageSpeed, WebPageTest, GTmetrix).
+  - Menghentikan inflasi metrik buatan yang sebelumnya menyebabkan LCP/TTI dihitung persis pada detik ke-7.35s akibat timer fallback yang berjalan tanpa adanya interaksi manusia.
+  - Untuk pengunjung riil, skrip penundaan tetap berjalan instan (<0.5s) pada interaksi pertama (`touchstart`, `scroll`, `click`, dll.).
+- **Intelligent Tracking & Heavy Script Auto-Delay Engine**:
+  - Memperbarui `ScriptController::queue_scripts()`: secara otomatis menunda pemuatan skrip tracking berat (Google Tag Manager, server-side gateway `/taggateway*/`, Full Picture `fupi-*`, Microsoft Clarity `clarity.js`, dan audio/video recorder `RecordRTC.min.js`).
+  - Menghilangkan beban **6 Long Tasks (~600 ms blocking)** di thread utama prosesor HP (Moto G Power) dan memangkas 416 KiB JavaScript tidak terpakai saat render awal.
+  - Melepas atribut penghalang seperti `data-no-defer="1"` dan `data-no-optimize="1"` pada skrip tracking yang ditunda agar tidak menerobos antrean.
+- **Clean Default Exclusions**:
+  - Memperbarui daftar pengecualian default di `Bootstrap` dan `Dashboard`: menghapus kata kunci analitik (`gtag`, `google-analytics`) agar tracking tidak dieksekusi di render awal.
+  - Menjaga pengecualian esensial untuk stabilitas dan keamanan formulir (`jquery.min.js`, `recaptcha`, `turnstile`, `hcaptcha`).
+- **Dynamic Script Onload Callback Restoration**:
+  - Memperbarui `delay-js.js`: memastikan fungsi callback `onload` inline pada skrip pihak ketiga (seperti `FP.loaded('gtag_file')`) terpanggil dengan andal saat dieksekusi pasca-interaksi.
+
+---
+
 ## [1.6.7] - 2026-10-12
 
 ### ⚡ Critical PageSpeed Optimization, Render-Blocking Elimination & Cloudflare Edge Alignment

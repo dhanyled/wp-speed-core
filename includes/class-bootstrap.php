@@ -64,7 +64,7 @@ final class Bootstrap {
                 'delayed_execution'  => 1,
                 'execution_strategy' => 'chunked',
                 'use_native_defer'   => 1,
-                'exclusion_list'     => "gtag\ngtag.js\ngoogle-analytics\nanalytics.js\nrecaptcha\nturnstile\nhcaptcha\njquery.min.js",
+                'exclusion_list'     => "recaptcha\nturnstile\nhcaptcha\njquery.min.js\njquery.js",
             ];
             update_option('wpsc_settings', $defaults);
         }

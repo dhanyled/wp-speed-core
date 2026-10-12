@@ -1420,7 +1420,7 @@ class Dashboard {
                                 </div>
                                 <div>
                                     <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Pengecualian Delay JS (1 keyword/handle per baris):</label>
-                                    <textarea name="wpsc_script_exclusions" rows="3" style="width: 100%; background: #050811; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-size: 12px;"><?php echo esc_textarea($settings['script']['exclusion_list'] ?? "gtag\ngtag.js\ngoogle-analytics\nanalytics.js\nrecaptcha\nturnstile\nhcaptcha\njquery.min.js"); ?></textarea>
+                                    <textarea name="wpsc_script_exclusions" rows="3" style="width: 100%; background: #050811; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-size: 12px;"><?php echo esc_textarea($settings['script']['exclusion_list'] ?? "recaptcha\nturnstile\nhcaptcha\njquery.min.js\njquery.js"); ?></textarea>
                                 </div>
                             </div>
                         </div>

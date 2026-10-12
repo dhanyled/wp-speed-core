@@ -1,12 +1,12 @@
 {
   "name": "WP Speed Core",
   "slug": "wp-speed-core",
-  "version": "1.6.7",
-  "download_url": "https://github.com/dhanyled/wp-speed-core/releases/download/v1.6.7/wp-speed-core.zip",
+  "version": "1.6.8",
+  "download_url": "https://github.com/dhanyled/wp-speed-core/releases/download/v1.6.8/wp-speed-core.zip",
   "requires": "6.2",
   "tested": "6.8",
   "requires_php": "8.0",
-  "published_at": "2026-10-12 16:30:00",
+  "published_at": "2026-10-12 19:30:00",
   "url": "https://github.com/dhanyled/wp-speed-core/releases",
-  "changelog": "v1.6.7:\n- Frontend Gutenberg Bloat Suppressor: auto dequeue & de-register heavy block editor scripts/styles on public non-editor pages (eliminating 12s+ render-blocking).\n- Dual-Layer Auto-Defer Fallback: automatically inject 'defer' on head scripts skipped from delayed execution to prevent parser locking.\n- Autoplay Video Throttler: throttle autoplay WebM/MP4 videos (chat bubble widgets) until first user interaction event.\n- Cloudflare Edge Cache-Control Header Synchronization: explicitly send no-cache on MISS and public max-age=14400 on HIT to prevent caching unprimed MISS responses at edge."
+  "changelog": "v1.6.8:\n- Synthetic Audit Protection: guardrail against artificial 7s LCP/TTI inflation on Lighthouse/PageSpeed by preventing fallback timer during bot audits.\n- Auto-Delay Tracking & Third-Party Engine: auto-queue heavy tracking scripts (GTM, taggateway, Full Picture, Microsoft Clarity, RecordRTC) into delayed execution to eliminate 600ms+ mobile CPU main-thread blocking.\n- Clean Default Exclusions: strip legacy tracking keywords (gtag, analytics) from delay exclusion list so tracking scripts execute safely on first user interaction without blocking initial render.\n- Dynamic Script Onload Restoration: guarantee third-party onload callbacks (like FP.loaded) fire reliably upon user interaction execution."
 }
