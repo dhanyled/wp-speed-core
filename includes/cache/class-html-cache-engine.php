@@ -100,6 +100,9 @@ class HtmlCacheEngine {
 
     private function is_cacheable(): bool {
         if (\WPSpeedCore\Kernel::is_bypassed()) {
+            if (!headers_sent()) {
+                header('X-WPSC-Cache: BYPASS');
+            }
             return false;
         }
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
@@ -200,14 +203,17 @@ class HtmlCacheEngine {
         if (strlen($html) < 300 || http_response_code() !== 200) {
             return $html;
         }
+
+        $processed_html = $this->minify_html($html);
+
         $file = $this->cache_file();
         if (!file_exists(dirname($file))) {
             wp_mkdir_p(dirname($file));
         }
 
-        $has_form_nonce = (bool) preg_match('/name=["\'](?:_wpnonce|woocommerce-login-nonce|woocommerce-register-nonce|wpcf7-nonce)["\']/i', $html);
+        $has_form_nonce = (bool) preg_match('/name=["\'](?:_wpnonce|woocommerce-login-nonce|woocommerce-register-nonce|wpcf7-nonce)["\']/i', $processed_html);
         $nonce_tag = $has_form_nonce ? ' [Nonce-Protected: Max TTL 10h]' : '';
-        $content = $html . "\n/* WP Speed Core Cached" . $nonce_tag . ": " . gmdate('Y-m-d H:i:s') . " UTC */";
+        $content = $processed_html . "\n<!-- WP Speed Core Cached" . $nonce_tag . ": " . gmdate('Y-m-d H:i:s') . " UTC -->";
         file_put_contents($file, $content, LOCK_EX);
 
         if (function_exists('gzencode')) {
@@ -218,8 +224,37 @@ class HtmlCacheEngine {
             }
         }
 
-        header('X-WPSC-Cache: MISS');
-        return $html;
+        if (!headers_sent()) {
+            header('X-WPSC-Cache: MISS');
+        }
+        return $processed_html;
+    }
+
+    private function minify_html(string $html): string {
+        if (empty($this->opts['html_minify'])) {
+            return $html;
+        }
+
+        // Protect code/pre/textarea blocks with unique placeholder tokens
+        $protected = [];
+        $html = preg_replace_callback('/<(pre|code|textarea)[^>]*>.*?<\/\\1>/is', function ($matches) use (&$protected) {
+            $key = '<!--WPSC_PROTECT_' . count($protected) . '-->';
+            $protected[$key] = $matches[0];
+            return $key;
+        }, $html) ?? $html;
+
+        // Remove standard HTML comments (preserving IE conditionals and noscript)
+        $html = preg_replace('/<!--(?!\s*(?:\[if [^\]]+]|<!|>|noindex))(?:(?!-->).)*-->/s', '', $html) ?? $html;
+
+        // Normalize excessive whitespace between tags
+        $html = preg_replace('/>\s{2,}</', '> <', $html) ?? $html;
+
+        // Restore protected blocks
+        if (!empty($protected)) {
+            $html = str_replace(array_keys($protected), array_values($protected), $html);
+        }
+
+        return trim($html);
     }
 
     public function purge_url(string $url): void {

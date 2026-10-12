@@ -78,6 +78,15 @@ final class MediaFacadeOptimizer {
             }
         }
 
+        if (strpos($html, '<video') !== false) {
+            while ($processor->next_tag(['tag_name' => 'VIDEO'])) {
+                $preload = $processor->get_attribute('preload');
+                if ($preload === null || $preload === 'auto') {
+                    $processor->set_attribute('preload', 'none');
+                }
+            }
+        }
+
         return $processor->get_updated_html();
     }
 

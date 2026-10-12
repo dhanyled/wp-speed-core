@@ -79,7 +79,7 @@ Klik tombol hijau 'Publish release'.
 
 
 ================================================================================
-3. PUBLIKASI RELEASE v1.6.5 (LATEST / TERBARU)
+3. PUBLIKASI RELEASE v1.6.5
 ================================================================================
 Buka Browser ke tautan ini:
 https://github.com/dhanyled/wp-speed-core/releases/new?tag=v1.6.5
@@ -98,23 +98,57 @@ Release v1.6.5 - Engine Buffer Inversion Fix, Universal Bypass & Architecture Ha
 Description (Salin seluruh teks di bawah ini):
 ### 🛡️ Engine Buffer Inversion Fix, Universal Bypass & Architecture Hardening
 - **Output Buffer Inversion Fix (Critical)**:
-  - Mengubah prioritas hook template_redirect pada HtmlCacheEngine::capture() dari 9999 menjadi 0 sehingga buffer cache HTML menjadi buffer paling luar (outermost). Seluruh transformasi inner buffer (ScriptController, MediaController, CdnRewriter, FontOptimizer, MediaFacadeOptimizer) selesai diproses ke dalam HTML sebelum berkas statis .html dan .html.gz ditulis ke disk.
+  - Mengubah prioritas hook template_redirect pada HtmlCacheEngine::capture() dari 9999 menjadi 0 sehingga buffer cache HTML menjadi buffer paling luar (outermost).
 - **Enforcement Universal Bypass Mode (?nowpsc=1)**:
-  - Menyematkan validasi Kernel::is_bypassed() pada seluruh sub-modul pengoptimal (ScriptController, MediaController, StyleController, FontController, FontOptimizer, SpeculationEngine, CdnRewriter, MediaFacadeOptimizer).
+  - Menyematkan validasi Kernel::is_bypassed() pada seluruh sub-modul pengoptimal.
 - **WordPress 5.9+ Duotone SVG Bloat Stripping**:
-  - Menambahkan fitur strip_duotone_svg pada BloatSuppressor, Bootstrap::DEFAULTS, AdaptiveTuner, dan MigrationManager untuk menghapus inline SVG filter duotone bloat.
-- **Database Housekeeper Stats & MCP Return Alignment**:
-  - Mengubah DatabaseHousekeeper::maintain(): array agar mengembalikan data statistik (revisions, drafts, trash, spam, transients, tables) yang akurat ke caller, memperbaiki kembalian null pada MCP Server tool wpsc_optimize_db.
-- **Query Parameter Cache Purge & Warmer Feed Sanitization**:
-  - Memperluas HtmlCacheEngine::purge_url() agar menghapus berkas cache berbasis hash query-string selain path statis. Menghapus URL RSS feed dari warm_cache().
-- **Single URL Purge Delegation**:
-  - Mengarahkan aksi pembersihan single URL di Dashboard::actions() dan McpServer::tool_purge_cache() langsung ke HtmlCacheEngine::purge_url() agar mobile cache dan Cloudflare Edge CDN purge API dieksekusi secara terkoordinasi.
-- **Asset Manager Rule Targeting & Persistence**:
-  - Memperbaiki AssetManagerPanel dan form JS agar aturan unloader mendukung target kontekstual (everywhere, frontpage, posts, pages, shop_only, non_shop, url_match) serta pengecualian ID/URL.
-- **Granular Core Engine Settings UI (Dashboard Tab 5)**:
-  - Menyediakan form kontrol lengkap di Tab Settings untuk mengonfigurasi HTML Cache & TTL, JS Delay Execution & Defer, W3C Speculation Rules & Eagerness, Media Hero Priority & Video Facade, serta Bloat Suppressor & Heartbeat lengkap dengan sistem notifikasi alert interaktif.
-- **Strict GitHub Updater Asset Matching**:
-  - Memperketat regex asset matcher pada GitHubUpdater untuk memprioritaskan arsip distribusi resmi wp-speed-core.zip dan mengabaikan arsip tester/parsial.
+  - Menambahkan fitur strip_duotone_svg pada BloatSuppressor, Bootstrap, AdaptiveTuner, dan MigrationManager.
+
+OPSI CHECKBOX:
+- JANGAN centang 'Set as the latest release' (karena akan digantikan oleh v1.6.6).
+
+KLIK TOMBOL:
+Klik tombol hijau 'Publish release'.
+
+
+================================================================================
+4. PUBLIKASI RELEASE v1.6.6 (LATEST / TERBARU)
+================================================================================
+Buka Browser ke tautan ini:
+https://github.com/dhanyled/wp-speed-core/releases/new?tag=v1.6.6
+
+KOLOM YANG HARUS DIISI:
+-----------------------
+Tag:
+v1.6.6
+
+Target:
+main
+
+Release title (Salin teks di bawah ini):
+Release v1.6.6 - Zero Rate-Limit GitHub Updater & Competitor Parity Engine
+
+Description (Salin seluruh teks di bawah ini):
+### 🚀 Zero Rate-Limit GitHub Updater & Competitor Parity Engine
+- **Zero Rate-Limit GitHub Updater Architecture**:
+  - Mengatasi kendala IP rate limit GitHub API (60 req/jam) pada shared hosting WordPress yang menyebabkan notifikasi pembaruan di `wp-admin/plugins.php` gagal muncul.
+  - Mengimplementasikan endpoint primer CDN-backed `version.json` melalui `raw.githubusercontent.com` tanpa batasan kuota API.
+  - Mendaftarkan filter ganda `site_transient_update_plugins` (read) dan `pre_set_site_transient_update_plugins` (write/cron update trigger) agar pembaruan latar belakang WordPress dan tombol 1-Click Update berjalan mulus.
+  - Menurunkan default TTL cache transient rilis dari 12 jam menjadi 3 jam serta mendukung bypass instan melalui parameter `force-check=1` dan tombol manual "Check Update" di Dashboard.
+- **Safe Disk HTML Minification (Disk Cache Save)**:
+  - Menambahkan metode pemadatan HTML cerdas `minify_html()` pada `HtmlCacheEngine` sebelum berkas statis `.html` dan `.html.gz` ditulis ke disk cache.
+  - Menghapus komentar HTML non-esensial dan menormalkan whitespace berlebih antar-tag tanpa merusak blok terlindungi (`<pre>`, `<code>`, `<textarea>`), conditional IE (`[if ...]`), maupun blok noscript.
+  - Dilengkapi kontrol toggle pengaturan di Dashboard Tab 5 (`wpsc_html_minify`).
+- **Auto Missing Image Dimensions (Zero Cumulative Layout Shift / CLS)**:
+  - Menambahkan inspeksi dimensi gambar pada `MediaController`: otomatis mendeteksi tag `<img>` yang tidak memiliki atribut `width` dan `height`.
+  - Menggunakan fast-path pencarian metadata attachment WordPress via class `wp-image-{id}` serta fallback resolusi berkas fisik lokal untuk menginjeksi dimensi asli gambar dan meniadakan pergeseran tata letak (CLS).
+- **Resource Hints Engine (Preconnect & DNS-Prefetch)**:
+  - Menambahkan metode `inject_resource_hints()` pada `SpeculationEngine` yang diinjeksi pada hook `wp_head` prioritas awal.
+  - Mengizinkan administrator mendaftarkan domain/origin aset pihak ketiga (seperti Google Fonts, CDNs, pelacak analitik) untuk mempercepat handshake TCP dan TLS DNS sebelum permintaan aset dieksekusi.
+- **Self-Hosted Video Lazy / Preload Throttling**:
+  - Memperbarui `MediaFacadeOptimizer` untuk mendeteksi tag `<video>` self-hosted dan otomatis menetapkan atribut `preload="none"`, mencegah browser mengunduh puluhan megabyte video secara prematur di perangkat mobile.
+- **Diagnostic Cache Headers (`X-WPSC-Cache`)**:
+  - Menambahkan header respons HTTP diagnostik `X-WPSC-Cache: HIT` (dilayani dari cache statis), `X-WPSC-Cache: MISS` (halaman baru yang disimpan ke cache), dan `X-WPSC-Cache: BYPASS` (melewati cache karena login, bypass mode, atau query dinamis) untuk mempermudah audit via DevTools dan curl.
 
 LAMPIRAN WAJIB (ATTACH BINARIES):
 - Di bawah kotak deskripsi ada kotak: 'Attach binaries by dropping them here or selecting them'
@@ -129,7 +163,7 @@ Klik tombol hijau 'Publish release'.
 
 ================================================================================
 SELESAI!
-Setelah langkah ke-3 dipublikasikan, repositori GitHub Anda di:
+Setelah langkah ke-4 dipublikasikan, repositori GitHub Anda di:
 https://github.com/dhanyled/wp-speed-core
-akan otomatis resmi menampilkan badge hijau: 'v1.6.5 Latest'
+akan otomatis resmi menampilkan badge hijau: 'v1.6.6 Latest'
 ================================================================================

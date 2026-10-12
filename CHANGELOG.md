@@ -2,6 +2,31 @@
 
 Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
 
+## [1.6.6] - 2026-10-12
+
+### 🚀 Zero Rate-Limit GitHub Updater & Competitor Parity Engine
+- **Zero Rate-Limit GitHub Updater Architecture**:
+  - Mengatasi kendala IP rate limit GitHub API (60 req/jam) pada shared hosting WordPress yang menyebabkan notifikasi pembaruan di `wp-admin/plugins.php` gagal muncul.
+  - Mengimplementasikan endpoint primer CDN-backed `version.json` melalui `raw.githubusercontent.com` tanpa batasan kuota API.
+  - Mendaftarkan filter ganda `site_transient_update_plugins` (read) dan `pre_set_site_transient_update_plugins` (write/cron update trigger) agar pembaruan latar belakang WordPress dan tombol 1-Click Update berjalan mulus.
+  - Menurunkan default TTL cache transient rilis dari 12 jam menjadi 3 jam serta mendukung bypass instan melalui parameter `force-check=1` dan tombol manual "Check Update" di Dashboard.
+- **Safe Disk HTML Minification (Disk Cache Save)**:
+  - Menambahkan metode pemadatan HTML cerdas `minify_html()` pada `HtmlCacheEngine` sebelum berkas statis `.html` dan `.html.gz` ditulis ke disk cache.
+  - Menghapus komentar HTML non-esensial dan menormalkan whitespace berlebih antar-tag tanpa merusak blok terlindungi (`<pre>`, `<code>`, `<textarea>`), conditional IE (`[if ...]`), maupun blok noscript.
+  - Dilengkapi kontrol toggle pengaturan di Dashboard Tab 5 (`wpsc_html_minify`).
+- **Auto Missing Image Dimensions (Zero Cumulative Layout Shift / CLS)**:
+  - Menambahkan inspeksi dimensi gambar pada `MediaController`: otomatis mendeteksi tag `<img>` yang tidak memiliki atribut `width` dan `height`.
+  - Menggunakan fast-path pencarian metadata attachment WordPress via class `wp-image-{id}` serta fallback resolusi berkas fisik lokal untuk menginjeksi dimensi asli gambar dan meniadakan pergeseran tata letak (CLS).
+- **Resource Hints Engine (Preconnect & DNS-Prefetch)**:
+  - Menambahkan metode `inject_resource_hints()` pada `SpeculationEngine` yang diinjeksi pada hook `wp_head` prioritas awal.
+  - Mengizinkan administrator mendaftarkan domain/origin aset pihak ketiga (seperti Google Fonts, CDNs, pelacak analitik) untuk mempercepat handshake TCP dan TLS DNS sebelum permintaan aset dieksekusi.
+- **Self-Hosted Video Lazy / Preload Throttling**:
+  - Memperbarui `MediaFacadeOptimizer` untuk mendeteksi tag `<video>` self-hosted dan otomatis menetapkan atribut `preload="none"`, mencegah browser mengunduh puluhan megabyte video secara prematur di perangkat mobile.
+- **Diagnostic Cache Headers (`X-WPSC-Cache`)**:
+  - Menambahkan header respons HTTP diagnostik `X-WPSC-Cache: HIT` (dilayani dari cache statis), `X-WPSC-Cache: MISS` (halaman baru yang disimpan ke cache), dan `X-WPSC-Cache: BYPASS` (melewati cache karena login, bypass mode, atau query dinamis) untuk mempermudah audit via DevTools dan curl.
+
+---
+
 ## [1.6.5] - 2026-10-12
 
 ### 🛡️ Engine Buffer Inversion Fix, Universal Bypass & Architecture Hardening

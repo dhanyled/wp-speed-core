@@ -90,6 +90,7 @@ class Dashboard {
 
             // Cache
             $curr['cache']['html_cache']   = !empty($_POST['wpsc_html_cache']) ? 1 : 0;
+            $curr['cache']['html_minify']  = !empty($_POST['wpsc_html_minify']) ? 1 : 0;
             $curr['cache']['cache_mobile'] = !empty($_POST['wpsc_cache_mobile']) ? 1 : 0;
             $curr['cache']['cache_ttl']    = max(300, (int) ($_POST['wpsc_cache_ttl'] ?? 86400));
 
@@ -99,13 +100,15 @@ class Dashboard {
             $curr['script']['execution_strategy'] = in_array($_POST['wpsc_execution_strategy'] ?? '', ['chunked', 'sync'], true) ? $_POST['wpsc_execution_strategy'] : 'chunked';
             $curr['script']['exclusion_list']     = sanitize_textarea_field($_POST['wpsc_script_exclusions'] ?? '');
 
-            // Preload / Speculation Rules
+            // Preload / Speculation Rules & Resource Hints
             $curr['preload']['speculation_rules'] = !empty($_POST['wpsc_speculation_rules']) ? 1 : 0;
             $curr['preload']['speculation_level'] = in_array($_POST['wpsc_speculation_level'] ?? '', ['conservative', 'moderate', 'eager'], true) ? $_POST['wpsc_speculation_level'] : 'moderate';
+            $curr['preload']['resource_hints']    = sanitize_textarea_field($_POST['wpsc_resource_hints'] ?? '');
 
             // Media & Style
             $curr['media']['auto_hero_priority'] = !empty($_POST['wpsc_auto_hero_priority']) ? 1 : 0;
             $curr['media']['native_lazy']        = !empty($_POST['wpsc_native_lazy']) ? 1 : 0;
+            $curr['media']['auto_dimensions']    = !empty($_POST['wpsc_auto_dimensions']) ? 1 : 0;
             $curr['media']['video_placeholder']  = !empty($_POST['wpsc_video_placeholder']) ? 1 : 0;
             $curr['style']['below_fold_skip']    = !empty($_POST['wpsc_below_fold_skip']) ? 1 : 0;
 
@@ -1349,6 +1352,10 @@ class Dashboard {
                                     Aktifkan Cache Statis HTML Disk
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                    <input type="checkbox" name="wpsc_html_minify" value="1" <?php checked(!empty($settings['cache']['html_minify'] ?? 1)); ?>>
+                                    Minifikasi HTML Statis (Hapus Komentar & Whitespace Berlebih)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
                                     <input type="checkbox" name="wpsc_cache_mobile" value="1" <?php checked(!empty($settings['cache']['cache_mobile'] ?? 1)); ?>>
                                     Pisahkan File Cache Khusus Mobile (Device-Specific Cache)
                                 </label>
@@ -1381,6 +1388,10 @@ class Dashboard {
                                 <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">
                                     Standar W3C Speculation Rules API Chromium untuk transisi navigasi 0ms instan tanpa dependensi library eksternal.
                                 </p>
+                                <div style="margin-top: 10px;">
+                                    <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Resource Hints (Preconnect / DNS-Prefetch, 1 domain per baris):</label>
+                                    <textarea name="wpsc_resource_hints" rows="2" placeholder="https://fonts.googleapis.com&#10;https://fonts.gstatic.com" style="width: 100%; background: #050811; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-size: 12px;"><?php echo esc_textarea($settings['preload']['resource_hints'] ?? ''); ?></textarea>
+                                </div>
                             </div>
                         </div>
 
@@ -1429,8 +1440,12 @@ class Dashboard {
                                     Native Lazyload (loading="lazy" pada gambar non-hero)
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                    <input type="checkbox" name="wpsc_auto_dimensions" value="1" <?php checked(!empty($settings['media']['auto_dimensions'] ?? 1)); ?>>
+                                    Auto Image Dimensions (Otomatis sisipkan width & height untuk cegah CLS)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
                                     <input type="checkbox" name="wpsc_video_placeholder" value="1" <?php checked(!empty($settings['media']['video_placeholder'] ?? 1)); ?>>
-                                    Video Facade (Ganti iframe YouTube/Vimeo berat dengan poster placeholder instan)
+                                    Video Facade & Self-Hosted Video Preload None (Poster placeholder & hemat kuota)
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
                                     <input type="checkbox" name="wpsc_below_fold_skip" value="1" <?php checked(!empty($settings['style']['below_fold_skip'] ?? 1)); ?>>

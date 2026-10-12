@@ -43,15 +43,35 @@ class MediaController {
             }
 
             if (!empty($this->opts['auto_dimensions']) && $p->get_attribute('width') === null && $p->get_attribute('height') === null) {
-                $site_url = site_url();
-                if (strpos($src, $site_url) === 0 || strpos($src, '/') === 0) {
-                    $rel_path = ltrim((string) parse_url($src, PHP_URL_PATH), '/');
-                    $abs_path = ABSPATH . $rel_path;
-                    if (file_exists($abs_path) && is_file($abs_path)) {
-                        $size = @getimagesize($abs_path);
-                        if (!empty($size[0]) && !empty($size[1])) {
-                            $p->set_attribute('width', (string) $size[0]);
-                            $p->set_attribute('height', (string) $size[1]);
+                // 1. Fast path: WordPress attachment metadata via wp-image-{id} class
+                if (preg_match('/wp-image-(\d+)/', $class, $matches)) {
+                    $img_id = (int) $matches[1];
+                    $meta = wp_get_attachment_metadata($img_id);
+                    if (!empty($meta['width']) && !empty($meta['height'])) {
+                        $p->set_attribute('width', (string) $meta['width']);
+                        $p->set_attribute('height', (string) $meta['height']);
+                    }
+                }
+
+                // 2. Fallback: Local file dimension resolution
+                if ($p->get_attribute('width') === null) {
+                    $parsed_path = (string) parse_url($src, PHP_URL_PATH);
+                    if ($parsed_path !== '') {
+                        $rel_path = ltrim($parsed_path, '/');
+                        $abs_path = ABSPATH . $rel_path;
+                        if (!file_exists($abs_path)) {
+                            $content_url_path = ltrim((string) parse_url(content_url(), PHP_URL_PATH), '/');
+                            if ($content_url_path !== '' && strpos($rel_path, $content_url_path) === 0) {
+                                $sub = substr($rel_path, strlen($content_url_path));
+                                $abs_path = WP_CONTENT_DIR . '/' . ltrim($sub, '/');
+                            }
+                        }
+                        if (file_exists($abs_path) && is_file($abs_path)) {
+                            $size = @getimagesize($abs_path);
+                            if (!empty($size[0]) && !empty($size[1])) {
+                                $p->set_attribute('width', (string) $size[0]);
+                                $p->set_attribute('height', (string) $size[1]);
+                            }
                         }
                     }
                 }

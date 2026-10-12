@@ -32,15 +32,16 @@ class GitHubUpdater {
         $this->plugin_basename  = $plugin_basename ?? (defined('WPSC_BASENAME') ? WPSC_BASENAME : 'wp-speed-core/wp-speed-core.php');
         $this->current_version  = $current_version ?? (defined('WPSC_VERSION') ? WPSC_VERSION : '1.0.0');
         $this->transient_key    = 'wpsc_github_release_data';
-        $this->cache_ttl        = 12 * HOUR_IN_SECONDS; // 12 hours cache
+        $this->cache_ttl        = 3 * HOUR_IN_SECONDS; // 3 hours cache
         $this->logger           = $logger;
 
         $this->register_hooks();
     }
 
     private function register_hooks(): void {
-        // Inject update data into WordPress plugin update transients
+        // Inject update data into WordPress plugin update transients (read & write)
         add_filter('site_transient_update_plugins', [$this, 'check_update']);
+        add_filter('pre_set_site_transient_update_plugins', [$this, 'check_update']);
 
         // Supply data for the "View version details" modal popup
         add_filter('plugins_api', [$this, 'plugin_info'], 20, 3);
@@ -65,10 +66,41 @@ class GitHubUpdater {
      * Fetch latest release info from GitHub API or cache.
      */
     public function get_remote_release(bool $force = false): ?array {
+        if (!empty($_GET['force-check'])) {
+            $force = true;
+        }
+
         if (!$force) {
             $cached = get_transient($this->transient_key);
             if (is_array($cached) && !empty($cached['version'])) {
                 return $cached;
+            }
+        }
+
+        // 1. Primary: Fast, rate-limit-free version.json from raw.githubusercontent.com
+        $raw_json_url = "https://raw.githubusercontent.com/{$this->repo}/main/version.json";
+        $raw_resp     = wp_remote_get($raw_json_url, [
+            'timeout' => 8,
+            'headers' => ['Accept' => 'application/json'],
+        ]);
+
+        if (!is_wp_error($raw_resp) && wp_remote_retrieve_response_code($raw_resp) === 200) {
+            $json_data = json_decode(wp_remote_retrieve_body($raw_resp), true);
+            if (is_array($json_data) && !empty($json_data['version'])) {
+                $release = [
+                    'version'      => (string) $json_data['version'],
+                    'tag_name'     => 'v' . ltrim((string) $json_data['version'], 'v'),
+                    'download_url' => (string) ($json_data['download_url'] ?? "https://github.com/{$this->repo}/raw/main/wp-speed-core.zip"),
+                    'changelog'    => (string) ($json_data['changelog'] ?? "Pembaruan v{$json_data['version']} WP Speed Core dari GitHub."),
+                    'published_at' => (string) ($json_data['published_at'] ?? current_time('mysql')),
+                    'url'          => (string) ($json_data['url'] ?? "https://github.com/{$this->repo}/releases"),
+                    'requires'     => (string) ($json_data['requires'] ?? '6.2'),
+                    'tested'       => (string) ($json_data['tested'] ?? '6.7'),
+                    'requires_php' => (string) ($json_data['requires_php'] ?? '8.0'),
+                ];
+
+                set_transient($this->transient_key, $release, $this->cache_ttl);
+                return $release;
             }
         }
 
@@ -77,7 +109,7 @@ class GitHubUpdater {
             'User-Agent' => 'WordPress/' . (get_bloginfo('version') ?: '6.x') . '; WP-Speed-Core/' . $this->current_version,
         ];
 
-        // 1. Try Releases API
+        // 2. Secondary fallback: Releases API
         $release_url = "https://api.github.com/repos/{$this->repo}/releases/latest";
         $response    = wp_remote_get($release_url, [
             'timeout' => 10,

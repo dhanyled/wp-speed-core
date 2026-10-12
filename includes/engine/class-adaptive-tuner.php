@@ -34,6 +34,7 @@ class AdaptiveTuner {
         }
 
         $out['cache']['html_cache']          = 1;
+        $out['cache']['html_minify']         = 1;
         $out['script']['delayed_execution']  = 1;
         $out['script']['execution_strategy'] = 'chunked';
         $out['script']['use_native_defer']   = 1;
@@ -55,6 +56,7 @@ class AdaptiveTuner {
         $out['style']['below_fold_skip']    = 1;
         $out['media']['native_lazy']        = 1;
         $out['media']['auto_hero_priority'] = 1;
+        $out['media']['auto_dimensions']    = 1;
         $out['preload']['speculation_rules'] = 1;
         $out['preload']['speculation_level'] = $is_high_mem ? 'eager' : 'moderate';
 

@@ -1,0 +1,12 @@
+{
+  "name": "WP Speed Core",
+  "slug": "wp-speed-core",
+  "version": "1.6.6",
+  "download_url": "https://github.com/dhanyled/wp-speed-core/raw/main/wp-speed-core.zip",
+  "requires": "6.2",
+  "tested": "6.7",
+  "requires_php": "8.0",
+  "published_at": "2026-10-12 09:00:00",
+  "url": "https://github.com/dhanyled/wp-speed-core/releases",
+  "changelog": "v1.6.6:\n- Zero Rate-Limit GitHub Updater via CDN raw version.json\n- Added pre_set_site_transient_update_plugins hook for automatic background update detection\n- Added Missing Image Dimensions (Auto Width & Height) to eliminate CLS\n- Added Safe Disk HTML Minification with comment stripping\n- Added Resource Hints (Preconnect & DNS-Prefetch) in SpeculationEngine\n- Added Self-hosted video preload='none' throttling\n- Added diagnostic X-WPSC-Cache response headers (HIT/MISS/BYPASS)"
+}

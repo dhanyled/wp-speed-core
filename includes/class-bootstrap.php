@@ -23,6 +23,7 @@ final class Bootstrap {
         ],
         'cache' => [
             'html_cache'          => 1,
+            'html_minify'         => 1,
             'cache_ttl'           => 86400,
             'cache_authenticated' => 0,
             'cache_mobile'        => 1,
@@ -34,11 +35,13 @@ final class Bootstrap {
         'media' => [
             'native_lazy'        => 1,
             'auto_hero_priority' => 1,
+            'auto_dimensions'    => 1,
             'video_placeholder'  => 1,
         ],
         'preload' => [
             'speculation_rules' => 1,
             'speculation_level' => 'moderate',
+            'resource_hints'    => '',
         ],
         'audit' => [
             'deduplicate_tags'   => 1,
