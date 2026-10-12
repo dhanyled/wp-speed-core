@@ -65,8 +65,14 @@ class ScriptController {
         $ex_raw  = $this->opts['exclusion_list'] ?? '';
         $ex_list = array_filter(array_map('trim', explode(chr(10), $ex_raw)));
 
-        // Remove tracking keywords from exclusions so tracking scripts (GTM, GA4, Clarity) are delayed by default
-        $tracking_keywords = ['gtag', 'gtag.js', 'google-analytics', 'analytics.js', 'taggateway', 'fupi', 'clarity'];
+        // Remove tracking keywords and heavy libraries from exclusions so they are safely delayed by default
+        $tracking_keywords = [
+            'gtag', 'gtag.js', 'google-analytics', 'analytics.js',
+            'taggateway', 'taggatewayhaji', 'fupi', 'clarity',
+            'helpgent', 'helpgent-pro', 'full-picture', 'fp-',
+            '/wp-includes/js/dist/', 'wp-includes/js/dist',
+            'react', 'react-dom', 'lodash', 'moment', 'recordrtc'
+        ];
         $clean_ex_list = [];
         foreach ($ex_list as $ex) {
             $ex_trim = strtolower(trim($ex));
@@ -78,14 +84,21 @@ class ScriptController {
         // Auto-delay patterns for known heavy third-party & tracking scripts (600ms+ mobile CPU saving)
         $auto_delay_patterns = [
             'taggateway',
-            'fupi-',
+            'fupi',
             'clarity.js',
             'googletagmanager.com',
             'google-analytics.com',
             'connect.facebook.net',
             'static.cloudflareinsights.com',
             'RecordRTC',
-            'helpgent/assets',
+            'helpgent',
+            'react.min.js',
+            'react-dom.min.js',
+            'lodash.min.js',
+            'moment.min.js',
+            'wp-data.min.js',
+            'wp-element.min.js',
+            'wp-includes/js/dist/',
         ];
 
         if (!class_exists('\WP_HTML_Tag_Processor')) {

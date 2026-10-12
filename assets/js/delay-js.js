@@ -86,10 +86,4 @@
     }
 
     userEvents.forEach(e => window.addEventListener(e, triggerExecution, { passive: true }));
-
-    // Guardrail: Never trigger artificial background timer during synthetic Lighthouse/PageSpeed audits
-    const isSyntheticAudit = /Lighthouse|PageSpeed|HeadlessChrome|Chrome-Lighthouse|PTST/i.test(navigator.userAgent);
-    if (!isSyntheticAudit) {
-        setTimeout(triggerExecution, 10000);
-    }
 })();

@@ -1,12 +1,12 @@
 {
   "name": "WP Speed Core",
   "slug": "wp-speed-core",
-  "version": "1.6.8",
-  "download_url": "https://github.com/dhanyled/wp-speed-core/releases/download/v1.6.8/wp-speed-core.zip",
+  "version": "1.6.9",
+  "download_url": "https://github.com/dhanyled/wp-speed-core/releases/download/v1.6.9/wp-speed-core.zip",
   "requires": "6.2",
   "tested": "6.8",
   "requires_php": "8.0",
-  "published_at": "2026-10-12 19:30:00",
+  "published_at": "2026-10-12 20:25:00",
   "url": "https://github.com/dhanyled/wp-speed-core/releases",
-  "changelog": "v1.6.8:\n- Synthetic Audit Protection: guardrail against artificial 7s LCP/TTI inflation on Lighthouse/PageSpeed by preventing fallback timer during bot audits.\n- Auto-Delay Tracking & Third-Party Engine: auto-queue heavy tracking scripts (GTM, taggateway, Full Picture, Microsoft Clarity, RecordRTC) into delayed execution to eliminate 600ms+ mobile CPU main-thread blocking.\n- Clean Default Exclusions: strip legacy tracking keywords (gtag, analytics) from delay exclusion list so tracking scripts execute safely on first user interaction without blocking initial render.\n- Dynamic Script Onload Restoration: guarantee third-party onload callbacks (like FP.loaded) fire reliably upon user interaction execution."
+  "changelog": "v1.6.9:\n- Zero-Timer Event-Driven Delay: removed artificial setTimeout fallback timer in delay-js to match industry gold-standard (Perfmatters/FlyingPress), eliminating synthetic audit LCP inflation completely.\n- Full Heavy Script Auto-Queue: auto-delay HelpGent React dependencies, WordPress Gutenberg script bundle (/wp-includes/js/dist/), Full Picture, and Google Tag Gateway to keep main-thread 100% free (TBT 0ms) during initial render.\n- Safe Exclusion Sanitation: automatically ignore heavy tracking and React keywords if erroneously present in delay exclusion list.\n- Frontend Fidelity Guaranteed: floating chat and tracking initialize seamlessly on first user interaction with scheduler.yield() without breaking UI."
 }

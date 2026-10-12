@@ -1,0 +1,5 @@
+agy --dangerously-skip-permissions -c
+agy --conversation=9bc4ce16-fea0-4be7-acc9-b203f1a0d1c4
+
+kok di realest list ini palng atas "Release v1.6.4 - Kernel Guardrail & Fault-Isolated Architecture"? ada yg aneh kah?
+  atau jangan2 versi 1.6.4 ada 2?
