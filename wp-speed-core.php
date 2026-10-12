@@ -96,40 +96,7 @@ add_action('plugins_loaded', static function () {
 }, 5);
 
 // ── Plugin page UI hooks ──────────────────────────────────────────────────────
-// Registered directly in main file (not via Kernel/GitHubUpdater) to guarantee
-// these links always appear on wp-admin/plugins.php regardless of Kernel state.
-add_filter('plugin_action_links_' . WPSC_BASENAME, static function (array $links): array {
-    $settings_url  = admin_url('admin.php?page=wp-speed-core');
-    $settings_link = '<a href="' . esc_url($settings_url) . '">' . esc_html__('Settings', 'wp-speed-core') . '</a>';
-    array_unshift($links, $settings_link);
-    return $links;
-});
-
-add_filter('plugin_row_meta', static function (array $links, string $file): array {
-    if ($file !== WPSC_BASENAME) {
-        return $links;
-    }
-
-    $repo_url     = 'https://github.com/dhanyled/wp-speed-core';
-    $changelog_url = $repo_url . '/blob/main/CHANGELOG.md';
-
-    // "View details" — opens thickbox modal via plugins_api
-    $details_url = add_query_arg([
-        'tab'       => 'plugin-information',
-        'plugin'    => 'wp-speed-core',
-        'section'   => 'changelog',
-        'TB_iframe' => 'true',
-        'width'     => 772,
-        'height'    => 490,
-    ], admin_url('plugin-install.php'));
-
-    $links[] = '<a href="' . esc_url($details_url) . '" class="thickbox open-plugin-details-modal" aria-label="'
-             . esc_attr__('View details for WP Speed Core', 'wp-speed-core') . '">'
-             . esc_html__('View details', 'wp-speed-core') . '</a>';
-
-    $links[] = '<a href="' . esc_url($changelog_url) . '" target="_blank" rel="noopener noreferrer" aria-label="'
-             . esc_attr__('View changelog for WP Speed Core', 'wp-speed-core') . '">'
-             . esc_html__('Changelog', 'wp-speed-core') . '</a>';
-
-    return $links;
-}, 10, 2);
+// NOTE: plugin_action_links and plugin_row_meta are handled exclusively by
+// GitHubUpdater::plugin_action_links() and GitHubUpdater::plugin_row_meta().
+// Do NOT re-register them here to avoid duplicate/conflicting filter callbacks
+// that prevent Settings, View details, and Changelog links from appearing.
