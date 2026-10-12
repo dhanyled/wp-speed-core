@@ -133,7 +133,7 @@ class ScriptController {
             $force_delay = false;
 
             if ($src) {
-                if (strpos($src, 'wpsc-delay-runner') !== false) {
+                if (strpos($src, 'delay-js') !== false || strpos($src, 'wpsc-delay-runner') !== false || $p->get_attribute('id') === 'wpsc-delay-runner-js') {
                     continue;
                 }
 
