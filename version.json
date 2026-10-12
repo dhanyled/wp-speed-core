@@ -2,7 +2,7 @@
   "name": "WP Speed Core",
   "slug": "wp-speed-core",
   "version": "1.6.7",
-  "download_url": "https://github.com/dhanyled/wp-speed-core/raw/main/wp-speed-core.zip",
+  "download_url": "https://github.com/dhanyled/wp-speed-core/releases/download/v1.6.7/wp-speed-core.zip",
   "requires": "6.2",
   "tested": "6.8",
   "requires_php": "8.0",
