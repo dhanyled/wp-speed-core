@@ -5,6 +5,7 @@
  * Description:       All-in-one WordPress performance engine with AI Model Context Protocol (MCP), Adaptive Auto-Tuning, Tracking Conflict Inspector, Overlap Arbiter, Disk HTML Cache, INP-safe script delay, auto-LCP priority, Speculation Rules prerender, Contextual Asset Unloader, and DB housekeeping.
  * Version:           1.6.6
  * Requires at least: 6.2
+ * Tested up to:      6.8
  * Requires PHP:      8.0
  * Author:            Dhany (@leddhany)
  * Author URI:        https://t.me/leddhany

@@ -4,7 +4,7 @@
   "version": "1.6.6",
   "download_url": "https://github.com/dhanyled/wp-speed-core/raw/main/wp-speed-core.zip",
   "requires": "6.2",
-  "tested": "6.7",
+  "tested": "6.8",
   "requires_php": "8.0",
   "published_at": "2026-10-12 09:00:00",
   "url": "https://github.com/dhanyled/wp-speed-core/releases",

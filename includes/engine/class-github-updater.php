@@ -217,6 +217,12 @@ class GitHubUpdater {
             return $transient;
         }
 
+        $wp_ver = (string) (get_bloginfo('version') ?: '6.8');
+        $tested = (string) ($release['tested'] ?? '6.8');
+        if (version_compare($wp_ver, $tested, '>')) {
+            $tested = $wp_ver;
+        }
+
         if (version_compare($release['version'], $this->current_version, '>')) {
             $item = new \stdClass();
             $item->id             = 'github.com/' . $this->repo;
@@ -231,7 +237,7 @@ class GitHubUpdater {
             $item->banners        = [];
             $item->banners_rtl    = [];
             $item->requires       = $release['requires'] ?? '6.2';
-            $item->tested         = $release['tested'] ?? '6.7';
+            $item->tested         = $tested;
             $item->requires_php   = $release['requires_php'] ?? '8.0';
             $item->compatibility  = new \stdClass();
 
@@ -252,7 +258,7 @@ class GitHubUpdater {
             $no_update->url          = $release['url'] ?? "https://github.com/{$this->repo}";
             $no_update->package      = '';
             $no_update->requires     = '6.2';
-            $no_update->tested       = '6.7';
+            $no_update->tested       = $tested;
             $no_update->requires_php = '8.0';
 
             if (!isset($transient->no_update) || !is_array($transient->no_update)) {
@@ -291,6 +297,12 @@ class GitHubUpdater {
         $release = $this->get_remote_release();
         $version = $release['version'] ?? $this->current_version;
 
+        $wp_ver = (string) (get_bloginfo('version') ?: '6.8');
+        $tested = (string) ($release['tested'] ?? '6.8');
+        if (version_compare($wp_ver, $tested, '>')) {
+            $tested = $wp_ver;
+        }
+
         $info = new \stdClass();
         $info->name          = 'WP Speed Core';
         $info->slug          = 'wp-speed-core';
@@ -298,7 +310,7 @@ class GitHubUpdater {
         $info->author        = '<a href="https://t.me/leddhany" target="_blank">Dhany (@leddhany)</a>';
         $info->homepage      = 'https://github.com/' . $this->repo;
         $info->requires      = $release['requires'] ?? '6.2';
-        $info->tested        = $release['tested'] ?? '6.7';
+        $info->tested        = $tested;
         $info->requires_php  = $release['requires_php'] ?? '8.0';
         $info->downloaded    = 0;
         $info->last_updated  = !empty($release['published_at']) ? substr((string) $release['published_at'], 0, 10) : date('Y-m-d');
