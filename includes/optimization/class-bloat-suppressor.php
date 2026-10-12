@@ -33,6 +33,10 @@ class BloatSuppressor {
         if (!empty($this->opts['strip_duotone_svg'])) {
             add_action('after_setup_theme', [$this, 'strip_duotone_svg']);
         }
+        if (!empty($this->opts['strip_gutenberg_bloat'])) {
+            add_action('wp_enqueue_scripts', [$this, 'strip_gutenberg_bloat'], 9999);
+            add_action('wp_print_styles', [$this, 'strip_gutenberg_styles'], 9999);
+        }
         add_action('init', [$this, 'cleanup_meta']);
         if (!empty($this->opts['disable_cart_fragments_non_shop'])) {
             add_action('wp_enqueue_scripts', [$this, 'strip_cart_fragments'], 99);
@@ -175,4 +179,62 @@ class BloatSuppressor {
         remove_action('wp_footer', 'wp_global_styles_render_svg_filters');
         remove_action('in_admin_header', 'wp_global_styles_render_svg_filters');
     }
+
+    public function strip_gutenberg_bloat(): void {
+        if (is_admin() || (defined('REST_REQUEST') && REST_REQUEST)) {
+            return;
+        }
+
+        if (isset($_GET['bricks']) || isset($_GET['elementor-preview']) || (function_exists('is_customize_preview') && is_customize_preview())) {
+            return;
+        }
+
+        $scripts = [
+            'wp-block-editor',
+            'wp-components',
+            'wp-blocks',
+            'wp-edit-post',
+            'wp-format-library',
+            'wp-editor',
+            'wp-commands',
+            'wp-keyboard-shortcuts',
+            'wp-preferences',
+            'wp-preferences-persistence',
+            'wp-data-controls',
+            'wp-viewport',
+            'wp-upload-media',
+            'wp-token-list',
+            'wp-style-engine',
+            'wp-notices',
+            'wp-shortcode',
+            'wp-autop',
+            'wp-block-serialization-default-parser',
+            'wp-blob',
+        ];
+
+        foreach ($scripts as $handle) {
+            wp_dequeue_script($handle);
+            wp_deregister_script($handle);
+        }
+    }
+
+    public function strip_gutenberg_styles(): void {
+        if (is_admin() || isset($_GET['bricks']) || isset($_GET['elementor-preview']) || (function_exists('is_customize_preview') && is_customize_preview())) {
+            return;
+        }
+
+        $styles = [
+            'wp-block-editor',
+            'wp-components',
+            'wp-block-library',
+            'wp-block-library-theme',
+            'wp-format-library',
+        ];
+
+        foreach ($styles as $handle) {
+            wp_dequeue_style($handle);
+            wp_deregister_style($handle);
+        }
+    }
 }
+

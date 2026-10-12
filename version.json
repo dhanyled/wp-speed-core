@@ -1,12 +1,12 @@
 {
   "name": "WP Speed Core",
   "slug": "wp-speed-core",
-  "version": "1.6.6",
+  "version": "1.6.7",
   "download_url": "https://github.com/dhanyled/wp-speed-core/raw/main/wp-speed-core.zip",
   "requires": "6.2",
   "tested": "6.8",
   "requires_php": "8.0",
-  "published_at": "2026-10-12 09:00:00",
+  "published_at": "2026-10-12 16:30:00",
   "url": "https://github.com/dhanyled/wp-speed-core/releases",
-  "changelog": "v1.6.6:\n- Zero Rate-Limit GitHub Updater via CDN raw version.json\n- Added pre_set_site_transient_update_plugins hook for automatic background update detection\n- Added Missing Image Dimensions (Auto Width & Height) to eliminate CLS\n- Added Safe Disk HTML Minification with comment stripping\n- Added Resource Hints (Preconnect & DNS-Prefetch) in SpeculationEngine\n- Added Self-hosted video preload='none' throttling\n- Added diagnostic X-WPSC-Cache response headers (HIT/MISS/BYPASS)"
+  "changelog": "v1.6.7:\n- Frontend Gutenberg Bloat Suppressor: auto dequeue & de-register heavy block editor scripts/styles on public non-editor pages (eliminating 12s+ render-blocking).\n- Dual-Layer Auto-Defer Fallback: automatically inject 'defer' on head scripts skipped from delayed execution to prevent parser locking.\n- Autoplay Video Throttler: throttle autoplay WebM/MP4 videos (chat bubble widgets) until first user interaction event.\n- Cloudflare Edge Cache-Control Header Synchronization: explicitly send no-cache on MISS and public max-age=14400 on HIT to prevent caching unprimed MISS responses at edge."
 }

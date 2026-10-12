@@ -117,6 +117,7 @@ class Dashboard {
             $curr['general']['strip_embeds']       = !empty($_POST['wpsc_strip_embeds']) ? 1 : 0;
             $curr['general']['strip_dashicons']    = !empty($_POST['wpsc_strip_dashicons']) ? 1 : 0;
             $curr['general']['strip_duotone_svg']  = !empty($_POST['wpsc_strip_duotone_svg']) ? 1 : 0;
+            $curr['general']['strip_gutenberg_bloat'] = !empty($_POST['wpsc_strip_gutenberg_bloat']) ? 1 : 0;
             $curr['general']['block_xmlrpc']       = !empty($_POST['wpsc_block_xmlrpc']) ? 1 : 0;
             $curr['general']['heartbeat_mode']     = in_array($_POST['wpsc_heartbeat_mode'] ?? '', ['default', 'throttle', 'disable'], true) ? $_POST['wpsc_heartbeat_mode'] : 'throttle';
             $curr['general']['heartbeat_interval'] = max(15, min(120, (int) ($_POST['wpsc_heartbeat_interval'] ?? 60)));
@@ -1477,6 +1478,10 @@ class Dashboard {
                                     <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
                                         <input type="checkbox" name="wpsc_strip_duotone_svg" value="1" <?php checked(!empty($settings['general']['strip_duotone_svg'] ?? 1)); ?>>
                                         Hapus Global Inline Duotone SVG Filter Bloat
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                        <input type="checkbox" name="wpsc_strip_gutenberg_bloat" value="1" <?php checked(!empty($settings['general']['strip_gutenberg_bloat'] ?? 1)); ?>>
+                                        Hapus Frontend Gutenberg Bloat (wp-block-editor, wp-components pada tema non-Gutenberg)
                                     </label>
                                     <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
                                         <input type="checkbox" name="wpsc_block_xmlrpc" value="1" <?php checked(!empty($settings['general']['block_xmlrpc'] ?? 1)); ?>>

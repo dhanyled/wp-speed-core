@@ -99,7 +99,7 @@ class ScriptController {
                     continue;
                 }
                 foreach ($ex_list as $ex) {
-                    if (!empty($ex) && stripos($src, $ex) !== false) {
+                    if (!empty($ex) && strlen($ex) >= 3 && stripos($src, $ex) !== false) {
                         $skip = true;
                         break;
                     }
@@ -113,6 +113,19 @@ class ScriptController {
                 if ($src) {
                     $p->remove_attribute('src');
                     $p->set_attribute('data-wpsc-src', $src);
+                }
+            } else {
+                // Dual-Layer Safety Fallback: If external script was skipped from delayed queue,
+                // ensure it does not render-block by injecting 'defer' if missing.
+                if (
+                    $src &&
+                    !$p->get_attribute('defer') &&
+                    !$p->get_attribute('async') &&
+                    !$p->get_attribute('data-no-defer')
+                ) {
+                    if (strpos($src, 'jquery.min.js') === false && strpos($src, 'jquery.js') === false) {
+                        $p->set_attribute('defer', '');
+                    }
                 }
             }
         }

@@ -17,3 +17,5 @@ venv/
 *.log
 vendor/
 .phpunit.result.cache
+temp_site.html
+.playwright-mcp/

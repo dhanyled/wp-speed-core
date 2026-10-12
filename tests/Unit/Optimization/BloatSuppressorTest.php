@@ -82,4 +82,51 @@ class BloatSuppressorTest extends TestCase {
         $this->assertArrayNotHasKey('X-Pingback', $cleaned);
         $this->assertArrayHasKey('Content-Type', $cleaned);
     }
+
+    public function test_strip_gutenberg_bloat_dequeues_editor_scripts_on_public_frontend(): void {
+        WP_Mock::userFunction('get_option')
+            ->with('wpsc_settings', [])
+            ->andReturn([]);
+
+        WP_Mock::userFunction('is_admin')->andReturn(false);
+        WP_Mock::userFunction('is_customize_preview')->andReturn(false);
+
+        WP_Mock::userFunction('wp_dequeue_script')
+            ->with('wp-block-editor')
+            ->once();
+        WP_Mock::userFunction('wp_deregister_script')
+            ->with('wp-block-editor')
+            ->once();
+
+        // Allow any other calls to dequeue/deregister
+        WP_Mock::userFunction('wp_dequeue_script')->zeroOrMoreTimes();
+        WP_Mock::userFunction('wp_deregister_script')->zeroOrMoreTimes();
+
+        $suppressor = new BloatSuppressor();
+        $suppressor->strip_gutenberg_bloat();
+        $this->assertTrue(true);
+    }
+
+    public function test_strip_gutenberg_styles_dequeues_editor_styles_on_public_frontend(): void {
+        WP_Mock::userFunction('get_option')
+            ->with('wpsc_settings', [])
+            ->andReturn([]);
+
+        WP_Mock::userFunction('is_admin')->andReturn(false);
+        WP_Mock::userFunction('is_customize_preview')->andReturn(false);
+
+        WP_Mock::userFunction('wp_dequeue_style')
+            ->with('wp-block-editor')
+            ->once();
+        WP_Mock::userFunction('wp_deregister_style')
+            ->with('wp-block-editor')
+            ->once();
+
+        WP_Mock::userFunction('wp_dequeue_style')->zeroOrMoreTimes();
+        WP_Mock::userFunction('wp_deregister_style')->zeroOrMoreTimes();
+
+        $suppressor = new BloatSuppressor();
+        $suppressor->strip_gutenberg_styles();
+        $this->assertTrue(true);
+    }
 }

@@ -10,6 +10,23 @@
 
         userEvents.forEach(e => window.removeEventListener(e, triggerExecution, { passive: true }));
 
+        // Restore throttled autoplay videos
+        const throttledVideos = document.querySelectorAll('video[data-wpsc-autoplay]');
+        throttledVideos.forEach(v => {
+            const vSrc = v.getAttribute('data-wpsc-src');
+            if (vSrc) {
+                v.src = vSrc;
+            }
+            v.removeAttribute('data-wpsc-autoplay');
+            v.setAttribute('autoplay', '');
+            try {
+                const playPromise = v.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {});
+                }
+            } catch (e) {}
+        });
+
         const delayedScripts = document.querySelectorAll('script[type="text/wpsc-queued"]');
         if (!delayedScripts.length) return;
 

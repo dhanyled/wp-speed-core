@@ -24,9 +24,10 @@ class AdaptiveTuner {
         $out['general']['mode']            = 'smart';
         $out['general']['strip_emojis']    = 1;
         $out['general']['strip_embeds']    = 1;
-        $out['general']['strip_dashicons']   = !empty($env['wordpress']['is_block_theme']) ? 1 : 0;
-        $out['general']['strip_duotone_svg'] = 1;
-        $out['general']['block_xmlrpc']      = 1;
+        $out['general']['strip_dashicons']       = !empty($env['wordpress']['is_block_theme']) ? 1 : 0;
+        $out['general']['strip_duotone_svg']     = 1;
+        $out['general']['strip_gutenberg_bloat'] = 1;
+        $out['general']['block_xmlrpc']          = 1;
 
         if (!empty($env['ecommerce']['woocommerce'])) {
             $out['general']['disable_cart_fragments_non_shop'] = 1;

@@ -179,6 +179,7 @@ class HtmlCacheEngine {
 
             header('X-WPSC-Cache: HIT');
             header('Content-Type: text/html; charset=UTF-8');
+            header('Cache-Control: public, max-age=14400, s-maxage=86400');
 
             if (!empty($_SERVER['HTTP_ACCEPT_ENCODING']) && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false && file_exists($file . '.gz')) {
                 header('Content-Encoding: gzip');
@@ -226,6 +227,8 @@ class HtmlCacheEngine {
 
         if (!headers_sent()) {
             header('X-WPSC-Cache: MISS');
+            header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+            header('Pragma: no-cache');
         }
         return $processed_html;
     }

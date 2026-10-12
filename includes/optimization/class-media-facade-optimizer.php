@@ -84,6 +84,17 @@ final class MediaFacadeOptimizer {
                 if ($preload === null || $preload === 'auto') {
                     $processor->set_attribute('preload', 'none');
                 }
+
+                $autoplay = $processor->get_attribute('autoplay');
+                $vsrc     = $processor->get_attribute('src');
+                if ($autoplay !== null) {
+                    $processor->remove_attribute('autoplay');
+                    $processor->set_attribute('data-wpsc-autoplay', '1');
+                    if ($vsrc) {
+                        $processor->remove_attribute('src');
+                        $processor->set_attribute('data-wpsc-src', $vsrc);
+                    }
+                }
             }
         }
 

@@ -2,6 +2,27 @@
 
 Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
 
+## [1.6.7] - 2026-10-12
+
+### ⚡ Critical PageSpeed Optimization, Render-Blocking Elimination & Cloudflare Edge Alignment
+- **Frontend Gutenberg Bloat Suppressor**:
+  - Mengatasi masalah pemuatan dependensi WordPress Block Editor (`wp-block-editor`, `wp-components`, `wp-blocks`, `react`, `react-dom`, dll.) sebesar ~1.9 MB di `<head>` frontpage publik yang disebabkan oleh plugin form/chat (HelpGent) pada tema non-Gutenberg (Bricks Builder).
+  - Menambahkan metode `strip_gutenberg_bloat()` dan `strip_gutenberg_styles()` pada `BloatSuppressor` dengan eksekusi aman yang melewati Gutenberg editor, post edit screen, Bricks editor (`?bricks=run`), dan Elementor preview.
+  - Melenyapkan beban render-blocking 12,400 ms pada pengujian Core Web Vitals (FCP/LCP).
+  - Dilengkapi kontrol toggle pengaturan di Dashboard Tab 5 (`wpsc_strip_gutenberg_bloat`) dan integrasi otomatis di `AdaptiveTuner`.
+- **Dual-Layer Auto-Defer Fallback Engine**:
+  - Memperbarui `ScriptController::queue_scripts()`: jika sebuah skrip eksternal di-skip atau dikecualikan dari antrean delay (`text/wpsc-queued`) dan belum memiliki atribut `defer`, `async`, atau `data-no-defer`, sistem secara otomatis menginjeksi atribut `defer`.
+  - Mencegah browser parser terhenti (render-blocking) pada skrip-skrip pengecualian di `<head>`.
+  - Menambahkan validasi batas panjang karakter pola exclusion (`strlen($ex) >= 3`) untuk mencegah pencocokan wildcard tidak sengaja.
+- **Autoplay Video Throttler (Bandwidth & FCP Protection)**:
+  - Memperbarui `MediaFacadeOptimizer`: mendeteksi elemen `<video>` dengan atribut `autoplay` (seperti bubble chat WebM 646 KiB), melepas atribut `autoplay` dan memindahkan `src` ke `data-wpsc-src` pada pemuatan halaman awal.
+  - Memperbarui `delay-js.js`: secara otomatis mengembalikan atribut `src` dan memicu pemutaran video secara mulus segera setelah interaksi pengguna pertama terdeteksi (`keydown`, `mousemove`, `touchmove`, `touchstart`, `scroll`, `click`).
+- **Cloudflare Edge Cache-Control Header Synchronization**:
+  - Memperbarui `HtmlCacheEngine`: pada saat respons `X-WPSC-Cache: MISS` (pembentukan cache awal), plugin secara eksplisit mengirimkan header `Cache-Control: no-cache, no-store, must-revalidate, max-age=0` dan `Pragma: no-cache` agar Cloudflare Edge dan proxy CDN tidak mengunci respons yang belum siap.
+  - Pada saat respons `X-WPSC-Cache: HIT`, plugin mengirimkan `Cache-Control: public, max-age=14400, s-maxage=86400` untuk memastikan cache HTML instan tersaji langsung dari server tepi Cloudflare.
+
+---
+
 ## [1.6.6] - 2026-10-12
 
 ### 🚀 Zero Rate-Limit GitHub Updater & Competitor Parity Engine
