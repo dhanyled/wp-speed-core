@@ -153,7 +153,13 @@ class ScriptController {
                     }
                 }
             } else {
-                $skip = true;
+                $id = (string) ($p->get_attribute('id') ?? '');
+                // Queue companion inline scripts (e.g. *-js-after / *-js-before) belonging to delayed libraries
+                if (!empty($id) && preg_match('/(?:wp-i18n|wp-api-fetch|moment|lodash|wp-date|wp-data|wp-preferences|helpgent)-js-(after|before)/i', $id)) {
+                    $force_delay = true;
+                } else {
+                    $skip = true;
+                }
             }
 
             if (!$skip || $force_delay) {

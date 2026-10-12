@@ -191,7 +191,6 @@ class BloatSuppressor {
 
         $scripts = [
             'wp-block-editor',
-            'wp-components',
             'wp-blocks',
             'wp-edit-post',
             'wp-format-library',
@@ -212,6 +211,11 @@ class BloatSuppressor {
             'wp-blob',
         ];
 
+        // Do not strip wp-components if a conversational or form plugin (like HelpGent) is active
+        if (!class_exists('HelpGent') && !class_exists('HelpGentPro')) {
+            $scripts[] = 'wp-components';
+        }
+
         foreach ($scripts as $handle) {
             wp_dequeue_script($handle);
             wp_deregister_script($handle);
@@ -225,11 +229,14 @@ class BloatSuppressor {
 
         $styles = [
             'wp-block-editor',
-            'wp-components',
             'wp-block-library',
             'wp-block-library-theme',
             'wp-format-library',
         ];
+
+        if (!class_exists('HelpGent') && !class_exists('HelpGentPro')) {
+            $styles[] = 'wp-components';
+        }
 
         foreach ($styles as $handle) {
             wp_dequeue_style($handle);

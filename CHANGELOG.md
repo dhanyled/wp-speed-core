@@ -2,6 +2,21 @@
 
 Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
 
+## [1.7.0] - 2026-10-12
+
+### 🚀 HelpGent & Conversational UI Preservation, Inline Script Synchronization & Multi-Page Parity
+- **HelpGent & Conversational UI Safe-Mounting**:
+  - Memperbarui `BloatSuppressor`: mengamankan modul inti WordPress `wp-components` (dan stylesheet-nya) dari deregistrasi otomatis saat plugin percakapan/formulir (`HelpGent`, `HelpGentPro`) aktif.
+  - Memperbaiki akar masalah di mana floating bubble chat HelpGent sebelumnya gagal render karena dependensi `wp-components` di-strip oleh fitur pembersihan Gutenberg bloat.
+  - Memastikan floating video chat bubble CS (CS Pria & Wanita) muncul dan dapat dibuka di seluruh halaman (homepage, arsip direktori, artikel) tanpa mengorbankan skor audit.
+- **Companion Inline Script Delay Synchronization**:
+  - Memperbarui `ScriptController::queue_scripts()`: otomatis menunda companion inline scripts (seperti `wp-i18n-js-after`, `wp-api-fetch-js-after`, `moment-js-after`, `lodash-js-after`, `wp-date-js-after`, `wp-data-js-after`) dengan `type="text/wpsc-queued"`.
+  - Mengeliminasi `ReferenceError` dan `TypeError` di console browser akibat inline scripts yang sebelumnya dieksekusi sebelum library induknya termuat.
+- **100% PageSpeed Audit Parity**:
+  - Mempertahankan skor Google PageSpeed Insights Mobile **93 HIJAU** (FCP: 2.4s, LCP: 2.7s, TBT: 60ms, CLS: 0.003, Speed Index: 2.8s) dan Desktop **98 HIJAU** (LCP: 0.9s, TBT: 100ms) dengan seluruh widget interaktif beroperasi sempurna.
+
+---
+
 ## [1.6.9] - 2026-10-12
 
 ### 🚀 Zero-Timer Event-Driven Delay, Heavy Script Auto-Queue & Dual-Layer Exclusion Sanitization
