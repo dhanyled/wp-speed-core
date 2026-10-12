@@ -75,7 +75,8 @@ class GitHubUpdater {
      * Fetch latest release info from GitHub API or cache.
      */
     public function get_remote_release(bool $force = false): ?array {
-        if (!empty($_GET['force-check'])) {
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+        if (!empty($_GET['force-check']) || strpos($uri, 'update-core.php') !== false || isset($_GET['wpsc_check_update'])) {
             $force = true;
         }
 
@@ -86,8 +87,8 @@ class GitHubUpdater {
             }
         }
 
-        // 1. Primary: Fast, rate-limit-free version.json from raw.githubusercontent.com
-        $raw_json_url = "https://raw.githubusercontent.com/{$this->repo}/main/version.json";
+        // 1. Primary: Fast, rate-limit-free version.json from raw.githubusercontent.com (cache-busted)
+        $raw_json_url = "https://raw.githubusercontent.com/{$this->repo}/main/version.json?t=" . time();
         $raw_resp     = wp_remote_get($raw_json_url, [
             'timeout' => 8,
             'headers' => ['Accept' => 'application/json'],
