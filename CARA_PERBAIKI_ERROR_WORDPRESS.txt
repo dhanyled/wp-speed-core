@@ -1,0 +1,38 @@
+﻿# PANDUAN MENGATASI CRITICAL ERROR WP SPEED CORE
+
+## Masalah:
+Saat update ke versi 1.6.2 melalui dashboard WordPress, file class-github-updater.php belum tertimpa dengan sempurna ke folder tujuan sehingga memicu:
+Uncaught Error: Class WPSpeedCore\Engine\GitHubUpdater not found
+
+Karena WordPress mengalami Fatal Error pada tahap booting plugin, semua request website (termasuk wp-admin dan API) menjadi error 500.
+
+---
+
+## CARA 1: Memperbaiki Lewat cPanel / File Manager Hosting (Direkomendasikan)
+
+1. Login ke cPanel atau File Manager hosting website Anda (hajidantravelumroh.com).
+2. Masuk ke direktori:
+   public_html/wp-content/plugins/
+3. Download file zip plugin versi 1.6.2 bersih dari GitHub resmi:
+   https://raw.githubusercontent.com/dhanyled/wp-speed-core/main/wp-speed-core.zip
+   (Atau gunakan file lokal Anda di: D:\Dhany\Plugin_flyingpress_perfmatter\wp-speed-core.zip)
+4. Di dalam folder public_html/wp-content/plugins/:
+   - Hapus atau rename folder lama 'wp-speed-core' (misal jadi 'wp-speed-core-bak').
+   - Upload file 'wp-speed-core.zip'.
+   - Ekstrak file zip tersebut menjadi folder 'wp-speed-core/'.
+5. Buka kembali dashboard WordPress Anda di browser (wp-admin).
+   Website langsung normal seketika!
+
+---
+
+## CARA 2: Memulihkan Akses Dashboard Cepat (1 Menit)
+
+Jika Anda ingin segera masuk ke wp-admin tanpa langsung mengupload file:
+1. Buka File Manager cPanel / FTP.
+2. Masuk ke public_html/wp-content/plugins/.
+3. Ganti nama (Rename) folder:
+   Dari: wp-speed-core
+   Menjadi: wp-speed-core-off
+4. Segera buka https://hajidantravelumroh.com/wp-admin/plugins.php.
+   WordPress akan otomatis mendeteksi plugin non-aktif dan halaman admin kembali terbuka normal.
+5. Setelah masuk admin, upload plugin via menu Plugins -> Add New Plugin -> Upload Plugin (gunakan wp-speed-core.zip).

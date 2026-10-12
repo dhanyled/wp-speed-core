@@ -10,14 +10,23 @@ if (!defined('ABSPATH')) {
 }
 
 final class MediaFacadeOptimizer {
+    private array $opts;
+
     public function __construct() {
-        if (!is_admin()) {
+        $s = (array) get_option('wpsc_settings', []);
+        $this->opts = $s['media'] ?? [];
+
+        if (!empty($this->opts['video_placeholder']) && !is_admin()) {
             add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
             add_action('template_redirect', [$this, 'start_buffer'], 2);
         }
     }
 
     public function enqueue_scripts(): void {
+        if (\WPSpeedCore\Kernel::is_bypassed()) {
+            return;
+        }
+
         wp_enqueue_script(
             'wpsc-iframe-facade',
             WPSC_URL . 'assets/js/iframe-facade.js',
@@ -28,7 +37,7 @@ final class MediaFacadeOptimizer {
     }
 
     public function start_buffer(): void {
-        if (\WPSpeedCore\Kernel::is_page_builder_editor()) {
+        if (\WPSpeedCore\Kernel::is_bypassed()) {
             return;
         }
         ob_start([$this, 'optimize_iframes']);
@@ -43,7 +52,7 @@ final class MediaFacadeOptimizer {
 
         while ($processor->next_tag(['tag_name' => 'IFRAME'])) {
             $src = $processor->get_attribute('src');
-            if (!$src) {
+            if (!$src || $src === 'about:blank') {
                 continue;
             }
 
@@ -59,9 +68,13 @@ final class MediaFacadeOptimizer {
             } elseif (strpos($src, 'vimeo.com') !== false) {
                 $processor->set_attribute('loading', 'lazy');
                 $processor->set_attribute('data-wpsc-facade', 'vimeo');
+                $processor->set_attribute('data-wpsc-src', $src);
+                $processor->set_attribute('src', 'about:blank');
             } elseif (strpos($src, 'google.com/maps') !== false || strpos($src, 'maps.google.com') !== false) {
                 $processor->set_attribute('loading', 'lazy');
                 $processor->set_attribute('data-wpsc-facade', 'maps');
+                $processor->set_attribute('data-wpsc-src', $src);
+                $processor->set_attribute('src', 'about:blank');
             }
         }
 

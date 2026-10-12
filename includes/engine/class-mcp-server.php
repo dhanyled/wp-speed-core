@@ -292,16 +292,13 @@ class McpServer {
                 return ['success' => false, 'action' => 'single_purge', 'url' => $url, 'error' => 'Invalid host for purge operation.'];
             }
 
-            $file = WPSC_CACHE_DIR . 'html/' . md5($url_host . ($p['path'] ?? '/')) . '.html';
-            $purged = false;
-            if (file_exists($file)) {
-                wp_delete_file($file);
-                if (file_exists($file . '.gz')) {
-                    wp_delete_file($file . '.gz');
-                }
-                $purged = true;
+            $kernel = Kernel::launch();
+            /** @var \WPSpeedCore\Cache\HtmlCacheEngine|null $cache */
+            $cache = $kernel->get('cache');
+            if ($cache && method_exists($cache, 'purge_url')) {
+                $cache->purge_url($url);
             }
-            return ['success' => true, 'action' => 'single_purge', 'url' => $url, 'purged' => $purged];
+            return ['success' => true, 'action' => 'single_purge', 'url' => $url, 'purged' => true];
         }
 
         do_action('wpsc_purge_all');

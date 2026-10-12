@@ -16,6 +16,10 @@ class StyleController {
     }
 
     public function inject_content_visibility(): void {
+        if (\WPSpeedCore\Kernel::is_bypassed()) {
+            return;
+        }
+
         echo "\n<style id=\"wpsc-content-visibility\">
             footer, #footer, .site-footer, #colophon, .comments-area, .related-posts {
                 content-visibility: auto;

@@ -1,0 +1,135 @@
+================================================================================
+PANDUAN LENGKAP COPY-PASTE PUBLIKASI GITHUB RELEASES (WP SPEED CORE)
+================================================================================
+
+--------------------------------------------------------------------------------
+1. PUBLIKASI RELEASE v1.6.3
+--------------------------------------------------------------------------------
+Buka Browser ke tautan ini:
+https://github.com/dhanyled/wp-speed-core/releases/new?tag=v1.6.3
+
+KOLOM YANG HARUS DIISI:
+-----------------------
+Tag:
+v1.6.3
+
+Target:
+main
+
+Release title (Salin teks di bawah ini):
+Release v1.6.3 - Fail-Safe Boot Guard & Clean Release Packaging
+
+Description (Salin seluruh teks di bawah ini):
+### 🛡️ Boot Hardening & Release Packaging Resilience (Hotfix)
+- **Defensive Kernel Booting (White Screen Prevention)**:
+  - Mengisolasi inisialisasi GitHubUpdater di Kernel::boot_engine() menggunakan proteksi class_exists(Engine\GitHubUpdater::class).
+  - Mencegah Fatal Critical Error pada website jika proses ekstraksi pembaruan zip oleh WordPress terputus atau mengalami keterlambatan penulisan file ke disk server.
+- **Strict Whitelist ZIP Distribution Standard**:
+  - Menghentikan pembuatan arsip rilis zip liar dan menerapkan whitelist folder inti (assets, includes, tests, wp-content, wp-speed-core.php, metadata).
+  - Menjamin struktur direktori includes/engine/ selalu utuh dan konsisten saat diekstrak oleh WordPress Upgrader.
+- **Workflow Rules Update**:
+  - Menambahkan bab standar rilis Release Packaging & GitHub Updater Resilience Protocol di WORKFLOW_RULES.md.
+
+OPSI CHECKBOX:
+- JANGAN centang 'Set as the latest release' (biarkan kosong).
+- JANGAN centang 'Set as a pre-release' (biarkan kosong).
+
+KLIK TOMBOL:
+Klik tombol hijau 'Publish release'.
+
+
+================================================================================
+2. PUBLIKASI RELEASE v1.6.4 (LATEST / TERBARU)
+================================================================================
+Buka Browser ke tautan ini:
+https://github.com/dhanyled/wp-speed-core/releases/new?tag=v1.6.4
+
+KOLOM YANG HARUS DIISI:
+-----------------------
+Tag:
+v1.6.4
+
+Target:
+main
+
+Release title (Salin teks di bawah ini):
+Release v1.6.4 - Kernel Guardrail & Fault-Isolated Architecture
+
+Description (Salin seluruh teks di bawah ini):
+### 🛡️ Kernel Guardrail & Fault-Isolated Boot Architecture (Hotfix)
+- **Granular Kernel Guardrail (register_safe)**:
+  - Mengimplementasikan mekanisme Fault-Isolation berbasis try-catch (\Throwable) pada setiap modul internal kernel (Kernel::register_safe()).
+  - Jika salah satu modul gagal inisialisasi karena dependensi lingkungan, database, atau galat berkas, modul terkait dinonaktifkan secara aman dan dicatat ke log diagnostik tanpa mematikan modul lain dan tanpa memicu White Screen of Death (WSOD).
+  - Menampilkan notifikasi visual admin yang informatif (admin_notices) bagi Administrator tanpa merusak tampilan halaman WordPress.
+- **Top-Level Lifecycle Guardrail**:
+  - Membungkus pemanggilan Kernel::launch(), Bootstrap::activate(), dan Bootstrap::deactivate() dengan blok perlindungan try-catch (\Throwable) di level root plugin wp-speed-core.php.
+- **Critical Typo Fix**:
+  - Memperbaiki konstanta pengecekan direct-access pada includes/optimization/class-database-housekeeper.php dari typo ABSP@Lr kembali menjadi ABSPATH, mengatasi masalah penghentian paksa (exit;) seketika saat aktivasi modul database.
+
+LAMPIRAN WAJIB (ATTACH BINARIES):
+- Di bawah kotak deskripsi ada kotak: 'Attach binaries by dropping them here or selecting them'
+- Upload/tarik file zip berikut ke kotak tersebut:
+  D:\Dhany\Plugin_flyingpress_perfmatter\wp-speed-core.zip
+
+OPSI CHECKBOX:
+- JANGAN centang 'Set as the latest release' (karena akan digantikan oleh v1.6.5).
+
+KLIK TOMBOL:
+Klik tombol hijau 'Publish release'.
+
+
+================================================================================
+3. PUBLIKASI RELEASE v1.6.5 (LATEST / TERBARU)
+================================================================================
+Buka Browser ke tautan ini:
+https://github.com/dhanyled/wp-speed-core/releases/new?tag=v1.6.5
+
+KOLOM YANG HARUS DIISI:
+-----------------------
+Tag:
+v1.6.5
+
+Target:
+main
+
+Release title (Salin teks di bawah ini):
+Release v1.6.5 - Engine Buffer Inversion Fix, Universal Bypass & Architecture Hardening
+
+Description (Salin seluruh teks di bawah ini):
+### 🛡️ Engine Buffer Inversion Fix, Universal Bypass & Architecture Hardening
+- **Output Buffer Inversion Fix (Critical)**:
+  - Mengubah prioritas hook template_redirect pada HtmlCacheEngine::capture() dari 9999 menjadi 0 sehingga buffer cache HTML menjadi buffer paling luar (outermost). Seluruh transformasi inner buffer (ScriptController, MediaController, CdnRewriter, FontOptimizer, MediaFacadeOptimizer) selesai diproses ke dalam HTML sebelum berkas statis .html dan .html.gz ditulis ke disk.
+- **Enforcement Universal Bypass Mode (?nowpsc=1)**:
+  - Menyematkan validasi Kernel::is_bypassed() pada seluruh sub-modul pengoptimal (ScriptController, MediaController, StyleController, FontController, FontOptimizer, SpeculationEngine, CdnRewriter, MediaFacadeOptimizer).
+- **WordPress 5.9+ Duotone SVG Bloat Stripping**:
+  - Menambahkan fitur strip_duotone_svg pada BloatSuppressor, Bootstrap::DEFAULTS, AdaptiveTuner, dan MigrationManager untuk menghapus inline SVG filter duotone bloat.
+- **Database Housekeeper Stats & MCP Return Alignment**:
+  - Mengubah DatabaseHousekeeper::maintain(): array agar mengembalikan data statistik (revisions, drafts, trash, spam, transients, tables) yang akurat ke caller, memperbaiki kembalian null pada MCP Server tool wpsc_optimize_db.
+- **Query Parameter Cache Purge & Warmer Feed Sanitization**:
+  - Memperluas HtmlCacheEngine::purge_url() agar menghapus berkas cache berbasis hash query-string selain path statis. Menghapus URL RSS feed dari warm_cache().
+- **Single URL Purge Delegation**:
+  - Mengarahkan aksi pembersihan single URL di Dashboard::actions() dan McpServer::tool_purge_cache() langsung ke HtmlCacheEngine::purge_url() agar mobile cache dan Cloudflare Edge CDN purge API dieksekusi secara terkoordinasi.
+- **Asset Manager Rule Targeting & Persistence**:
+  - Memperbaiki AssetManagerPanel dan form JS agar aturan unloader mendukung target kontekstual (everywhere, frontpage, posts, pages, shop_only, non_shop, url_match) serta pengecualian ID/URL.
+- **Granular Core Engine Settings UI (Dashboard Tab 5)**:
+  - Menyediakan form kontrol lengkap di Tab Settings untuk mengonfigurasi HTML Cache & TTL, JS Delay Execution & Defer, W3C Speculation Rules & Eagerness, Media Hero Priority & Video Facade, serta Bloat Suppressor & Heartbeat lengkap dengan sistem notifikasi alert interaktif.
+- **Strict GitHub Updater Asset Matching**:
+  - Memperketat regex asset matcher pada GitHubUpdater untuk memprioritaskan arsip distribusi resmi wp-speed-core.zip dan mengabaikan arsip tester/parsial.
+
+LAMPIRAN WAJIB (ATTACH BINARIES):
+- Di bawah kotak deskripsi ada kotak: 'Attach binaries by dropping them here or selecting them'
+- Upload/tarik file zip berikut ke kotak tersebut:
+  D:\Dhany\Plugin_flyingpress_perfmatter\wp-speed-core.zip
+
+OPSI CHECKBOX:
+- [X] CENTANG opsi 'Set as the latest release'.
+
+KLIK TOMBOL:
+Klik tombol hijau 'Publish release'.
+
+================================================================================
+SELESAI!
+Setelah langkah ke-3 dipublikasikan, repositori GitHub Anda di:
+https://github.com/dhanyled/wp-speed-core
+akan otomatis resmi menampilkan badge hijau: 'v1.6.5 Latest'
+================================================================================

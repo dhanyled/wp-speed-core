@@ -92,12 +92,23 @@ class GitHubUpdater {
                 $version = ltrim((string) $data['tag_name'], 'v');
                 $download_url = '';
 
-                // Look for attached .zip asset (e.g., wp-speed-core.zip)
+                // Look for attached .zip asset (strictly prioritize official wp-speed-core.zip)
                 if (!empty($data['assets']) && is_array($data['assets'])) {
                     foreach ($data['assets'] as $asset) {
-                        if (isset($asset['name']) && str_ends_with(strtolower((string) $asset['name']), '.zip')) {
+                        $asset_name = strtolower((string) ($asset['name'] ?? ''));
+                        if ($asset_name === 'wp-speed-core.zip') {
                             $download_url = (string) ($asset['browser_download_url'] ?? '');
                             break;
+                        }
+                    }
+
+                    if (empty($download_url)) {
+                        foreach ($data['assets'] as $asset) {
+                            $asset_name = strtolower((string) ($asset['name'] ?? ''));
+                            if (str_ends_with($asset_name, '.zip') && strpos($asset_name, 'tester') === false) {
+                                $download_url = (string) ($asset['browser_download_url'] ?? '');
+                                break;
+                            }
                         }
                     }
                 }

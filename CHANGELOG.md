@@ -2,6 +2,31 @@
 
 Semua perubahan, penambahan fitur, dan perbaikan pada plugin **WP Speed Core** dicatat secara komprehensif di dalam dokumen ini.
 
+## [1.6.5] - 2026-10-12
+
+### 🛡️ Engine Buffer Inversion Fix, Universal Bypass & Architecture Hardening
+- **Output Buffer Inversion Fix (Critical)**:
+  - Mengubah prioritas hook `template_redirect` pada `HtmlCacheEngine::capture()` dari `9999` menjadi `0`. Dengan pembalikan ini, buffer cache HTML menjadi buffer paling luar (*outermost*), menjamin seluruh transformasi inner buffer (`ScriptController`, `MediaController`, `CdnRewriter`, `FontOptimizer`, `MediaFacadeOptimizer`) selesai diproses ke dalam HTML sebelum berkas statis `.html` dan `.html.gz` ditulis ke disk.
+- **Enforcement Universal Bypass Mode (`?nowpsc=1`)**:
+  - Menyematkan validasi `Kernel::is_bypassed()` pada seluruh sub-modul pengoptimal (`ScriptController`, `MediaController`, `StyleController`, `FontController`, `FontOptimizer`, `SpeculationEngine`, `CdnRewriter`, `MediaFacadeOptimizer`). Mode bypass kini secara konsisten menonaktifkan seluruh kompresi dan manipulasi DOM untuk keperluan debugging dan verifikasi visual murni.
+- **WordPress 5.9+ Duotone SVG Bloat Stripping**:
+  - Menambahkan fitur `strip_duotone_svg` pada `BloatSuppressor`, `Bootstrap::DEFAULTS`, `AdaptiveTuner`, dan `MigrationManager` untuk menghapus tumpukan inline SVG filter duotone (`wp_global_styles_render_svg_filters`) dari `wp_body_open` / header.
+- **Database Housekeeper Stats & MCP Return Alignment**:
+  - Mengubah metode `DatabaseHousekeeper::maintain(): array` agar mengembalikan data statistik (revisions, drafts, trash, spam, transients, tables) yang akurat ke caller, memperbaiki kembalian `null` pada MCP Server tool `wpsc_optimize_db`.
+- **Query Parameter Cache Purge & Warmer Feed Sanitization**:
+  - Memperluas `HtmlCacheEngine::purge_url()` agar menghapus berkas cache berbasis hash query-string selain path statis.
+  - Menghapus URL RSS feed dari `warm_cache()` karena feed memiliki header `no-cache` dan tidak disimpan di disk HTML cache.
+- **Single URL Purge Delegation**:
+  - Mengarahkan aksi pembersihan single URL di `Dashboard::actions()` dan `McpServer::tool_purge_cache()` langsung ke `HtmlCacheEngine::purge_url()`, memastikan pembersihan mobile cache file dan pemanggilan Cloudflare Edge CDN purge API dieksekusi secara terkoordinasi.
+- **Asset Manager Rule Targeting & Persistence**:
+  - Memperbaiki `AssetManagerPanel` dan UI form JavaScript agar aturan unloader mendukung target kontekstual (`everywhere`, `frontpage`, `posts`, `pages`, `shop_only`, `non_shop`, `url_match`) serta pengecualian ID/URL.
+- **Granular Core Engine Settings UI (Dashboard Tab 5)**:
+  - Menyediakan form kontrol lengkap di Tab Settings untuk mengonfigurasi HTML Cache & TTL, JS Delay Execution & Defer, W3C Speculation Rules & Eagerness, Media Hero Priority & Video Facade, serta Bloat Suppressor & Heartbeat lengkap dengan sistem notifikasi alert interaktif.
+- **Strict GitHub Updater Asset Matching**:
+  - Memperketat regex asset matcher pada `GitHubUpdater` untuk memprioritaskan arsip distribusi resmi `wp-speed-core.zip` dan mengabaikan arsip tester/parsial.
+
+---
+
 ## [1.6.4] - 2026-09-05
 
 ### 🛡️ Kernel Guardrail & Fault-Isolated Boot Architecture (Hotfix)

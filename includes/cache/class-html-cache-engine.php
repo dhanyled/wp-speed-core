@@ -30,7 +30,7 @@ class HtmlCacheEngine {
 
         if (!is_admin()) {
             add_action('init', [$this, 'serve'], 1);
-            add_action('template_redirect', [$this, 'capture'], 9999);
+            add_action('template_redirect', [$this, 'capture'], 0);
         }
 
         add_action('save_post', [$this, 'purge_post']);
@@ -235,12 +235,20 @@ class HtmlCacheEngine {
         }
 
         $path = $p['path'] ?? '/';
-        $base = $this->dir . md5($home_host . $path);
+        $bases = [
+            $this->dir . md5($home_host . $path),
+        ];
 
-        foreach (['.html', '.mobile.html', '.html.gz', '.mobile.html.gz'] as $suffix) {
-            $f = $base . $suffix;
-            if (file_exists($f)) {
-                wp_delete_file($f);
+        if (!empty($p['query'])) {
+            $bases[] = $this->dir . md5($home_host . $path . '?' . $p['query']);
+        }
+
+        foreach ($bases as $base) {
+            foreach (['.html', '.mobile.html', '.html.gz', '.mobile.html.gz'] as $suffix) {
+                $f = $base . $suffix;
+                if (file_exists($f)) {
+                    wp_delete_file($f);
+                }
             }
         }
 
@@ -368,11 +376,6 @@ class HtmlCacheEngine {
     public function warm_cache(): int {
         $home_url = home_url('/');
         $urls     = [$home_url];
-
-        $rss_feed = get_feed_link();
-        if ($rss_feed) {
-            $urls[] = $rss_feed;
-        }
 
         // Extract top URLs from XML sitemap (Core wp-sitemap.xml or Yoast/RankMath)
         $sitemap_candidates = [

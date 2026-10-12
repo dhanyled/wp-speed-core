@@ -16,7 +16,7 @@ class SpeculationEngine {
     }
 
     public function inject_rules(): void {
-        if (is_user_logged_in()) {
+        if (is_user_logged_in() || \WPSpeedCore\Kernel::is_bypassed()) {
             return;
         }
 

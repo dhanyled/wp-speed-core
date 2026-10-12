@@ -13,7 +13,7 @@ if (!defined('WPSC_PATH')) {
     define('WPSC_PATH', ABSPATH);
 }
 if (!defined('WPSC_VERSION')) {
-    define('WPSC_VERSION', '1.6.2');
+    define('WPSC_VERSION', '1.6.5');
 }
 if (!defined('WPSC_BASENAME')) {
     define('WPSC_BASENAME', 'wp-speed-core/wp-speed-core.php');

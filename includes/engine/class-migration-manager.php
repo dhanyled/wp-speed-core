@@ -141,11 +141,11 @@ class MigrationManager {
 
                 // Bloat
                 if (!empty($pm['disable_emojis'])) {
-                    $settings['bloat']['remove_emojis'] = 1;
+                    $settings['general']['strip_emojis'] = 1;
                     $imported++;
                 }
                 if (!empty($pm['disable_duotone'])) {
-                    $settings['bloat']['remove_duotone'] = 1;
+                    $settings['general']['strip_duotone_svg'] = 1;
                     $imported++;
                 }
 

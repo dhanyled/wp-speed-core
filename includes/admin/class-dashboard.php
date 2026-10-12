@@ -85,6 +85,44 @@ class Dashboard {
             exit;
         }
 
+        if (isset($_POST['wpsc_save_core_settings']) && check_admin_referer('wpsc_core_settings_nonce')) {
+            $curr = (array) get_option('wpsc_settings', []);
+
+            // Cache
+            $curr['cache']['html_cache']   = !empty($_POST['wpsc_html_cache']) ? 1 : 0;
+            $curr['cache']['cache_mobile'] = !empty($_POST['wpsc_cache_mobile']) ? 1 : 0;
+            $curr['cache']['cache_ttl']    = max(300, (int) ($_POST['wpsc_cache_ttl'] ?? 86400));
+
+            // Script
+            $curr['script']['delayed_execution']  = !empty($_POST['wpsc_delayed_execution']) ? 1 : 0;
+            $curr['script']['use_native_defer']   = !empty($_POST['wpsc_use_native_defer']) ? 1 : 0;
+            $curr['script']['execution_strategy'] = in_array($_POST['wpsc_execution_strategy'] ?? '', ['chunked', 'sync'], true) ? $_POST['wpsc_execution_strategy'] : 'chunked';
+            $curr['script']['exclusion_list']     = sanitize_textarea_field($_POST['wpsc_script_exclusions'] ?? '');
+
+            // Preload / Speculation Rules
+            $curr['preload']['speculation_rules'] = !empty($_POST['wpsc_speculation_rules']) ? 1 : 0;
+            $curr['preload']['speculation_level'] = in_array($_POST['wpsc_speculation_level'] ?? '', ['conservative', 'moderate', 'eager'], true) ? $_POST['wpsc_speculation_level'] : 'moderate';
+
+            // Media & Style
+            $curr['media']['auto_hero_priority'] = !empty($_POST['wpsc_auto_hero_priority']) ? 1 : 0;
+            $curr['media']['native_lazy']        = !empty($_POST['wpsc_native_lazy']) ? 1 : 0;
+            $curr['media']['video_placeholder']  = !empty($_POST['wpsc_video_placeholder']) ? 1 : 0;
+            $curr['style']['below_fold_skip']    = !empty($_POST['wpsc_below_fold_skip']) ? 1 : 0;
+
+            // Bloat Suppressor & Heartbeat
+            $curr['general']['strip_emojis']       = !empty($_POST['wpsc_strip_emojis']) ? 1 : 0;
+            $curr['general']['strip_embeds']       = !empty($_POST['wpsc_strip_embeds']) ? 1 : 0;
+            $curr['general']['strip_dashicons']    = !empty($_POST['wpsc_strip_dashicons']) ? 1 : 0;
+            $curr['general']['strip_duotone_svg']  = !empty($_POST['wpsc_strip_duotone_svg']) ? 1 : 0;
+            $curr['general']['block_xmlrpc']       = !empty($_POST['wpsc_block_xmlrpc']) ? 1 : 0;
+            $curr['general']['heartbeat_mode']     = in_array($_POST['wpsc_heartbeat_mode'] ?? '', ['default', 'throttle', 'disable'], true) ? $_POST['wpsc_heartbeat_mode'] : 'throttle';
+            $curr['general']['heartbeat_interval'] = max(15, min(120, (int) ($_POST['wpsc_heartbeat_interval'] ?? 60)));
+
+            update_option('wpsc_settings', $curr);
+            wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'tab' => 'settings', 'core_saved' => '1'], admin_url('options-general.php')));
+            exit;
+        }
+
         if (isset($_POST['wpsc_save_cdn']) && check_admin_referer('wpsc_cdn_nonce')) {
             $curr = (array) get_option('wpsc_settings', []);
             $curr['cdn']['enable_cdn'] = !empty($_POST['wpsc_enable_cdn']) ? 1 : 0;
@@ -120,18 +158,10 @@ class Dashboard {
         if (isset($_GET['wpsc_purge_url']) && check_admin_referer('wpsc_purge_single_url')) {
             $url_to_purge = esc_url_raw(urldecode((string) $_GET['wpsc_purge_url']));
             if ($url_to_purge) {
-                $p = wp_parse_url($url_to_purge);
-                $home_host   = (string) wp_parse_url(home_url(), PHP_URL_HOST);
-                $target_host = $p['host'] ?? $home_host;
-
-                if (!empty($home_host) && strcasecmp($target_host, $home_host) === 0) {
-                    $file = WPSC_CACHE_DIR . 'html/' . md5($target_host . ($p['path'] ?? '/')) . '.html';
-                    if (file_exists($file)) {
-                        wp_delete_file($file);
-                        if (file_exists($file . '.gz')) {
-                            wp_delete_file($file . '.gz');
-                        }
-                    }
+                /** @var \WPSpeedCore\Cache\HtmlCacheEngine|null $cache */
+                $cache = $this->modules['cache'] ?? null;
+                if ($cache && method_exists($cache, 'purge_url')) {
+                    $cache->purge_url($url_to_purge);
                 }
             }
             wp_safe_redirect(add_query_arg(['page' => 'wp-speed-core', 'tab' => 'overview', 'single_purged' => '1'], admin_url('options-general.php')));
@@ -793,6 +823,56 @@ class Dashboard {
             </div>
 
             <!-- Notice Alerts -->
+            <?php if (isset($_GET['core_saved'])): ?>
+                <div class="wpsc-glass" style="padding: 14px 20px; margin-bottom: 20px; border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">✅</span> Pengaturan Core Optimization Engine berhasil disimpan!
+                </div>
+            <?php endif; ?>
+            <?php if (isset($_GET['cdn_saved'])): ?>
+                <div class="wpsc-glass" style="padding: 14px 20px; margin-bottom: 20px; border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">✅</span> Pengaturan CDN CNAME berhasil disimpan!
+                </div>
+            <?php endif; ?>
+            <?php if (isset($_GET['exclusions_saved'])): ?>
+                <div class="wpsc-glass" style="padding: 14px 20px; margin-bottom: 20px; border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">✅</span> Pengecualian URL cache berhasil disimpan!
+                </div>
+            <?php endif; ?>
+            <?php if (isset($_GET['cf_saved'])): ?>
+                <div class="wpsc-glass" style="padding: 14px 20px; margin-bottom: 20px; border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">✅</span> Kredensial Cloudflare API berhasil disimpan!
+                </div>
+            <?php endif; ?>
+            <?php if (isset($_GET['psi_key_saved'])): ?>
+                <div class="wpsc-glass" style="padding: 14px 20px; margin-bottom: 20px; border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">✅</span> Google PageSpeed Insights API Key berhasil disimpan!
+                </div>
+            <?php endif; ?>
+            <?php if (isset($_GET['db_cleaned'])): ?>
+                <div class="wpsc-glass" style="padding: 14px 20px; margin-bottom: 20px; border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">✅</span> Database Housekeeper selesai membersihkan tabel dan data sampah.
+                </div>
+            <?php endif; ?>
+            <?php if (isset($_GET['purged'])): ?>
+                <div class="wpsc-glass" style="padding: 14px 20px; margin-bottom: 20px; border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">✅</span> Seluruh cache statis HTML berhasil dibersihkan!
+                </div>
+            <?php endif; ?>
+            <?php if (isset($_GET['single_purged'])): ?>
+                <div class="wpsc-glass" style="padding: 14px 20px; margin-bottom: 20px; border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">✅</span> Cache URL yang ditentukan berhasil dibersihkan!
+                </div>
+            <?php endif; ?>
+            <?php if (isset($_GET['warmed'])): ?>
+                <div class="wpsc-glass" style="padding: 14px 20px; margin-bottom: 20px; border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">🔥</span> Cache Preloading (Warmer) berhasil dijalankan!
+                </div>
+            <?php endif; ?>
+            <?php if (isset($_GET['tuned'])): ?>
+                <div class="wpsc-glass" style="padding: 14px 20px; margin-bottom: 20px; border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 18px;">⚡</span> 1-Click Adaptive Auto-Tune berhasil diaplikasikan ke sistem!
+                </div>
+            <?php endif; ?>
             <?php if (!empty($migrate_notice)): ?>
                 <div class="wpsc-glass" style="padding: 14px 20px; margin-bottom: 20px; border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 13px; display: flex; align-items: center; gap: 10px;">
                     <span style="font-size: 18px;">✅</span> <?php echo esc_html($migrate_notice); ?>
@@ -1234,6 +1314,184 @@ class Dashboard {
 
             <!-- TAB 5: SETTINGS & CDN -->
             <?php if ($active_tab === 'settings'): ?>
+                <!-- Core Optimization Engine Settings Form -->
+                <form method="post" style="margin-bottom: 24px;">
+                    <?php wp_nonce_field('wpsc_core_settings_nonce'); ?>
+                    
+                    <div class="wpsc-glass-metallic" style="padding: 24px; margin-bottom: 24px; border: 1px solid rgba(56, 189, 248, 0.35);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                            <div>
+                                <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 6px 0; color: #fff; display: flex; align-items: center; gap: 10px;">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                    Core Optimization Engine Settings
+                                </h2>
+                                <p style="margin: 0; font-size: 13px; color: #94a3b8; max-width: 800px;">
+                                    Konfigurasi granular parameter performa caching, JavaScript execution strategy, W3C speculation prerender, optimasi media LCP, dan WordPress bloat suppression.
+                                </p>
+                            </div>
+                            <button type="submit" name="wpsc_save_core_settings" class="wpsc-btn-primary" style="padding: 10px 22px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                                Simpan Semua Pengaturan Core
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                        <!-- Box 1: HTML Cache -->
+                        <div class="wpsc-glass" style="padding: 24px;">
+                            <h3 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
+                                Static Disk HTML Cache (Zero-Query)
+                            </h3>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                    <input type="checkbox" name="wpsc_html_cache" value="1" <?php checked(!empty($settings['cache']['html_cache'] ?? 1)); ?>>
+                                    Aktifkan Cache Statis HTML Disk
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                    <input type="checkbox" name="wpsc_cache_mobile" value="1" <?php checked(!empty($settings['cache']['cache_mobile'] ?? 1)); ?>>
+                                    Pisahkan File Cache Khusus Mobile (Device-Specific Cache)
+                                </label>
+                                <div style="margin-top: 6px;">
+                                    <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Cache Lifetime / TTL (detik, default 86400 / 24 jam):</label>
+                                    <input type="number" name="wpsc_cache_ttl" value="<?php echo esc_attr($settings['cache']['cache_ttl'] ?? 86400); ?>" min="300" step="60" style="width: 100%; background: #050811; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 12px; border-radius: 8px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Box 2: Speculation Rules -->
+                        <div class="wpsc-glass" style="padding: 24px;">
+                            <h3 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                W3C Speculation Rules (Instant Prerender)
+                            </h3>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                    <input type="checkbox" name="wpsc_speculation_rules" value="1" <?php checked(!empty($settings['preload']['speculation_rules'] ?? 1)); ?>>
+                                    Injeksi Header/Script Speculation Rules
+                                </label>
+                                <div style="margin-top: 6px;">
+                                    <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Tingkat Eagerness Prerender:</label>
+                                    <select name="wpsc_speculation_level" style="width: 100%; background: #050811; border: 1px solid rgba(255,255,255,0.15); color: #38bdf8; padding: 8px 12px; border-radius: 8px; font-size: 13px;">
+                                        <option value="moderate" <?php selected(($settings['preload']['speculation_level'] ?? 'moderate'), 'moderate'); ?>>Moderate (Hover cursor 200ms - Recommended)</option>
+                                        <option value="conservative" <?php selected(($settings['preload']['speculation_level'] ?? 'moderate'), 'conservative'); ?>>Conservative (Pointerdown / Klik awal)</option>
+                                        <option value="eager" <?php selected(($settings['preload']['speculation_level'] ?? 'moderate'), 'eager'); ?>>Eager (Prerender langsung saat viewport terlihat)</option>
+                                    </select>
+                                </div>
+                                <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">
+                                    Standar W3C Speculation Rules API Chromium untuk transisi navigasi 0ms instan tanpa dependensi library eksternal.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Box 3: JavaScript & INP Shield -->
+                        <div class="wpsc-glass" style="padding: 24px;">
+                            <h3 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                JavaScript Optimization & INP Shield
+                            </h3>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                    <input type="checkbox" name="wpsc_delayed_execution" value="1" <?php checked(!empty($settings['script']['delayed_execution'] ?? 1)); ?>>
+                                    Delay Eksekusi JS hingga Interaksi Pengguna
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                    <input type="checkbox" name="wpsc_use_native_defer" value="1" <?php checked(!empty($settings['script']['use_native_defer'] ?? 1)); ?>>
+                                    Aktifkan Native Defer untuk Script Standar
+                                </label>
+                                <div>
+                                    <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Strategi Eksekusi Delay:</label>
+                                    <select name="wpsc_execution_strategy" style="width: 100%; background: #050811; border: 1px solid rgba(255,255,255,0.15); color: #38bdf8; padding: 8px 12px; border-radius: 8px; font-size: 13px;">
+                                        <option value="chunked" <?php selected(($settings['script']['execution_strategy'] ?? 'chunked'), 'chunked'); ?>>Chunked (INP Shield: scheduler.yield / 50ms sub-tasks)</option>
+                                        <option value="sync" <?php selected(($settings['script']['execution_strategy'] ?? 'chunked'), 'sync'); ?>>Synchronous (Eksekusi berurutan tanpa jeda)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Pengecualian Delay JS (1 keyword/handle per baris):</label>
+                                    <textarea name="wpsc_script_exclusions" rows="3" style="width: 100%; background: #050811; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-size: 12px;"><?php echo esc_textarea($settings['script']['exclusion_list'] ?? "gtag\ngtag.js\ngoogle-analytics\nanalytics.js\nrecaptcha\nturnstile\nhcaptcha\njquery.min.js"); ?></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Box 4: Media & Layout (LCP / CLS) -->
+                        <div class="wpsc-glass" style="padding: 24px;">
+                            <h3 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                Media & Layout Optimization (LCP / CLS)
+                            </h3>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                    <input type="checkbox" name="wpsc_auto_hero_priority" value="1" <?php checked(!empty($settings['media']['auto_hero_priority'] ?? 1)); ?>>
+                                    Auto Hero Priority (fetchpriority="high" & decoding="sync" pada LCP Hero image)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                    <input type="checkbox" name="wpsc_native_lazy" value="1" <?php checked(!empty($settings['media']['native_lazy'] ?? 1)); ?>>
+                                    Native Lazyload (loading="lazy" pada gambar non-hero)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                    <input type="checkbox" name="wpsc_video_placeholder" value="1" <?php checked(!empty($settings['media']['video_placeholder'] ?? 1)); ?>>
+                                    Video Facade (Ganti iframe YouTube/Vimeo berat dengan poster placeholder instan)
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                    <input type="checkbox" name="wpsc_below_fold_skip" value="1" <?php checked(!empty($settings['style']['below_fold_skip'] ?? 1)); ?>>
+                                    CSS Content-Visibility: auto (Skip rendering elemen footer/bawah halaman hingga scroll)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Box 5: WordPress Bloat Suppression & Heartbeat -->
+                        <div class="wpsc-glass" style="padding: 24px; grid-column: span 2;">
+                            <h3 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                WordPress Bloat Suppression & Heartbeat Control
+                            </h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                        <input type="checkbox" name="wpsc_strip_emojis" value="1" <?php checked(!empty($settings['general']['strip_emojis'] ?? 1)); ?>>
+                                        Hapus WordPress Emojis (wp-emoji-release.min.js & inline styles)
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                        <input type="checkbox" name="wpsc_strip_embeds" value="1" <?php checked(!empty($settings['general']['strip_embeds'] ?? 1)); ?>>
+                                        Hapus WordPress oEmbed Scripts (wp-embed.min.js)
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                        <input type="checkbox" name="wpsc_strip_dashicons" value="1" <?php checked(!empty($settings['general']['strip_dashicons'] ?? 1)); ?>>
+                                        Hapus Frontend Dashicons CSS untuk Non-Admin
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                        <input type="checkbox" name="wpsc_strip_duotone_svg" value="1" <?php checked(!empty($settings['general']['strip_duotone_svg'] ?? 1)); ?>>
+                                        Hapus Global Inline Duotone SVG Filter Bloat
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cbd5e1; cursor: pointer;">
+                                        <input type="checkbox" name="wpsc_block_xmlrpc" value="1" <?php checked(!empty($settings['general']['block_xmlrpc'] ?? 1)); ?>>
+                                        Blokir XML-RPC Pingback & Bruteforce Protection
+                                    </label>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div>
+                                        <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Heartbeat Control:</label>
+                                        <select name="wpsc_heartbeat_mode" style="width: 100%; background: #050811; border: 1px solid rgba(255,255,255,0.15); color: #38bdf8; padding: 8px 12px; border-radius: 8px; font-size: 13px;">
+                                            <option value="throttle" <?php selected(($settings['general']['heartbeat_mode'] ?? 'throttle'), 'throttle'); ?>>Throttle (Perlambat frekuensi Heartbeat)</option>
+                                            <option value="disable" <?php selected(($settings['general']['heartbeat_mode'] ?? 'throttle'), 'disable'); ?>>Disable (Nonaktifkan total di Frontend)</option>
+                                            <option value="default" <?php selected(($settings['general']['heartbeat_mode'] ?? 'throttle'), 'default'); ?>>Default (Standar WordPress 15 detik)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">Heartbeat Interval (detik, default 60):</label>
+                                        <input type="number" name="wpsc_heartbeat_interval" value="<?php echo esc_attr($settings['general']['heartbeat_interval'] ?? 60); ?>" min="15" max="120" style="width: 100%; background: #050811; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 12px; border-radius: 8px;">
+                                    </div>
+                                    <div style="margin-top: 8px;">
+                                        <button type="submit" name="wpsc_save_core_settings" class="wpsc-btn-primary" style="width: 100%; justify-content: center;">
+                                            Simpan Semua Pengaturan Core Engine
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
                 <!-- Cloudflare Edge Cache Integration -->
                 <div class="wpsc-glass" style="padding: 24px; margin-bottom: 24px;">
                     <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">

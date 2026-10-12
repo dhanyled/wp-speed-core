@@ -42,34 +42,23 @@ class AssetManagerPanel {
                         continue;
                     }
 
-                    $type       = sanitize_text_field($rule['type'] ?? 'script');
-                    $everywhere = !empty($rule['everywhere']) ? 1 : 0;
-                    $url_match  = sanitize_text_field($rule['url_match'] ?? '');
+                    $type        = sanitize_text_field($rule['type'] ?? 'script');
+                    $target      = sanitize_key($rule['target'] ?? (!empty($rule['everywhere']) ? 'everywhere' : 'url_match'));
+                    $url_match   = sanitize_text_field($rule['url_match'] ?? '');
+                    $exclude_url = sanitize_text_field($rule['exclude_url'] ?? '');
+                    $exclude_ids = sanitize_text_field($rule['exclude_ids'] ?? '');
 
-                    if ($everywhere || $url_match !== '') {
+                    if ($target !== '' || $url_match !== '') {
                         $clean_rules[] = [
-                            'handle'     => $handle,
-                            'type'       => $type,
-                            'everywhere' => $everywhere,
-                            'url_match'  => $url_match,
+                            'handle'      => $handle,
+                            'type'        => $type,
+                            'target'      => $target,
+                            'everywhere'  => ($target === 'everywhere') ? 1 : 0,
+                            'url_match'   => $url_match,
+                            'exclude_url' => $exclude_url,
+                            'exclude_ids' => $exclude_ids,
                         ];
                     }
-                }
-            }
-
-            $custom_handle = preg_replace('/[^a-zA-Z0-9_\.-]/', '', (string) ($_POST['wpsc_custom_handle'] ?? ''));
-            if ($custom_handle !== '') {
-                $custom_type       = sanitize_text_field($_POST['wpsc_custom_type'] ?? 'script');
-                $custom_everywhere = !empty($_POST['wpsc_custom_everywhere']) ? 1 : 0;
-                $custom_url_match  = sanitize_text_field($_POST['wpsc_custom_url_match'] ?? '');
-
-                if ($custom_everywhere || $custom_url_match !== '') {
-                    $clean_rules[] = [
-                        'handle'     => $custom_handle,
-                        'type'       => $custom_type,
-                        'everywhere' => $custom_everywhere,
-                        'url_match'  => $custom_url_match,
-                    ];
                 }
             }
 
@@ -298,19 +287,22 @@ class AssetManagerPanel {
                 <table class="wpsc-table" id="wpsc-rules-table">
                     <thead>
                         <tr>
-                            <th style="width: 220px;">Handle Aset (CSS / JS)</th>
-                            <th style="width: 160px;">Tipe Aset</th>
-                            <th style="width: 150px;">Nonaktifkan Global</th>
-                            <th>Target URL Match (Regex / Path Pattern)</th>
-                            <th style="width: 80px; text-align: center;">Aksi</th>
+                            <th style="width: 180px;">Handle Aset</th>
+                            <th style="width: 130px;">Tipe</th>
+                            <th style="width: 170px;">Target Skenario</th>
+                            <th>Pola URL (Regex/Path)</th>
+                            <th style="width: 180px;">Pengecualian (Exceptions)</th>
+                            <th style="width: 70px; text-align: center;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($rules as $idx => $rule):
                             $handle     = $rule['handle'] ?? (is_string($idx) ? $idx : '');
                             $type       = $rule['type'] ?? 'script';
-                            $everywhere = !empty($rule['everywhere']);
-                            $url_match  = $rule['url_match'] ?? '';
+                            $target      = $rule['target'] ?? (!empty($rule['everywhere']) ? 'everywhere' : 'url_match');
+                            $url_match   = $rule['url_match'] ?? '';
+                            $exclude_url = $rule['exclude_url'] ?? '';
+                            $exclude_ids = $rule['exclude_ids'] ?? '';
                         ?>
                             <tr>
                                 <td>
@@ -324,16 +316,25 @@ class AssetManagerPanel {
                                     </select>
                                 </td>
                                 <td>
-                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                        <input type="checkbox" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][everywhere]" value="1" <?php checked($everywhere); ?>>
-                                        Matikan Semua
-                                    </label>
+                                    <select name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][target]" class="wpsc-select">
+                                        <option value="everywhere" <?php selected($target, 'everywhere'); ?>>Semua Halaman (Global)</option>
+                                        <option value="frontpage" <?php selected($target, 'frontpage'); ?>>Homepage Saja</option>
+                                        <option value="posts" <?php selected($target, 'posts'); ?>>Single Posts</option>
+                                        <option value="pages" <?php selected($target, 'pages'); ?>>Pages Saja</option>
+                                        <option value="shop_only" <?php selected($target, 'shop_only'); ?>>WooCommerce Saja</option>
+                                        <option value="non_shop" <?php selected($target, 'non_shop'); ?>>Halaman Non-Shop</option>
+                                        <option value="url_match" <?php selected($target, 'url_match'); ?>>Target URL Match</option>
+                                    </select>
                                 </td>
                                 <td>
                                     <input type="text" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][url_match]" value="<?php echo esc_attr($url_match); ?>" class="wpsc-input" placeholder="misal: /blog/ atau ^/contact">
                                 </td>
+                                <td>
+                                    <input type="text" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][exclude_url]" value="<?php echo esc_attr($exclude_url); ?>" class="wpsc-input" style="margin-bottom: 4px; font-size: 11px;" placeholder="Kecualikan URL (opsional)">
+                                    <input type="text" name="wpsc_rules[<?php echo esc_attr((string)$idx); ?>][exclude_ids]" value="<?php echo esc_attr($exclude_ids); ?>" class="wpsc-input" style="font-size: 11px;" placeholder="Kecualikan ID (mis: 12, 45)">
+                                </td>
                                 <td style="text-align: center;">
-                                    <button type="button" class="wpsc-btn-del" onclick="this.closest('tr').remove();">🗑️ Hapus</button>
+                                    <button type="button" class="wpsc-btn-del" onclick="this.closest('tr').remove();">🗑️</button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -373,16 +374,25 @@ class AssetManagerPanel {
                         </select>
                     </td>
                     <td>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="checkbox" name="wpsc_rules[${idx}][everywhere]" value="1">
-                            Matikan Semua
-                        </label>
+                        <select name="wpsc_rules[${idx}][target]" class="wpsc-select">
+                            <option value="everywhere">Semua Halaman (Global)</option>
+                            <option value="frontpage">Homepage Saja</option>
+                            <option value="posts">Single Posts</option>
+                            <option value="pages">Pages Saja</option>
+                            <option value="shop_only">WooCommerce Saja</option>
+                            <option value="non_shop">Halaman Non-Shop</option>
+                            <option value="url_match">Target URL Match</option>
+                        </select>
                     </td>
                     <td>
                         <input type="text" name="wpsc_rules[${idx}][url_match]" value="" class="wpsc-input" placeholder="misal: /blog/ atau ^/contact">
                     </td>
+                    <td>
+                        <input type="text" name="wpsc_rules[${idx}][exclude_url]" value="" class="wpsc-input" style="margin-bottom: 4px; font-size: 11px;" placeholder="Kecualikan URL (opsional)">
+                        <input type="text" name="wpsc_rules[${idx}][exclude_ids]" value="" class="wpsc-input" style="font-size: 11px;" placeholder="Kecualikan ID (mis: 12, 45)">
+                    </td>
                     <td style="text-align: center;">
-                        <button type="button" class="wpsc-btn-del" onclick="this.closest('tr').remove();">🗑️ Hapus</button>
+                        <button type="button" class="wpsc-btn-del" onclick="this.closest('tr').remove();">🗑️</button>
                     </td>
                 `;
                 tbody.appendChild(tr);

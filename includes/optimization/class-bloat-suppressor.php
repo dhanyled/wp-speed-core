@@ -30,6 +30,9 @@ class BloatSuppressor {
             add_filter('xmlrpc_enabled', '__return_false');
             add_filter('wp_headers', [$this, 'strip_pingback']);
         }
+        if (!empty($this->opts['strip_duotone_svg'])) {
+            add_action('after_setup_theme', [$this, 'strip_duotone_svg']);
+        }
         add_action('init', [$this, 'cleanup_meta']);
         if (!empty($this->opts['disable_cart_fragments_non_shop'])) {
             add_action('wp_enqueue_scripts', [$this, 'strip_cart_fragments'], 99);
@@ -165,5 +168,11 @@ class BloatSuppressor {
         if (function_exists('is_woocommerce') && !is_woocommerce() && !is_cart() && !is_checkout()) {
             wp_dequeue_script('wc-cart-fragments');
         }
+    }
+
+    public function strip_duotone_svg(): void {
+        remove_action('wp_body_open', 'wp_global_styles_render_svg_filters');
+        remove_action('wp_footer', 'wp_global_styles_render_svg_filters');
+        remove_action('in_admin_header', 'wp_global_styles_render_svg_filters');
     }
 }

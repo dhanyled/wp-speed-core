@@ -16,6 +16,10 @@ class FontController {
     }
 
     public function add_font_display_swap(string $html, string $handle, string $href, string $media): string {
+        if (\WPSpeedCore\Kernel::is_bypassed()) {
+            return $html;
+        }
+
         if (strpos($href, 'fonts.googleapis.com/css') !== false && strpos($href, 'display=') === false) {
             $sep = (strpos($href, '?') !== false) ? '&amp;' : '?';
             $html = str_replace($href, $href . $sep . 'display=swap', $html);

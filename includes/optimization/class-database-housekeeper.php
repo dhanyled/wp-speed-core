@@ -17,22 +17,26 @@ class DatabaseHousekeeper {
         add_action('wpsc_maintenance', [$this, 'maintain']);
     }
 
-    public function maintain(): void {
+    public function maintain(): array {
         $revs  = $this->trim_revisions();
         $drf   = $this->trim_drafts();
         $trsh  = $this->trim_trash();
         $spm   = $this->trim_spam();
         $trans = $this->trim_transients();
 
+        $stats = [
+            'revisions_pruned' => $revs,
+            'drafts_cleared'   => $drf,
+            'trash_emptied'    => $trsh,
+            'spam_removed'     => $spm,
+            'expired_trans'    => $trans,
+        ];
+
         if ($this->logger) {
-            $this->logger->info('Scheduled DB Housekeeping completed.', [
-                'revisions_pruned' => $revs,
-                'drafts_cleared'   => $drf,
-                'trash_emptied'    => $trsh,
-                'spam_removed'     => $spm,
-                'expired_trans'    => $trans,
-            ]);
+            $this->logger->info('Scheduled DB Housekeeping completed.', $stats);
         }
+
+        return $stats;
     }
 
     public function optimize_tables(): int {

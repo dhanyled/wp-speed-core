@@ -16,6 +16,7 @@ final class Bootstrap {
             'strip_emojis'       => 1,
             'strip_embeds'       => 1,
             'strip_dashicons'    => 1,
+            'strip_duotone_svg'  => 1,
             'block_xmlrpc'       => 1,
             'heartbeat_mode'     => 'throttle',
             'heartbeat_interval' => 60,

@@ -27,7 +27,7 @@ class ScriptController {
     }
 
     public function apply_defer(string $tag, string $handle, string $src): string {
-        if (is_admin() || empty($src) || strpos($tag, 'defer') !== false || strpos($tag, 'async') !== false) {
+        if (is_admin() || empty($src) || \WPSpeedCore\Kernel::is_bypassed() || strpos($tag, 'defer') !== false || strpos($tag, 'async') !== false) {
             return $tag;
         }
         if (in_array($handle, ['jquery', 'jquery-core', 'wpsc-delay-runner'], true)) {
@@ -37,6 +37,10 @@ class ScriptController {
     }
 
     public function enqueue_runner(): void {
+        if (\WPSpeedCore\Kernel::is_bypassed()) {
+            return;
+        }
+
         wp_enqueue_script(
             'wpsc-delay-runner',
             WPSC_URL . 'assets/js/delay-js.js',
@@ -47,7 +51,7 @@ class ScriptController {
     }
 
     public function start_delay_buffer(): void {
-        if (is_feed() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST) || wp_is_json_request() || \WPSpeedCore\Kernel::is_page_builder_editor()) {
+        if (is_feed() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST) || wp_is_json_request() || \WPSpeedCore\Kernel::is_bypassed()) {
             return;
         }
         ob_start([$this, 'queue_scripts']);

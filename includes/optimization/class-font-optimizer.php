@@ -18,11 +18,19 @@ final class FontOptimizer {
     }
 
     public function inject_resource_hints(): void {
+        if (\WPSpeedCore\Kernel::is_bypassed()) {
+            return;
+        }
+
         echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
         echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
     }
 
     public function start_buffer(): void {
+        if (\WPSpeedCore\Kernel::is_bypassed()) {
+            return;
+        }
+
         ob_start([$this, 'optimize_fonts']);
     }
 
