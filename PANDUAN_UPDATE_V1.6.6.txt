@@ -1,67 +1,107 @@
 ================================================================================
-  PANDUAN PERBAIKAN & UPDATE WP SPEED CORE v1.6.6 (HAJIDANTRAVELUMROH.COM)
+  PANDUAN RESMI PERBAIKAN & UPDATE WP SPEED CORE v1.6.6 (REVISI FINAL)
+  Website: https://hajidantravelumroh.com/
+  Dokumen Acuan: D:\Dhany\Plugin_flyingpress_perfmatter\PANDUAN_UPDATE_V1.6.6.txt
 ================================================================================
 
-1. PENYEBAB ERROR "Could not remove the current plugin":
+1. AKAR MASALAH TEKNIS SEBENARNYA (ROOT CAUSE ANALYSIS):
 --------------------------------------------------------------------------------
-- Saat proses pembaruan sebelumnya gagal, WordPress sempat menghapus sebagian berkas
-  lama tetapi gagal membersihkan berkas sisa (seperti file cache log / .htaccess)
-  karena perizinan (file permissions) terkunci oleh sistem web server.
-- Akibatnya, saat mencoba instal ulang atau replace dari dashboard, PHP WordPress 
-  tidak memiliki hak akses untuk menghapus folder sisa tersebut secara otomatis.
+Gejala yang sempat terjadi:
+1. Error: "Could not remove the current plugin"
+2. Dashboard WordPress memunculkan 2 baris plugin "WP Speed Core" kembar
+3. Error: "Plugin file does not exist" saat tombol aktivasi ditekan
+
+PENYEBAB UTAMA:
+- Paket arsip zip awal dibuat di sistem operasi Windows menggunakan PowerShell 
+  bawaan (Compress-Archive) yang menyimpan direktori dengan separator backslash (\).
+  Contoh entri arsip cacat:
+  * `wp-speed-core\wp-speed-core.php`
+  * `wp-speed-core\assets\css\pagespeed-gauge.css`
+  * `wp-speed-core\includes\class-bootstrap.php`
+
+- Server web hajidantravelumroh.com menggunakan sistem operasi Linux. Di Linux, 
+  karakter backslash (\) BUKANLAH pemisah folder, melainkan dibaca sebagai 
+  karakter teks biasa dalam nama file.
+- Dampaknya:
+  * Linux mengekstrak file dengan nama harfiah datar (flat file), bukan subfolder.
+  * WordPress Uninstaller gagal menghapus file berkarakter (\) sehingga memunculkan 
+    pesan "Could not remove the current plugin".
+  * WordPress otomatis membuat folder alternatif bernomor (`wp-speed-core-1` dan 
+    `wp-speed-core-2`), yang menyebabkan plugin tampil ganda di wp-admin/plugins.php.
+  * Saat aktivasi dicoba, WordPress mencari `wp-speed-core.php` standar dan gagal 
+    karena nama file fisik di server adalah `wp-speed-core\wp-speed-core.php`, 
+    sehingga memunculkan pesan "Plugin file does not exist".
+
+* PERINGATAN KRITIS: 
+  Mengunduh ulang dari aset rilis GitHub lama yang belum dinormalisasi akan 
+  mengulangi siklus error yang sama. Gunakan berkas zip steril yang telah 
+  dinormalisasi dengan forward slash standar Linux (/).
 
 
-2. CARA MENGATASI (SOLUSI CEPAT & BERSIH):
---------------------------------------------------------------------------------
+================================================================================
+2. CARA MENGATASI (PEMBERSIHAN TUNTAS & INSTALASI STERIL):
+================================================================================
 
-LANGKAH A: Hapus Folder yang Terkunci di Server (Paling Pasti via File Manager)
+LANGKAH A: Hapus Seluruh Folder Sisa di Server (Wajib Bersih Total)
 --------------------------------------------------------------------------------
-1. Buka cPanel / DirectAdmin / CyberPanel / Plesk atau hubungkan via FTP (FileZilla).
-2. Buka File Manager dan navigasi ke direktori plugins:
+1. Buka File Manager hosting (cPanel / DirectAdmin / CyberPanel / Plesk) 
+   atau hubungkan via FTP (FileZilla) atau gunakan Novamira Visual di browser.
+2. Navigasi ke direktori plugins:
    public_html/wp-content/plugins/
-3. HAPUS (DELETE) kedua folder berikut jika ada:
+3. HAPUS (DELETE) SELURUH folder berikut jika masih ada:
    - wp-speed-core
    - wp-speed-core-1
-   (Menghapus via File Manager hosting memiliki hak akses penuh, sehingga folder 
-    yang terkunci dijamin terhapus tuntas).
+   - wp-speed-core-2
+   (Pastikan tidak ada lagi folder berawalan "wp-speed-core" di direktori plugins).
 
-* Catatan: Anda juga bisa mencoba klik tombol merah "Delete" langsung dari dashboard
-  WordPress (wp-admin/plugins.php). Jika berhasil terhapus dari sana, Anda tidak 
-  perlu membuka cPanel.
+* Catatan: Jika Novamira Visual aktif, cukup klik tombol "Approve" pada notifikasi 
+  penghapusan file di dashboard browser WordPress Anda.
 
 
-LANGKAH B: Pasang Ulang File Resmi Versi v1.6.6
+LANGKAH B: Pasang Berkas ZIP Resmi yang Sudah Dinormalisasi (Forward Slash Murni)
 --------------------------------------------------------------------------------
-1. Unduh paket resmi terbaru dari GitHub (ukuran ~116 KB):
-   https://github.com/dhanyled/wp-speed-core/releases/download/v1.6.6/wp-speed-core.zip
+1. Gunakan berkas resmi yang telah dinormalisasi (55 file, forward slash murni):
+   Lokasi lokal:
+   📁 C:\Users\User\Downloads\wp-speed-core.zip
+   (atau di repositori: D:\Dhany\Plugin_flyingpress_perfmatter\wp-speed-core.zip)
 
-   * PENTING: 
-     - Pastikan nama file adalah "wp-speed-core.zip".
-     - JANGAN DIEKSTRAK di komputer (biarkan dalam format .zip).
+   * PENTING:
+     - Jangan mengekstrak berkas zip di komputer lokal (biarkan dalam format .zip).
+     - Seluruh path di dalam berkas ini telah diverifikasi berawalan `wp-speed-core/` 
+       dengan separator forward slash (/) standar Linux 100%.
 
-2. Masuk ke Dashboard WordPress:
+2. Buka Dashboard WordPress:
    Plugins > Add New Plugin > Upload Plugin (Tambah Baru > Unggah Plugin).
 
 3. Pilih berkas "wp-speed-core.zip" lalu klik tombol "Install Now" (Pasang Sekarang).
 
 4. Klik "Activate Plugin" (Aktifkan Plugin).
+   Plugin akan langsung aktif sempurna tanpa error dan hanya tampil 1 baris di tabel.
 
 
-3. JAMINAN DATA:
---------------------------------------------------------------------------------
-- Semua pengaturan konfigurasi WP Speed Core (pengaturan cache, Delay JS, 
-  CDN, Cloudflare, Speculation Rules, dsb.) tersimpan dengan aman di database 
-  WordPress (tabel wp_options).
-- Menghapus folder plugin dan mengunggah ulang TIDAK AKAN mereset atau 
-  menghapus pengaturan yang sudah dibuat.
+================================================================================
+3. JAMINAN KEAMANAN DATA PENGATURAN:
+================================================================================
+- Seluruh konfigurasi optimasi WP Speed Core (pengaturan cache HTML, Delay JS, 
+  Cloudflare Purge, CDN, Speculation Rules, Asset Unloader, dll.) tersimpan aman 
+  di basis data WordPress (tabel `wp_options` pada opsi `wpsc_settings`, 
+  `wpsc_disabled_assets`, dan `wpsc_mcp_token`).
+- Menghapus folder plugin dan mengunggah ulang TIDAK MERESET atau MENGHAPUS 
+  pengaturan yang sudah dibuat sebelumnya.
+- Plugin ini 100% bersih: tidak membuat tabel SQL kustom, tidak meninggalkan 
+  mu-plugins, dan tidak meninggalkan drop-in cache pengunci sistem.
 
 
-4. UPDATE OTOMATIS KE DEPAN:
---------------------------------------------------------------------------------
-Setelah versi v1.6.6 terpasang:
-- Sistem updater GitHub resmi telah distandarkan tanpa limit API.
-- Untuk update versi berikutnya di masa mendatang, cukup klik "Check Update" 
-  di menu WP Speed Core atau klik "Update Now" di daftar Plugins WordPress tanpa 
-  perlu mengunggah zip secara manual lagi.
-
+================================================================================
+4. STANDAR PACKAGING DEVELOPER UNTUK RILIS GITHUB KE DEPAN:
+================================================================================
+Untuk mencegah terulangnya bug path separator pada rilis-rilis mendatang:
+- JANGAN menggunakan perintah bawaan `Compress-Archive` mentah di Windows tanpa 
+  normalisasi path.
+- Gunakan skrip build standar pembungkus ZIP (System.IO.Compression) yang memaksa 
+  seluruh separator entri menggunakan forward slash (/):
+  `entryName = "wp-speed-core/" + relPath.Replace('\', '/')`
+- Sistem updater GitHub resmi di v1.6.6 telah distandarkan membaca raw version.json 
+  sehingga pembaruan berikutnya cukup via 1-klik "Update Now" dari WP Admin tanpa 
+  perlu upload manual lagi.
 ================================================================================

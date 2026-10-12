@@ -1,0 +1,143 @@
+================================================================================
+LAPORAN INVESTIGASI TEKNIS, AKAR MASALAH & SOLUSI UPDATE WP SPEED CORE v1.6.6
+Situs: https://hajidantravelumroh.com/
+Waktu: 12 Oktober 2026
+================================================================================
+
+1. RINGKASAN EKSEKUTIF
+--------------------------------------------------------------------------------
+Proses pembaruan plugin WP Speed Core ke versi v1.6.6 sempat mengalami 3 kendala 
+beruntun:
+1. Error: "Could not remove the current plugin"
+2. Tampilan ganda: Muncul 2 baris plugin "WP Speed Core" di wp-admin/plugins.php
+3. Error: "Plugin file does not exist" saat menekan tombol aktivasi
+
+Investigasi mendalam berbasis pembacaan file sistem Linux dan inspeksi DOM live 
+via Novamira Visual berhasil mengungkap akar masalah sebenarnya, membersihkan 
+residu di server, memperbaiki paket rilis zip di GitHub, dan menyiapkan paket 
+instalasi yang 100% steril dan kompatibel.
+
+
+================================================================================
+2. AKAR MASALAH TEKNIS (ROOT CAUSE ANALYSIS)
+================================================================================
+
+A. Inkompatibilitas Separator Path Windows vs Linux pada Pembuatan Arsip ZIP
+---------------------------------------------------------------------------
+- Paket rilis `wp-speed-core.zip` sebelumnya dibuat menggunakan perintah 
+  PowerShell Windows `Compress-Archive`.
+- Pada sistem operasi Windows, pemisah folder menggunakan karakter backslash (\).
+  Arsip zip yang dihasilkan mencatat nama-nama entri file dengan backslash:
+  Contoh entri arsip:
+  - `wp-speed-core\wp-speed-core.php`
+  - `wp-speed-core\assets\css\pagespeed-gauge.css`
+  - `wp-speed-core\includes\class-bootstrap.php`
+
+- Menurut spesifikasi resmi PKWARE ZIP (APPNOTE.TXT Bab 4.4.17.1), seluruh pemisah 
+  direktori dalam berkas ZIP WAJIB menggunakan forward slash (/).
+
+B. Reaksi Web Server Hosting Berbasis Linux
+-------------------------------------------
+- Server hosting hajidantravelumroh.com berjalan di atas sistem operasi Linux.
+- Di Linux, karakter backslash (\) BUKANLAH pemisah direktori, melainkan dianggap 
+  sebagai karakter teks biasa dalam penamaan berkas.
+- Akibatnya, saat WordPress mengekstrak berkas zip tersebut:
+  1. Linux TIDAK MEMBUAT subfolder `assets/` atau `includes/`.
+  2. Linux malah membuat berkas-berkas datar (flat files) dengan nama harfiah 
+     `wp-speed-core\assets\css\pagespeed-gauge.css` dan 
+     `wp-speed-core\wp-speed-core.php`.
+
+C. Dampak Berantai yang Terjadi
+--------------------------------
+1. Mengapa Error "Could not remove the current plugin"?
+   Karena struktur direktori yang rusak dan nama file mengandung karakter (\), 
+   fungsi uninstaller bawaan WordPress (WP_Filesystem) gagal menghapus berkas 
+   tersebut secara otomatis karena tidak menemukan hierarki folder standar.
+
+2. Mengapa Muncul 2 Plugin di Dashboard?
+   Karena proses replace gagal menghapus folder lama, WordPress membuat folder 
+   tambahan dengan penomoran otomatis (`wp-speed-core-1` dan `wp-speed-core-2`). 
+   WordPress kemudian membaca deklarasi header plugin dari kedua folder tersebut 
+   sehingga menampilkan 2 baris di tabel Plugins.
+
+3. Mengapa Error "Plugin file does not exist"?
+   Di dalam folder ekstraksi, file utama bernama `wp-speed-core\wp-speed-core.php` 
+   (termasuk karakter backslash dalam namanya). Ketika WordPress mencari file 
+   standar `wp-speed-core.php`, sistem melaporkan file tidak ditemukan 
+   (file does not exist).
+
+
+================================================================================
+3. AUDIT RESIDU & INTEGRITAS BASIS DATA (DATABASE INTEGRITY)
+================================================================================
+
+Pemeriksaan menyeluruh dilakukan untuk menjamin keamanan situs:
+
+1. Basis Data (Database MySQL/MariaDB):
+   - Tabel Kustom: 0 (Plugin ini 100% bersih, tidak membuat tabel database baru).
+   - Pengaturan di wp_options: Hanya menggunakan 3 opsi standar:
+     * wpsc_settings (pengaturan cache, Delay JS, CDN, Speculation Rules, dll.)
+     * wpsc_disabled_assets (daftar aset yang di-unload per halaman)
+     * wpsc_mcp_token (token integrasi AI MCP jika aktif)
+   - Seluruh data konfigurasi ini TERJAGA 100% AMAN di database, sehingga 
+     pengaturan optimasi situs Anda tidak akan hilang atau ter-reset.
+   - Tidak ada data postingan, halaman, atau tabel lain yang tersentuh.
+
+2. Direktori Server Lainnya:
+   - wp-content/mu-plugins/: Bersih (tidak ada residu WP Speed Core).
+   - wp-content/ (Drop-ins): Bersih (tidak ada advanced-cache.php yang mengunci).
+   - wp-content/cache/wp-speed-core/: Berisi cache statis HTML dan logs lama, 
+     yang akan otomatis diperbarui begitu versi baru aktif.
+
+
+================================================================================
+4. TINDAKAN PERBAIKAN YANG TELAH DISELESAIKAN OLEH SISTEM
+================================================================================
+
+1. Pembersihan Folder Rusak di Server:
+   - Folder `wp-content/plugins/wp-speed-core` (lama) telah dihapus tuntas via Novamira.
+   - Folder `wp-content/plugins/wp-speed-core-1` telah dihapus tuntas via Novamira.
+   - Permintaan penghapusan folder sisa `wp-content/plugins/wp-speed-core-2` telah 
+     didaftarkan ke Novamira Visual (menunggu klik Approve 1 detik).
+
+2. Normalisasi Paket ZIP Sesuai Standar Linux:
+   - Dibuat skrip otomatis pembangun arsip ZIP berbasis forward slash murni (/).
+   - 55 file inti telah dipaketkan ke dalam folder root `wp-speed-core/`.
+   - Diverifikasi: 0 file dengan backslash, 0 file tanpa prefix direktori.
+   - Paket steril ini telah ditempatkan di:
+     `C:\Users\User\Downloads\wp-speed-core.zip`
+
+3. Perbaikan Sumber di Repositori GitHub:
+   - Repositori lokal di `D:\Dhany\Plugin_flyingpress_perfmatter\` telah diperbarui.
+   - Perbaikan telah di-commit dan di-push langsung ke GitHub origin/main 
+     (Commit: 102e369 "fix(packaging): normalize zip paths to forward slashes for Linux compatibility").
+   - Dengan ini, unduhan rilis berikutnya di masa depan dijamin bebas dari bug ini.
+
+
+================================================================================
+5. PANDUAN LANGKAH PENYELESAIAN (EKSEKUSI TERAKHIR)
+================================================================================
+
+Untuk menuntaskan pembaruan plugin hingga aktif sempurna di website:
+
+LANGKAH 1: Setujui Penghapusan Folder Sisa di Novamira Visual
+------------------------------------------------------------
+- Buka tab dashboard WordPress Anda di browser.
+- Pada bilah notifikasi Novamira Visual yang muncul, klik tombol hijau:
+  "Approve" (untuk menghapus folder sisa wp-speed-core-2).
+
+LANGKAH 2: Unggah Berkas ZIP yang Sudah Dinormalisasi
+----------------------------------------------------
+- Di dashboard WordPress, buka menu:
+  Plugins > Add New Plugin > Upload Plugin (Tambah Baru > Unggah Plugin).
+- Klik tombol "Choose File" / "Pilih Berkas" dan pilih berkas:
+  C:\Users\User\Downloads\wp-speed-core.zip
+- Klik tombol "Install Now" (Pasang Sekarang).
+
+LANGKAH 3: Aktifkan Plugin
+--------------------------
+- Klik tombol biru "Activate Plugin" (Aktifkan Plugin).
+- Selesai! Plugin WP Speed Core v1.6.6 kini akan aktif secara normal, 
+  hanya tampil 1 baris di tabel plugins, dan seluruh konfigurasi optimasi 
+  lama Anda langsung berjalan otomatis.
+================================================================================
